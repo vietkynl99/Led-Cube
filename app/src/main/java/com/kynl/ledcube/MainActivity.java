@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.kynl.ledcube.manager.ServerManager;
 
@@ -17,8 +18,7 @@ public class MainActivity extends AppCompatActivity {
     private ServerManager.ServerState serverState;
     private ServerManager.ConnectionState connectionState;
 
-    private Button pairDeviceBtn;
-    private Button checkConnectionBtn;
+    private ImageButton pairDeviceBtn, refreshBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         /* Element */
         pairDeviceBtn = findViewById(R.id.pairDeviceBtn);
-        checkConnectionBtn = findViewById(R.id.checkConnectionBtn);
+        refreshBtn = findViewById(R.id.refreshBtn);
 
         /* Pair Button */
         pairDeviceBtn.setOnClickListener(v -> {
@@ -43,8 +43,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         /* Check connection button */
-        checkConnectionBtn.setOnClickListener(v -> {
-            Log.i(TAG, "onCreate: check connection");
+        refreshBtn.setOnClickListener(v -> {
+            Log.i(TAG, "onCreate: refresh button clicked");
             ServerManager.getInstance().sendCheckConnectionRequest();
         });
 
@@ -59,9 +59,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateButtonState() {
         pairDeviceBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
-        pairDeviceBtn.setText(getResources().getString(connectionState == CONNECTION_STATE_PENDING_PAIR ?
-                R.string.pairing_device : R.string.pair_device));
-        checkConnectionBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
+//        pairDeviceBtn.setText(getResources().getString(connectionState == CONNECTION_STATE_PENDING_PAIR ?
+//                R.string.pairing_device : R.string.pair_device));
+        refreshBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
     }
 
 }

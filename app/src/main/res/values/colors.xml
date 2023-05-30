@@ -11,4 +11,8 @@
     <color name="backgroundDark">#202128</color>
     <color name="backgroundLight">#FFFFFFFF</color>
 
+    <color name="buttonBackground">#008375</color>
+    <color name="buttonBackgroundPressed">#006056</color>
+    <color name="buttonBackgroundDisabled">#2B4744</color>
+
 </resources>

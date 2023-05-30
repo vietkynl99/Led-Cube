@@ -9,19 +9,38 @@
     android:theme="@style/Theme_LedCube_Night"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/pairDeviceBtn"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:background="@drawable/rounded_rectangle_20"
-        android:text="@string/pair_device" />
+        android:orientation="horizontal"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp">
 
-    <Button
-        android:id="@+id/checkConnectionBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:background="@drawable/rounded_rectangle_20"
-        android:text="@string/check_connection" />
+        <ImageButton
+            android:id="@+id/refreshBtn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/rounded_rectangle_15"
+            android:backgroundTint="@color/selector_button_color"
+            android:contentDescription="@string/contentDescription"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/refresh_w_52" />
+
+        <ImageButton
+            android:id="@+id/pairDeviceBtn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="15dp"
+            android:background="@drawable/rounded_rectangle_15"
+            android:backgroundTint="@color/selector_button_color"
+            android:contentDescription="@string/contentDescription"
+            android:paddingStart="20dp"
+            android:paddingTop="15dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="15dp"
+            android:scaleType="fitStart"
+            app:srcCompat="@drawable/link_w_50" />
+    </LinearLayout>
+
 </LinearLayout>
