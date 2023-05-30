@@ -2,5 +2,6 @@
     <string name="app_name">Led Cube</string>
 
     <string name="pair_device">Pair to Led Cube</string>
+    <string name="pairing_device">Pairing...</string>
     <string name="check_connection">Check connection</string>
 </resources>

@@ -1,13 +1,12 @@
 package com.kynl.ledcube.model;
 
-import android.util.Log;
+import com.kynl.ledcube.common.CommonUtils;
 
-import com.kynl.ledcube.manager.ServerManager;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ServerMessage {
+
+    // Server Event
     public enum EventType {
         EVENT_NONE,
         /* Request */
