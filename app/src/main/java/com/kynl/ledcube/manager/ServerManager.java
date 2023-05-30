@@ -31,7 +31,7 @@ public class ServerManager {
     }
 
     private final String TAG = "ServerManager";
-    private final String serverAddress = "http://192.168.10.102";
+    private final String serverAddress = "http://192.168.10.101";
     private int apiKey = 0;
     private static ServerManager instance;
     private Context context;
@@ -83,7 +83,7 @@ public class ServerManager {
     }
 
     private void sendRequestToServer(ServerMessage sentData) {
-        Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
+        Log.e(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
         if (context == null) {
             Log.e(TAG, "sendRequestToServer: Context is null!");
             return;
@@ -99,7 +99,12 @@ public class ServerManager {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     Log.i(TAG, "onResponse: " + response);
-                    getResponseFromServer(false, "", new ServerMessage(response));
+                    ServerMessage message = new ServerMessage(response);
+                    if (message.isValidResponseMessage()) {
+                        getResponseFromServer(false, "", message);
+                    } else {
+                        getResponseFromServer(true, "Invalid response data.", new ServerMessage());
+                    }
                 },
                 error -> {
                     Log.e(TAG, "onErrorResponse: " + error.getMessage());
@@ -115,10 +120,11 @@ public class ServerManager {
 
     private void getResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
         if (isError) {
+            Log.e(TAG, "getResponseFromServer: get error: " + errorMessage);
             connectionState = ConnectionState.CONNECTION_STATE_NONE;
             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show();
         } else {
-            Log.i(TAG, "getResponseFromServer: type = " + receivedData.getType());
+            Log.e(TAG, "getResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
             switch (receivedData.getType()) {
                 case EVENT_RESPONSE_CHECK_CONNECTION: {
                     serverState = receivedData.getData().equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED : ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;

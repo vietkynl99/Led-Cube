@@ -4,6 +4,9 @@ import com.kynl.ledcube.common.CommonUtils;
 
 import org.json.JSONObject;
 
+import static android.provider.Settings.Global.DEVICE_NAME;
+import static com.kynl.ledcube.common.CommonUtils.SERVER_DEVICE_NAME;
+
 public class ServerMessage {
 
     // Server Event
@@ -21,51 +24,58 @@ public class ServerMessage {
         EVENT_TYPE_MAX
     }
 
+    private String name;
     private int key;
     private EventType type;
     private String data;
 
     public ServerMessage() {
+        this.name = "";
         this.key = 0;
         this.type = EventType.EVENT_NONE;
         this.data = "";
     }
 
     public ServerMessage(int key, EventType type, String data) {
+        this.name = "";
         this.key = key;
         this.type = type;
         this.data = data;
     }
 
     public ServerMessage(String jsonString) {
+        this.name = "";
+        this.key = 0;
+        this.type = EventType.EVENT_NONE;
+        this.data = "";
+
         JSONObject json;
         try {
             json = new JSONObject(jsonString);
         } catch (Exception e) {
-            this.key = 0;
-            this.type = EventType.EVENT_NONE;
-            this.data = "";
             return;
         }
-        // key
+        try {
+            this.name = json.getString("name");
+        } catch (Exception ignored) {
+        }
         try {
             this.key = json.getInt("key");
-        } catch (Exception e) {
-            this.key = 0;
+        } catch (Exception ignored) {
         }
-        // type
         try {
             int intValue = json.getInt("type");
             this.type = EventType.values()[intValue];
-        } catch (Exception e) {
-            this.type = EventType.EVENT_NONE;
+        } catch (Exception ignored) {
         }
-        // data
         try {
             this.data = json.getString("data");
-        } catch (Exception e) {
-            this.data = "";
+        } catch (Exception ignored) {
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int getKey() {
@@ -76,10 +86,6 @@ public class ServerMessage {
         return String.valueOf(key);
     }
 
-    public void setKey(int key) {
-        this.key = key;
-    }
-
     public EventType getType() {
         return type;
     }
@@ -88,15 +94,11 @@ public class ServerMessage {
         return String.valueOf(type.ordinal());
     }
 
-    public void setType(EventType type) {
-        this.type = type;
-    }
-
     public String getData() {
         return data;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public boolean isValidResponseMessage() {
+        return name.equals(SERVER_DEVICE_NAME) && type != EventType.EVENT_NONE && type != EventType.EVENT_TYPE_MAX && !data.isEmpty();
     }
 }
