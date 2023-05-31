@@ -6,4 +6,11 @@
     <string name="pair_device">Pair to Led Cube</string>
     <string name="pairing_device">Pairing...</string>
     <string name="check_connection">Check connection</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_settings">Settings</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
