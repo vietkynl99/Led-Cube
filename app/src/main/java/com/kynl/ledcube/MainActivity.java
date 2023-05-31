@@ -29,15 +29,12 @@ import static com.kynl.ledcube.manager.ServerManager.ConnectionState.CONNECTION_
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
-    private final String serverAddress = "http://192.168.10.102";
     private ServerManager.ServerState serverState;
     private ServerManager.ConnectionState connectionState;
 
-    private ImageButton pairDeviceBtn, refreshBtn;
     private FragmentManager fragmentManager;
     private Fragment homeFragment, searchFragment, settingsFragment;
     private String preFragmentClassName = "";
-    private int preFragmenId = 0;
 
 
     @Override
@@ -45,14 +42,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         /* Variable */
         serverState = ServerManager.getInstance().getServerState();
         connectionState = ServerManager.getInstance().getConnectionState();
 
         /* Element */
-        pairDeviceBtn = findViewById(R.id.pairDeviceBtn);
-        refreshBtn = findViewById(R.id.refreshBtn);
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
 
         /* Bottom navigation */
@@ -94,31 +88,18 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        /* Pair Button */
-        pairDeviceBtn.setOnClickListener(v -> {
-            Log.d(TAG, "onCreate: pair button clicked");
-//            ServerManager.getInstance().sendPairRequest();
-
-        });
-
-        /* Check connection button */
-        refreshBtn.setOnClickListener(v -> {
-            Log.i(TAG, "onCreate: refresh button clicked");
-            ServerManager.getInstance().sendCheckConnectionRequest();
-        });
-
         /* Server state changed */
         ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
             Log.i(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
             this.serverState = serverState;
             this.connectionState = connectionState;
-            updateButtonState();
+//            updateButtonState();
         });
 
         // Start Socket service
-        Log.i(TAG, "onCreate: Start service");
-        Intent intent = new Intent(this, NetworkService.class);
-        startService(intent);
+//        Log.i(TAG, "onCreate: Start service");
+//        Intent intent = new Intent(this, NetworkService.class);
+//        startService(intent);
     }
 
     @Override
@@ -147,12 +128,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateButtonState() {
-        pairDeviceBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
-//        pairDeviceBtn.setText(getResources().getString(connectionState == CONNECTION_STATE_PENDING_PAIR ?
-//                R.string.pairing_device : R.string.pair_device));
-        refreshBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
-    }
+//    private void updateButtonState() {
+//        pairDeviceBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
+////        pairDeviceBtn.setText(getResources().getString(connectionState == CONNECTION_STATE_PENDING_PAIR ?
+////                R.string.pairing_device : R.string.pair_device));
+//        refreshBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
+//    }
 
 
 }

@@ -122,7 +122,7 @@ public class NetworkDeviceDiscovery {
                 myLock.lock();
                 scannedDeviceCount++;
                 if (future.isSuccess() && !ip.equals(myIp)) {
-                    foundDeviceList.add(new NetworkDevice(ip));
+                    foundDeviceList.add(new NetworkDevice(0, "Example", ip));
                     Log.e(TAG, "Found " + address.getHostName() + ". Scanned: " + scannedDeviceCount + " found: " + foundDeviceList.size());
                 }
 

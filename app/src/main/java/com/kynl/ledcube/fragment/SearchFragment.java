@@ -3,64 +3,62 @@ package com.kynl.ledcube.fragment;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.kynl.ledcube.R;
+import com.kynl.ledcube.adapter.DeviceListAdapter;
+import com.kynl.ledcube.model.NetworkDevice;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link SearchFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class SearchFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private final String TAG = "SearchFragment";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    List<NetworkDevice> networkDeviceList;
 
     public SearchFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment SearchFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static SearchFragment newInstance(String param1, String param2) {
-        SearchFragment fragment = new SearchFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+
+
+        // menu
+        networkDeviceList = new ArrayList<>();
+        networkDeviceList.add(new NetworkDevice(0, "Device 1", "192.168.1.1"));
+        networkDeviceList.add(new NetworkDevice(0, "Device 2", "192.168.1.2"));
+        networkDeviceList.add(new NetworkDevice(0, "Device 3", "192.168.1.3"));
+        networkDeviceList.add(new NetworkDevice(0, "Device 4", "192.168.1.4"));
+
+
+//        menuRecyclerViewAdapter = new MenuRecyclerViewAdapter(menuElementIconIdList);
+//        menuRecyclerViewAdapter.setOnSubItemClickListener((position, text) -> changeFragment(position));
+//        RecyclerView menuRecyclerView = findViewById(R.id.menuRecyclerView);
+//        menuRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+//        menuRecyclerView.setAdapter(menuRecyclerViewAdapter);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_search, container, false);
+        View view = inflater.inflate(R.layout.fragment_search, container, false);
+
+
+        DeviceListAdapter deviceListAdapter = new DeviceListAdapter(networkDeviceList);
+        RecyclerView deviceListRecyclerView = view.findViewById(R.id.deviceListRecyclerView);
+        deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        deviceListRecyclerView.setAdapter(deviceListAdapter);
+
+        return view;
     }
 }
