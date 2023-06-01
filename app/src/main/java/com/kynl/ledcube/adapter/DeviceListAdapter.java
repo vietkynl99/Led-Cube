@@ -1,6 +1,7 @@
 package com.kynl.ledcube.adapter;
 
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,8 @@ import com.kynl.ledcube.model.NetworkDevice;
 import java.util.List;
 
 public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.CustomViewHolder> {
-    private final List<NetworkDevice> networkDeviceList;
+    private final String TAG = "DeviceListAdapter";
+    private List<NetworkDevice> networkDeviceList;
     private int selectedItemPosition;
 //        private OnSubItemClickListener onSubItemClickListener;
 
@@ -53,6 +55,39 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
 //        public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
 //            this.onSubItemClickListener = onSubItemClickListener;
 //        }
+
+    public List<NetworkDevice> getNetworkDeviceList() {
+        return networkDeviceList;
+    }
+
+    public void updateNewList(List<NetworkDevice> networkDeviceList) {
+        Log.e(TAG, "updateList: ");
+        this.networkDeviceList = networkDeviceList;
+        notifyDataSetChanged();
+    }
+
+    public void insertItem(NetworkDevice networkDevice) {
+        networkDeviceList.add(networkDevice);
+        notifyItemInserted(networkDeviceList.size() - 1);
+    }
+
+    public void removeItem(int position) {
+        if (position >= 0 && position < networkDeviceList.size() - 1) {
+            networkDeviceList.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public boolean isExistIp(String ip) {
+        boolean exist = false;
+        int position = -1;
+        for (position = 0; position < networkDeviceList.size(); position++) {
+            if (networkDeviceList.get(position).getIp().equals(ip)) {
+                exist = true;
+            }
+        }
+        return exist;
+    }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
         ImageView deviceImage;

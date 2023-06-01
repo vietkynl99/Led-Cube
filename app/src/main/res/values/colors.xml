@@ -8,6 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="text_smoke_color">#DADADA</color>
+
     <color name="backgroundDark">#202128</color>
     <color name="backgroundLight">#FFFFFFFF</color>
 

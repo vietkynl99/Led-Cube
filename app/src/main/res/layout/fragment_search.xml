@@ -12,6 +12,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
         android:orientation="horizontal"
         android:paddingStart="15dp"
         android:paddingEnd="15dp">
@@ -27,26 +28,22 @@
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/refresh_w_52" />
 
-        <ImageButton
-            android:id="@+id/pairDeviceBtn"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginStart="15dp"
-            android:background="@drawable/rounded_rectangle_15"
-            android:backgroundTint="@color/selector_button_color"
-            android:contentDescription="@string/contentDescription"
-            android:paddingStart="20dp"
-            android:paddingTop="15dp"
-            android:paddingEnd="20dp"
-            android:paddingBottom="15dp"
-            android:scaleType="fitStart"
-            app:srcCompat="@drawable/link_w_50" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/informationText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/last_scan"
+        android:textColor="@color/white" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/deviceListRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="15dp"
         tools:itemCount="7"
         tools:listitem="@layout/recycler_view_item" />
 

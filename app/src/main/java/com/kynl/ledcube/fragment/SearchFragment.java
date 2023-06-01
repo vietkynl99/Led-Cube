@@ -6,13 +6,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
 import com.kynl.ledcube.model.NetworkDevice;
+import com.kynl.ledcube.task.NetworkDiscoveryTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,20 +35,7 @@ public class SearchFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-        // menu
         networkDeviceList = new ArrayList<>();
-        networkDeviceList.add(new NetworkDevice(0, "Device 1", "192.168.1.1"));
-        networkDeviceList.add(new NetworkDevice(0, "Device 2", "192.168.1.2"));
-        networkDeviceList.add(new NetworkDevice(0, "Device 3", "192.168.1.3"));
-        networkDeviceList.add(new NetworkDevice(0, "Device 4", "192.168.1.4"));
-
-
-//        menuRecyclerViewAdapter = new MenuRecyclerViewAdapter(menuElementIconIdList);
-//        menuRecyclerViewAdapter.setOnSubItemClickListener((position, text) -> changeFragment(position));
-//        RecyclerView menuRecyclerView = findViewById(R.id.menuRecyclerView);
-//        menuRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-//        menuRecyclerView.setAdapter(menuRecyclerViewAdapter);
     }
 
     @Override
@@ -53,11 +44,25 @@ public class SearchFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-
-        DeviceListAdapter deviceListAdapter = new DeviceListAdapter(networkDeviceList);
+        /* Elements */
         RecyclerView deviceListRecyclerView = view.findViewById(R.id.deviceListRecyclerView);
+        ImageButton refreshBtn = view.findViewById(R.id.refreshBtn);
+        TextView informationText = view.findViewById(R.id.informationText);
+
+        /* Recycler view */
+        DeviceListAdapter deviceListAdapter = new DeviceListAdapter(networkDeviceList);
         deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         deviceListRecyclerView.setAdapter(deviceListAdapter);
+
+        /* Refresh button */
+        refreshBtn.setOnClickListener(v -> {
+            Log.e(TAG, "onCreateView: Refresh button clicked");
+            NetworkDiscoveryTask networkDiscoveryTask = new NetworkDiscoveryTask(getContext(), deviceListAdapter, informationText);
+            networkDiscoveryTask.execute();
+        });
+
+        /* Information text */
+        informationText.setText("Last scan: ");
 
         return view;
     }

@@ -15,23 +15,11 @@ public class NetworkDevice {
         return type;
     }
 
-    public void setType(int type) {
-        this.type = type;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getIp() {
         return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
     }
 }

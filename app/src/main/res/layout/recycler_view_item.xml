@@ -39,7 +39,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:text="IP address"
-        android:textColor="@color/white" />
+        android:textColor="@color/text_smoke_color" />
   </LinearLayout>
 
   <ImageButton
