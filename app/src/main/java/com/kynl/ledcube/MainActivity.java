@@ -1,31 +1,20 @@
 package com.kynl.ledcube;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ImageButton;
-import android.widget.TextView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
 import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
 import com.kynl.ledcube.fragment.SettingsFragment;
 import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.service.NetworkService;
-
-import static com.kynl.ledcube.manager.ServerManager.ConnectionState.CONNECTION_STATE_NONE;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
@@ -134,6 +123,5 @@ public class MainActivity extends AppCompatActivity {
 ////                R.string.pairing_device : R.string.pair_device));
 //        refreshBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
 //    }
-
 
 }

@@ -16,6 +16,8 @@ import android.widget.TextView;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
 import com.kynl.ledcube.model.NetworkDevice;
+import com.kynl.ledcube.nettool.Device;
+import com.kynl.ledcube.nettool.SubnetDevices;
 import com.kynl.ledcube.task.NetworkDiscoveryTask;
 
 import java.util.ArrayList;
@@ -57,13 +59,36 @@ public class SearchFragment extends Fragment {
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> {
             Log.e(TAG, "onCreateView: Refresh button clicked");
-            NetworkDiscoveryTask networkDiscoveryTask = new NetworkDiscoveryTask(getContext(), deviceListAdapter, informationText);
-            networkDiscoveryTask.execute();
+//            NetworkDiscoveryTask networkDiscoveryTask = new NetworkDiscoveryTask(getContext(), deviceListAdapter, informationText);
+//            networkDiscoveryTask.execute();
+
+            findSubnetDevices();
         });
 
         /* Information text */
         informationText.setText("Last scan: ");
 
         return view;
+    }
+
+
+    private void findSubnetDevices() {
+        Log.e(TAG, "findSubnetDevices: ");
+        final long startTimeMillis = System.currentTimeMillis();
+        SubnetDevices subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
+            @Override
+            public void onDeviceFound(Device device) {
+                Log.e(TAG, "onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
+            }
+            @Override
+            public void onFinished(ArrayList<Device> devicesFound) {
+                float timeTaken = (System.currentTimeMillis() - startTimeMillis) / 1000.0f;
+                Log.e(TAG, "onFinished: Found " + devicesFound.size());
+            }
+        });
+
+        // Below is example of how to cancel a running scan
+        // subnetDevices.cancel();
+
     }
 }
