@@ -25,12 +25,9 @@ public class Device implements Serializable {
 
     @Override
     public String toString() {
-        return "Device{" +
-                "ip='" + ip + '\'' +
+        return "Device{ip='" + ip + '\'' +
                 ", hostname='" + hostname + '\'' +
-                ", mac='" + mac + '\'' +
-                ", time=" + time +
-                '}';
+                ", mac='" + mac + '\'' + '}';
     }
 
     public String getIp() {

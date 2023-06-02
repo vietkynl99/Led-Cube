@@ -33,7 +33,8 @@ import java.util.ArrayList;
 public class SearchFragment extends Fragment {
 
     private final String TAG = "SearchFragment";
-    DeviceListAdapter deviceListAdapter;
+    private DeviceListAdapter deviceListAdapter;
+    private ImageButton refreshBtn;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -63,6 +64,7 @@ public class SearchFragment extends Fragment {
                         if (activity != null) {
                             activity.runOnUiThread(() -> {
                                 deviceListAdapter.syncList(devicesList);
+                                setRefreshButtonEnable(true);
                             });
                         }
                         break;
@@ -94,7 +96,7 @@ public class SearchFragment extends Fragment {
 
         /* Elements */
         RecyclerView deviceListRecyclerView = view.findViewById(R.id.deviceListRecyclerView);
-        ImageButton refreshBtn = view.findViewById(R.id.refreshBtn);
+        refreshBtn = view.findViewById(R.id.refreshBtn);
         TextView informationText = view.findViewById(R.id.informationText);
 
         /* Recycler view */
@@ -104,8 +106,7 @@ public class SearchFragment extends Fragment {
 
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> {
-            Log.e(TAG, "onCreateView: Refresh button clicked");
-            sendBroadcastRequestFindSubnetDevice();
+            refreshDeviceList();
         });
 
         /* Information text */
@@ -118,6 +119,18 @@ public class SearchFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         unRegisterBroadcast();
+    }
+
+    private void refreshDeviceList() {
+        Log.d(TAG, "refreshDeviceList: ");
+        setRefreshButtonEnable(false);
+        sendBroadcastRequestFindSubnetDevice();
+    }
+
+    private void setRefreshButtonEnable(boolean enable) {
+        if (refreshBtn != null) {
+            refreshBtn.setEnabled(enable);
+        }
     }
 
     private void registerBroadcast() {

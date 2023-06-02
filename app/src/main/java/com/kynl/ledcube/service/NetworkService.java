@@ -118,13 +118,13 @@ public class NetworkService extends Service {
         ServerManager.getInstance().setOnSubnetDeviceFoundListener(new SubnetDevices.OnSubnetDeviceFound() {
             @Override
             public void onDeviceFound(Device device) {
-                Log.e(TAG, "findSubnetDevices onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
+                Log.d(TAG, "onDeviceFound: " + device.toString());
                 sendBroadcastAddSubnetDevice(device);
             }
 
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
-                Log.e(TAG, "findSubnetDevices onFinished: Found " + devicesFound.size());
+                Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 networkServiceState = NetworkServiceState.STATE_NONE;
                 sendBroadcastFinishFindSubnetDevices(devicesFound);
                 if (autoDetect) {
