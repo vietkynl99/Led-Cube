@@ -1,8 +1,18 @@
 package com.kynl.ledcube.fragment;
 
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FIND_SUBNET_DEVICE_FINISH;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,8 +36,28 @@ import java.util.List;
 public class SearchFragment extends Fragment {
 
     private final String TAG = "SearchFragment";
-
     List<NetworkDevice> networkDeviceList;
+
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String event = intent.getStringExtra("event");
+//            Log.i(TAG, "onReceive: Get boardcast event: " + event);
+            if (event != null) {
+                switch (event) {
+                    case BROADCAST_SERVICE_ADD_SUBNET_DEVICE: {
+                        break;
+                    }
+                    case BROADCAST_SERVICE_FIND_SUBNET_DEVICE_FINISH: {
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
+    };
+
 
     public SearchFragment() {
         // Required empty public constructor
@@ -38,6 +68,7 @@ public class SearchFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         networkDeviceList = new ArrayList<>();
+        registerBroadcast();
     }
 
     @Override
@@ -59,10 +90,7 @@ public class SearchFragment extends Fragment {
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> {
             Log.e(TAG, "onCreateView: Refresh button clicked");
-//            NetworkDiscoveryTask networkDiscoveryTask = new NetworkDiscoveryTask(getContext(), deviceListAdapter, informationText);
-//            networkDiscoveryTask.execute();
-
-//            findSubnetDevices();
+            sendBroadcastRequestFindSubnetDevice();
         });
 
         /* Information text */
@@ -71,21 +99,33 @@ public class SearchFragment extends Fragment {
         return view;
     }
 
-//
-//    private void findSubnetDevices() {
-//        Log.e(TAG, "findSubnetDevices: ");
-//        SubnetDevices subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
-//            @Override
-//            public void onDeviceFound(Device device) {
-//                Log.e(TAG, "onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
-//            }
-//            @Override
-//            public void onFinished(ArrayList<Device> devicesFound) {
-//                Log.e(TAG, "onFinished: Found " + devicesFound.size());
-//            }
-//        });
-//
-//        // Below is example of how to cancel a running scan
-//        // subnetDevices.cancel();
-//    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unRegisterBroadcast();
+    }
+
+    private void registerBroadcast() {
+        // Register broadcast
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
+                new IntentFilter(BROADCAST_ACTION));
+    }
+
+    private void unRegisterBroadcast() {
+        try {
+            getContext().unregisterReceiver(mBroadcastReceiver);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void sendBroadcastMessage(Intent intent) {
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+    }
+
+    private void sendBroadcastRequestFindSubnetDevice() {
+        Log.d(TAG, "sendBroadcastRequestFindSubnetDevice: ");
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_REQUEST_FIND_SUBNET_DEVICE);
+        sendBroadcastMessage(intent);
+    }
 }
