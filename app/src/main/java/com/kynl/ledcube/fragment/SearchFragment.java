@@ -62,7 +62,7 @@ public class SearchFragment extends Fragment {
 //            NetworkDiscoveryTask networkDiscoveryTask = new NetworkDiscoveryTask(getContext(), deviceListAdapter, informationText);
 //            networkDiscoveryTask.execute();
 
-            findSubnetDevices();
+//            findSubnetDevices();
         });
 
         /* Information text */
@@ -71,24 +71,21 @@ public class SearchFragment extends Fragment {
         return view;
     }
 
-
-    private void findSubnetDevices() {
-        Log.e(TAG, "findSubnetDevices: ");
-        final long startTimeMillis = System.currentTimeMillis();
-        SubnetDevices subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
-            @Override
-            public void onDeviceFound(Device device) {
-                Log.e(TAG, "onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
-            }
-            @Override
-            public void onFinished(ArrayList<Device> devicesFound) {
-                float timeTaken = (System.currentTimeMillis() - startTimeMillis) / 1000.0f;
-                Log.e(TAG, "onFinished: Found " + devicesFound.size());
-            }
-        });
-
-        // Below is example of how to cancel a running scan
-        // subnetDevices.cancel();
-
-    }
+//
+//    private void findSubnetDevices() {
+//        Log.e(TAG, "findSubnetDevices: ");
+//        SubnetDevices subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
+//            @Override
+//            public void onDeviceFound(Device device) {
+//                Log.e(TAG, "onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
+//            }
+//            @Override
+//            public void onFinished(ArrayList<Device> devicesFound) {
+//                Log.e(TAG, "onFinished: Found " + devicesFound.size());
+//            }
+//        });
+//
+//        // Below is example of how to cancel a running scan
+//        // subnetDevices.cancel();
+//    }
 }

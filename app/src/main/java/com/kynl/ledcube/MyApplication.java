@@ -13,7 +13,5 @@ public class MyApplication extends Application {
         super.onCreate();
         Log.d(TAG, "onCreate: ");
 
-        /* ServerManager */
-        ServerManager.getInstance().init(getApplicationContext());
     }
 }

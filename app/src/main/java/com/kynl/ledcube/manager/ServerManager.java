@@ -3,6 +3,7 @@ package com.kynl.ledcube.manager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,10 +13,20 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
+import com.kynl.ledcube.nettool.Device;
+import com.kynl.ledcube.nettool.Ping;
+import com.kynl.ledcube.nettool.PingResult;
+import com.kynl.ledcube.nettool.PingStats;
+import com.kynl.ledcube.nettool.SubnetDevices;
 
+import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
+
+import java.net.UnknownHostException;
+import java.nio.channels.ClosedByInterruptException;
+import java.util.ArrayList;
 
 public class ServerManager {
     public enum ServerState {
@@ -31,7 +42,7 @@ public class ServerManager {
     }
 
     private final String TAG = "ServerManager";
-    private final String serverAddress = "http://192.168.10.101";
+    private String ipAddress, macAddress;
     private int apiKey = 0;
     private static ServerManager instance;
     private Context context;
@@ -39,6 +50,9 @@ public class ServerManager {
     private ServerState serverState;
     private ConnectionState connectionState;
     private OnServerStatusChangedListener onServerStatusChangedListener;
+    SubnetDevices subnetDevices;
+    private SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener;
+    private boolean isFindingSubnetDevices;
 
     private ServerManager() {
     }
@@ -60,6 +74,26 @@ public class ServerManager {
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
         connectionState = ConnectionState.CONNECTION_STATE_NONE;
         onServerStatusChangedListener = null;
+        ipAddress = "";
+        macAddress = "";
+        subnetDevices = null;
+        isFindingSubnetDevices = false;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = HTTP_FORMAT + ipAddress;
+    }
+
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
     }
 
     public ServerState getServerState() {
@@ -88,6 +122,11 @@ public class ServerManager {
             Log.e(TAG, "sendRequestToServer: Context is null!");
             return;
         }
+        if (ipAddress.isEmpty()) {
+            Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
+            return;
+        }
+        String serverAddress = HTTP_FORMAT + ipAddress;
         String url = Uri.parse(serverAddress)
                 .buildUpon()
                 .appendQueryParameter("key", sentData.getKeyAsString())
@@ -131,7 +170,7 @@ public class ServerManager {
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                         Log.e(TAG, "getResponseFromServer: The device has been paired.");
                         Toast.makeText(context, "The device has been paired.", Toast.LENGTH_SHORT).show();
-                    } else if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
+                    } else {
                         Log.e(TAG, "getResponseFromServer: The connection is successful, but the device is not paired.");
                         Toast.makeText(context, "The connection is successful, but the device is not paired.", Toast.LENGTH_SHORT).show();
                     }
@@ -195,4 +234,90 @@ public class ServerManager {
 
         Log.e(TAG, "readOldSetting: apiKey = " + apiKey);
     }
+
+
+    /* Scan device in network */
+    public void setOnSubnetDeviceFoundListener(SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener) {
+        this.onSubnetDeviceFoundListener = onSubnetDeviceFoundListener;
+    }
+
+    public void findSubnetDevices() {
+        if (onSubnetDeviceFoundListener == null) {
+            Log.e(TAG, "findSubnetDevices: Error! Listener is null");
+            return;
+        }
+        Log.e(TAG, "findSubnetDevices: Started!");
+        subnetDevices = SubnetDevices.fromLocalAddress().findDevices(onSubnetDeviceFoundListener);
+//        subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
+//            @Override
+//            public void onDeviceFound(Device device) {
+//                Log.e(TAG, "onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
+//            }
+//
+//            @Override
+//            public void onFinished(ArrayList<Device> devicesFound) {
+//                Log.e(TAG, "onFinished: Found " + devicesFound.size());
+//            }
+//        });
+    }
+
+    public void cancelFindSubnetDevices() {
+        if (subnetDevices != null) {
+            if (isFindingSubnetDevices) {
+                Log.i(TAG, "stopFindSubnetDevices: Canceled!");
+                subnetDevices.cancel();
+            }
+        }
+    }
+
+
+    public void doPing(String ipAddress) {
+
+        if (ipAddress.isEmpty()) {
+            return;
+        }
+
+
+        // Perform a single synchronous ping
+        PingResult pingResult = null;
+        try {
+            pingResult = Ping.onAddress(ipAddress).setTimeOutMillis(1000).doPing();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
+
+
+//        appendResultsText("Pinging Address: " + pingResult.getAddress().getHostAddress());
+//        appendResultsText("HostName: " + pingResult.getAddress().getHostName());
+//        appendResultsText(String.format("%.2f ms", pingResult.getTimeTaken()));
+
+
+        // Perform an asynchronous ping
+        Ping.onAddress(ipAddress).setTimeOutMillis(1000).setTimes(5).doPing(new Ping.PingListener() {
+            @Override
+            public void onResult(PingResult pingResult) {
+//                if (pingResult.isReachable) {
+//                    appendResultsText(String.format("%.2f ms", pingResult.getTimeTaken()));
+//                } else {
+//                    appendResultsText(getString(R.string.timeout));
+//                }
+            }
+
+            @Override
+            public void onFinished(PingStats pingStats) {
+//                appendResultsText(String.format("Pings: %d, Packets lost: %d",
+//                        pingStats.getNoPings(), pingStats.getPacketsLost()));
+//                appendResultsText(String.format("Min/Avg/Max Time: %.2f/%.2f/%.2f ms",
+//                        pingStats.getMinTimeTaken(), pingStats.getAverageTimeTaken(), pingStats.getMaxTimeTaken()));
+            }
+
+            @Override
+            public void onError(Exception e) {
+                // TODO: STUB METHOD
+            }
+        });
+
+    }
+
 }

@@ -17,5 +17,7 @@ public class CommonUtils {
     // Server device name
     public static final String SERVER_DEVICE_NAME = "ledCube";
 
+    public static final String HTTP_FORMAT = "http://";
+
 }
 

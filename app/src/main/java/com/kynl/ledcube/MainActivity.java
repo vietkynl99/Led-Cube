@@ -77,18 +77,18 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        /* Server state changed */
-        ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
-            Log.i(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
-            this.serverState = serverState;
-            this.connectionState = connectionState;
-//            updateButtonState();
-        });
+//        /* Server state changed */
+//        ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
+//            Log.i(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
+//            this.serverState = serverState;
+//            this.connectionState = connectionState;
+////            updateButtonState();
+//        });
 
         // Start Socket service
-//        Log.i(TAG, "onCreate: Start service");
-//        Intent intent = new Intent(this, NetworkService.class);
-//        startService(intent);
+        Log.i(TAG, "onCreate: Start service");
+        Intent intent = new Intent(this, NetworkService.class);
+        startService(intent);
     }
 
     @Override

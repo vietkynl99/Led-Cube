@@ -22,5 +22,21 @@ public class Device {
                 ", time=" + time +
                 '}';
     }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public float getTime() {
+        return time;
+    }
 }
 
