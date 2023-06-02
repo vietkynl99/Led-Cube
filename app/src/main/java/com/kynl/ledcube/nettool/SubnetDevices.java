@@ -1,6 +1,8 @@
 package com.kynl.ledcube.nettool;
 
 
+import com.kynl.ledcube.model.Device;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;

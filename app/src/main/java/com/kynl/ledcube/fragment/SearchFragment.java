@@ -3,8 +3,9 @@ package com.kynl.ledcube.fragment;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FIND_SUBNET_DEVICE_FINISH;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,30 +26,45 @@ import android.widget.TextView;
 
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
-import com.kynl.ledcube.model.NetworkDevice;
-import com.kynl.ledcube.nettool.Device;
-import com.kynl.ledcube.nettool.SubnetDevices;
-import com.kynl.ledcube.task.NetworkDiscoveryTask;
+import com.kynl.ledcube.model.Device;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SearchFragment extends Fragment {
 
     private final String TAG = "SearchFragment";
-    List<NetworkDevice> networkDeviceList;
+    DeviceListAdapter deviceListAdapter;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String event = intent.getStringExtra("event");
-//            Log.i(TAG, "onReceive: Get boardcast event: " + event);
+//            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
                     case BROADCAST_SERVICE_ADD_SUBNET_DEVICE: {
+                        if (deviceListAdapter != null) {
+                            String ip = intent.getStringExtra("ip");
+                            String mac = intent.getStringExtra("mac");
+                            if (!ip.isEmpty() && !mac.isEmpty()) {
+                                Activity activity = getActivity();
+                                if (activity != null) {
+                                    activity.runOnUiThread(() -> {
+                                        deviceListAdapter.insertNonExistMacAddress(new Device(ip, mac));
+                                    });
+                                }
+                            }
+                        }
                         break;
                     }
-                    case BROADCAST_SERVICE_FIND_SUBNET_DEVICE_FINISH: {
+                    case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
+                        ArrayList<Device> devicesList = (ArrayList<Device>) intent.getSerializableExtra("devicesList");
+                        Activity activity = getActivity();
+                        if (activity != null) {
+                            activity.runOnUiThread(() -> {
+                                deviceListAdapter.syncList(devicesList);
+                            });
+                        }
                         break;
                     }
                     default:
@@ -67,7 +83,6 @@ public class SearchFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        networkDeviceList = new ArrayList<>();
         registerBroadcast();
     }
 
@@ -83,7 +98,7 @@ public class SearchFragment extends Fragment {
         TextView informationText = view.findViewById(R.id.informationText);
 
         /* Recycler view */
-        DeviceListAdapter deviceListAdapter = new DeviceListAdapter(networkDeviceList);
+        deviceListAdapter = new DeviceListAdapter();
         deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         deviceListRecyclerView.setAdapter(deviceListAdapter);
 
@@ -107,19 +122,31 @@ public class SearchFragment extends Fragment {
 
     private void registerBroadcast() {
         // Register broadcast
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
-                new IntentFilter(BROADCAST_ACTION));
+        Context context = getContext();
+        if (context != null) {
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
+                    new IntentFilter(BROADCAST_ACTION));
+        } else {
+            Log.e(TAG, "registerBroadcast: Context is null");
+        }
     }
 
     private void unRegisterBroadcast() {
-        try {
-            getContext().unregisterReceiver(mBroadcastReceiver);
-        } catch (Exception ignored) {
+        Context context = getContext();
+        if (context != null) {
+            context.unregisterReceiver(mBroadcastReceiver);
+        } else {
+            Log.e(TAG, "unRegisterBroadcast: Context is null");
         }
     }
 
     private void sendBroadcastMessage(Intent intent) {
-        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        Context context = getContext();
+        if (context != null) {
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        } else {
+            Log.e(TAG, "sendBroadcastMessage: Context is null");
+        }
     }
 
     private void sendBroadcastRequestFindSubnetDevice() {

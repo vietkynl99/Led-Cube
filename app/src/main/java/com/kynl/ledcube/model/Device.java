@@ -1,16 +1,26 @@
-package com.kynl.ledcube.nettool;
+package com.kynl.ledcube.model;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 
-public class Device {
+public class Device implements Serializable {
     public String ip;
     public String hostname;
     public String mac;
-    public float time = 0;
+    public float time;
 
     public Device(InetAddress ip) {
         this.ip = ip.getHostAddress();
         this.hostname = ip.getCanonicalHostName();
+        this.mac = "";
+        this.time = 0;
+    }
+
+    public Device(String ip, String mac) {
+        this.ip = ip;
+        this.mac = mac;
+        this.hostname = "";
+        this.time = 0;
     }
 
     @Override

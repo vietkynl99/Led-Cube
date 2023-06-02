@@ -3,7 +3,6 @@ package com.kynl.ledcube.manager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,7 +12,6 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
-import com.kynl.ledcube.nettool.Device;
 import com.kynl.ledcube.nettool.Ping;
 import com.kynl.ledcube.nettool.PingResult;
 import com.kynl.ledcube.nettool.PingStats;
@@ -25,8 +23,6 @@ import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
 
 import java.net.UnknownHostException;
-import java.nio.channels.ClosedByInterruptException;
-import java.util.ArrayList;
 
 public class ServerManager {
     public enum ServerState {
@@ -163,22 +159,22 @@ public class ServerManager {
             connectionState = ConnectionState.CONNECTION_STATE_NONE;
             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show();
         } else {
-            Log.e(TAG, "getResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
+            Log.i(TAG, "getResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
             switch (receivedData.getType()) {
                 case EVENT_RESPONSE_CHECK_CONNECTION: {
                     serverState = receivedData.getData().equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED : ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
-                        Log.e(TAG, "getResponseFromServer: The device has been paired.");
+                        Log.i(TAG, "getResponseFromServer: The device has been paired.");
                         Toast.makeText(context, "The device has been paired.", Toast.LENGTH_SHORT).show();
                     } else {
-                        Log.e(TAG, "getResponseFromServer: The connection is successful, but the device is not paired.");
+                        Log.i(TAG, "getResponseFromServer: The connection is successful, but the device is not paired.");
                         Toast.makeText(context, "The connection is successful, but the device is not paired.", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_PAIRED: {
                     serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                    Log.e(TAG, "getResponseFromServer: The device has been paired.");
+                    Log.i(TAG, "getResponseFromServer: The device has been paired.");
                     Toast.makeText(context, "The device has been paired.", Toast.LENGTH_SHORT).show();
                     break;
                 }
@@ -246,7 +242,7 @@ public class ServerManager {
             Log.e(TAG, "findSubnetDevices: Error! Listener is null");
             return;
         }
-        Log.e(TAG, "findSubnetDevices: Started!");
+        Log.d(TAG, "findSubnetDevices: Started!");
         subnetDevices = SubnetDevices.fromLocalAddress().findDevices(onSubnetDeviceFoundListener);
 //        subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
 //            @Override

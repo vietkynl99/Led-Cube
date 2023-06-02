@@ -1,9 +1,10 @@
 package com.kynl.ledcube.service;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FIND_SUBNET_DEVICE_FINISH;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.manager.ServerManager.ConnectionState.CONNECTION_STATE_NONE;
 import static com.kynl.ledcube.manager.ServerManager.ServerState.SERVER_STATE_DISCONNECTED;
@@ -21,7 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.kynl.ledcube.manager.ServerManager;
-import com.kynl.ledcube.nettool.Device;
+import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
 import java.util.ArrayList;
@@ -30,8 +31,6 @@ public class NetworkService extends Service {
     private final String TAG = "NetworkService";
     private final int RETRY_ON_STARTUP_MAX = 3;
     private String savedIpAddress, savedMacAddress;
-    private ServerManager.ServerState serverState;
-    private ServerManager.ConnectionState connectionState;
     private NetworkServiceState networkServiceState;
     private int retryCount;
     private boolean autoDetect;
@@ -46,12 +45,16 @@ public class NetworkService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             String event = intent.getStringExtra("event");
-//            Log.i(TAG, "onReceive: Get boardcast event: " + event);
+//            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
-                    case BROADCAST_REQUEST_FIND_SUBNET_DEVICE:
+                    case BROADCAST_REQUEST_FIND_SUBNET_DEVICE: {
                         findSubnetDevicesList();
                         break;
+                    }
+                    case BROADCAST_REQUEST_CONNECT_DEVICE: {
+//                        tryToConnectDevice();
+                    }
                     default:
                         break;
                 }
@@ -67,17 +70,13 @@ public class NetworkService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        Log.e(TAG, "onCreate: create service");
+        Log.i(TAG, "onCreate: create service");
 
         savedIpAddress = "";
         savedMacAddress = "";
-        serverState = ServerManager.getInstance().getServerState();
-        connectionState = ServerManager.getInstance().getConnectionState();
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
         autoDetect = true;
-
-//        saveSharedPreferences();
 
         readSharedPreferences();
 
@@ -87,44 +86,29 @@ public class NetworkService extends Service {
         /* Server status changed */
         ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
             Log.i(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "] networkServiceState[" + networkServiceState + "]");
-            this.serverState = serverState;
-            this.connectionState = connectionState;
             // Sent request is done
             if (connectionState == CONNECTION_STATE_NONE) {
-                switch (networkServiceState) {
-                    case STATE_TRY_TO_CONNECT_DEVICE: {
-                        if (serverState == SERVER_STATE_DISCONNECTED) {
-                            // Cannot connect to server
-                            retryCount++;
-                            if (retryCount >= RETRY_ON_STARTUP_MAX) {
-                                Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Stop retry");
-                                networkServiceState = NetworkServiceState.STATE_NONE;
-                            } else {
-                                Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Continue retry");
-                                ServerManager.getInstance().sendCheckConnectionRequest();
-                            }
-                        } else {
-                            // Able to connect to server
+                if (networkServiceState == NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
+                    if (serverState == SERVER_STATE_DISCONNECTED) {
+                        // Cannot connect to server
+                        retryCount++;
+                        if (retryCount >= RETRY_ON_STARTUP_MAX) {
+                            Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Stop retry");
                             networkServiceState = NetworkServiceState.STATE_NONE;
-                            String ipAddress = ServerManager.getInstance().getIpAddress();
-                            String macAddress = ServerManager.getInstance().getMacAddress();
-                            if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
-                                savedIpAddress = ipAddress;
-                                savedMacAddress = macAddress;
-                                saveSharedPreferences();
-                            }
+                        } else {
+                            Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Continue retry");
+                            ServerManager.getInstance().sendCheckConnectionRequest();
                         }
-                        break;
-                    }
-//                    case STATE_FIND_SUBNET_DEVICES: {
-//                        break;
-//                    }
-//                    case STATE_NONE: {
-//                        break;
-//                    }
-                    default: {
-                        Log.e(TAG, "Server status changed: Unhandled event networkServiceState=" + networkServiceState);
-                        break;
+                    } else {
+                        // Able to connect to server
+                        networkServiceState = NetworkServiceState.STATE_NONE;
+                        String ipAddress = ServerManager.getInstance().getIpAddress();
+                        String macAddress = ServerManager.getInstance().getMacAddress();
+                        if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
+                            savedIpAddress = ipAddress;
+                            savedMacAddress = macAddress;
+                            saveSharedPreferences();
+                        }
                     }
                 }
             }
@@ -141,7 +125,8 @@ public class NetworkService extends Service {
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
                 Log.e(TAG, "findSubnetDevices onFinished: Found " + devicesFound.size());
-                sendBroadcastAddSubnetDeviceList(devicesFound);
+                networkServiceState = NetworkServiceState.STATE_NONE;
+                sendBroadcastFinishFindSubnetDevices(devicesFound);
                 if (autoDetect) {
                     autoDetectDeviceInSubnetList(devicesFound);
                 }
@@ -196,20 +181,23 @@ public class NetworkService extends Service {
         sendBroadcastMessage(intent);
     }
 
-    private void sendBroadcastAddSubnetDeviceList(ArrayList<Device> devices) {
+    private void sendBroadcastFinishFindSubnetDevices(ArrayList<Device> devicesList) {
         Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_FIND_SUBNET_DEVICE_FINISH);
-//        intent.putExtra("ip", device.getIp());
-//        intent.putExtra("mac", device.getMac());
+        intent.putExtra("event", BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE);
+        intent.putExtra("devicesList", removeInvalidDevices(devicesList));
         sendBroadcastMessage(intent);
     }
 
     private void tryToConnectDevice(String ipAddress, String macAddress) {
-        Log.d(TAG, "tryToConnectDevice: ");
         if (ipAddress.isEmpty()) {
             Log.e(TAG, "tryToConnectDevice: IP is empty");
             return;
         }
+        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+            Log.e(TAG, "tryToConnectDevice: Network Service is busy. Please try again. State:" + networkServiceState);
+            return;
+        }
+        Log.d(TAG, "tryToConnectDevice: ");
         retryCount = 0;
         networkServiceState = NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE;
         ServerManager.getInstance().setIpAddress(savedIpAddress);
@@ -220,6 +208,10 @@ public class NetworkService extends Service {
     }
 
     private void autoDetectDeviceInSubnetList(ArrayList<Device> devices) {
+        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+            Log.e(TAG, "autoDetectDeviceInSubnetList: Network Service is busy. Please try again. State:" + networkServiceState);
+            return;
+        }
         Log.d(TAG, "autoDetectDeviceInSubnetList: ");
         boolean hasMacAddressInList = false;
         Device sameMacAddressDevice = null;
@@ -235,16 +227,31 @@ public class NetworkService extends Service {
         if (hasMacAddressInList && sameMacAddressDevice != null) {
             tryToConnectDevice(sameMacAddressDevice.getIp(), sameMacAddressDevice.getMac());
         } else {
-            Log.e(TAG, "autoDetectDeviceInSubnetList: Cannot find device which has same MAC address in list");
+            Log.i(TAG, "autoDetectDeviceInSubnetList: Cannot find device which has same MAC address in list");
         }
     }
 
     private void findSubnetDevicesList() {
+        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+            Log.e(TAG, "findSubnetDevicesList: Network Service is busy. Please try again. State:" + networkServiceState);
+            return;
+        }
         Log.d(TAG, "findSubnetDevicesList: ");
         networkServiceState = NetworkServiceState.STATE_FIND_SUBNET_DEVICES;
         ServerManager.getInstance().setIpAddress("");
         ServerManager.getInstance().setMacAddress("");
         ServerManager.getInstance().findSubnetDevices();
+    }
+
+    private ArrayList<Device> removeInvalidDevices(ArrayList<Device> devices) {
+        for (int i = devices.size() - 1; i >= 0; i--) {
+            Device device = devices.get(i);
+            if (device.getIp().isEmpty() || device.getMac().isEmpty()) {
+                Log.d(TAG, "removeInvalidDevices: Remove IP " + device.getIp());
+                devices.remove(i);
+            }
+        }
+        return devices;
     }
 
     private void saveSharedPreferences() {
