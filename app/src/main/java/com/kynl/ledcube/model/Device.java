@@ -1,5 +1,7 @@
 package com.kynl.ledcube.model;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 import java.net.InetAddress;
 
@@ -23,11 +25,16 @@ public class Device implements Serializable {
         this.time = 0;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Device{ip='" + ip + '\'' +
                 ", hostname='" + hostname + '\'' +
                 ", mac='" + mac + '\'' + '}';
+    }
+
+    public boolean isValid() {
+        return ip != null && mac != null && !ip.isEmpty() && !mac.isEmpty() && !ip.endsWith(".1");
     }
 
     public String getIp() {

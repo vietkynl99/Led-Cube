@@ -118,12 +118,15 @@ public class NetworkService extends Service {
         ServerManager.getInstance().setOnSubnetDeviceFoundListener(new SubnetDevices.OnSubnetDeviceFound() {
             @Override
             public void onDeviceFound(Device device) {
-                Log.d(TAG, "onDeviceFound: " + device.toString());
-                sendBroadcastAddSubnetDevice(device);
+                if (device.isValid()) {
+                    Log.d(TAG, "onDeviceFound: " + device.toString());
+                    sendBroadcastAddSubnetDevice(device);
+                }
             }
 
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
+                devicesFound = removeInvalidDevices(devicesFound);
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 networkServiceState = NetworkServiceState.STATE_NONE;
                 sendBroadcastFinishFindSubnetDevices(devicesFound);
@@ -184,7 +187,7 @@ public class NetworkService extends Service {
     private void sendBroadcastFinishFindSubnetDevices(ArrayList<Device> devicesList) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE);
-        intent.putExtra("devicesList", removeInvalidDevices(devicesList));
+        intent.putExtra("devicesList", devicesList);
         sendBroadcastMessage(intent);
     }
 
@@ -245,9 +248,7 @@ public class NetworkService extends Service {
 
     private ArrayList<Device> removeInvalidDevices(ArrayList<Device> devices) {
         for (int i = devices.size() - 1; i >= 0; i--) {
-            Device device = devices.get(i);
-            if (device.getIp().isEmpty() || device.getMac().isEmpty()) {
-                Log.d(TAG, "removeInvalidDevices: Remove IP " + device.getIp());
+            if (!devices.get(i).isValid()) {
                 devices.remove(i);
             }
         }

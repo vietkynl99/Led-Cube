@@ -75,7 +75,12 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         // avoid changing the order in the old list (user experience)
         lock.lock();
         Log.e(TAG, "syncList: ");
-        ArrayList<Boolean> checkList = new ArrayList<>(Collections.nCopies(deviceList.size(), false));
+        ArrayList<Boolean> checkList;
+        if (deviceList.size() > 0) {
+            checkList = new ArrayList<>(Collections.nCopies(deviceList.size(), false));
+        } else {
+            checkList = new ArrayList<>();
+        }
         for (int i = 0; i < newDeviceList.size(); i++) {
             Device newDevice = newDeviceList.get(i);
             if (isExistItem(newDevice)) {
