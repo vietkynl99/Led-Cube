@@ -106,7 +106,7 @@ public class NetworkService extends Service {
 
         /* Server status changed */
         ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
-            Log.i(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "] networkServiceState[" + networkServiceState + "]");
+            Log.e(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
             // Sent request is done
             if (connectionState == CONNECTION_STATE_NONE) {
                 if (networkServiceState == NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
@@ -236,6 +236,7 @@ public class NetworkService extends Service {
     private void setNetworkServiceState(NetworkServiceState networkServiceState) {
         if (this.networkServiceState != networkServiceState) {
             this.networkServiceState = networkServiceState;
+            Log.e(TAG, "Service state changed: " + networkServiceState);
             sendBroadcastServiceStateChanged();
         }
     }

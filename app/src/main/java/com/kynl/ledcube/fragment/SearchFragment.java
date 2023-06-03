@@ -34,6 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
+import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.service.NetworkService;
 
@@ -70,21 +71,37 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
-                        Activity activity = getActivity();
-                        if (activity != null) {
-                            activity.runOnUiThread(() -> {
-                                updateLastScanList();
-                                setRefreshButtonEnable(true);
-                            });
-                        }
+//                        Activity activity = getActivity();
+//                        if (activity != null) {
+//                            activity.runOnUiThread(() -> {
+//                                updateLastScanList();
+//                                setRefreshButtonEnable(true);
+//                            });
+//                        }
                         break;
                     }
                     case BROADCAST_SERVICE_STATE_CHANGED:
                     case BROADCAST_SERVICE_UPDATE_STATUS: {
                         NetworkService.NetworkServiceState networkServiceState = (NetworkService.NetworkServiceState) intent.getSerializableExtra("serviceState");
-                        setRefreshButtonEnable(networkServiceState == NetworkService.NetworkServiceState.STATE_NONE);
-                        if (networkServiceState == NetworkService.NetworkServiceState.STATE_FIND_SUBNET_DEVICES) {
-                            setInformationText("Scanning...");
+                        switch (networkServiceState) {
+                            case STATE_NONE: {
+                                setRefreshButtonEnable(true);
+                                updateLastScanList();
+                                break;
+                            }
+                            case STATE_TRY_TO_CONNECT_DEVICE: {
+                                setRefreshButtonEnable(false);
+                                setInformationText("Connecting to " + ServerManager.getInstance().getIpAddress() + "...");
+                                break;
+                            }
+                            case STATE_FIND_SUBNET_DEVICES: {
+                                setRefreshButtonEnable(false);
+                                setInformationText("Scanning...");
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
                         }
                         break;
                     }
