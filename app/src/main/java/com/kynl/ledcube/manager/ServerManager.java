@@ -77,10 +77,12 @@ public class ServerManager {
     }
 
     public void setIpAddress(String ipAddress) {
-        this.ipAddress = HTTP_FORMAT + ipAddress;
+        Log.d(TAG, "setIpAddress: " + ipAddress);
+        this.ipAddress = ipAddress;
     }
 
     public void setMacAddress(String macAddress) {
+        Log.d(TAG, "setMacAddress: " + macAddress);
         this.macAddress = macAddress;
     }
 
@@ -143,7 +145,7 @@ public class ServerManager {
                 },
                 error -> {
                     Log.e(TAG, "onErrorResponse: " + error.getMessage());
-                    String errorMessage = error.getMessage() != null ? error.getMessage() : "Error while sending request to server!";
+                    String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
                     getResponseFromServer(true, errorMessage, new ServerMessage());
                 });
 
@@ -156,7 +158,7 @@ public class ServerManager {
     private void getResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
         if (isError) {
             Log.e(TAG, "getResponseFromServer: get error: " + errorMessage);
-            connectionState = ConnectionState.CONNECTION_STATE_NONE;
+            serverState = ServerState.SERVER_STATE_DISCONNECTED;
             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show();
         } else {
             Log.i(TAG, "getResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
@@ -203,9 +205,8 @@ public class ServerManager {
                     break;
                 }
             }
-
-            connectionState = ConnectionState.CONNECTION_STATE_NONE;
         }
+        connectionState = ConnectionState.CONNECTION_STATE_NONE;
 
         notifyServerStatusChanged();
     }
