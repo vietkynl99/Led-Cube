@@ -86,7 +86,11 @@ public class SearchFragment extends Fragment {
                         switch (networkServiceState) {
                             case STATE_NONE: {
                                 setRefreshButtonEnable(true);
-                                updateLastScanList();
+                                if (event.equals(BROADCAST_SERVICE_UPDATE_STATUS)) {
+                                    updateLastScanList();
+                                } else {
+                                    setInformationText("Last scan: " + lastScanTime);
+                                }
                                 break;
                             }
                             case STATE_TRY_TO_CONNECT_DEVICE: {
