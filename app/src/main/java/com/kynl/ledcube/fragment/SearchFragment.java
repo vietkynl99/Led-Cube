@@ -3,9 +3,13 @@ package com.kynl.ledcube.fragment;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
+import static com.kynl.ledcube.service.NetworkService.NetworkServiceState.STATE_NONE;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -32,6 +36,7 @@ import com.google.gson.reflect.TypeToken;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
 import com.kynl.ledcube.model.Device;
+import com.kynl.ledcube.service.NetworkService;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -77,6 +82,15 @@ public class SearchFragment extends Fragment {
                         }
                         break;
                     }
+                    case BROADCAST_SERVICE_STATE_CHANGED:
+                    case BROADCAST_SERVICE_UPDATE_STATUS: {
+                        NetworkService.NetworkServiceState networkServiceState = (NetworkService.NetworkServiceState) intent.getSerializableExtra("serviceState");
+                        setRefreshButtonEnable(networkServiceState == NetworkService.NetworkServiceState.STATE_NONE);
+                        if (networkServiceState == NetworkService.NetworkServiceState.STATE_FIND_SUBNET_DEVICES) {
+                            setInformationText("Scanning...");
+                        }
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -118,18 +132,27 @@ public class SearchFragment extends Fragment {
             refreshDeviceList();
         });
 
-        /* Broad cast */
-        registerBroadcast();
-
 //        updateLastScanList();
 
         return view;
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        registerBroadcast();
+        sendBroadcastRequestUpdateStatus();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        unRegisterBroadcast();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-        unRegisterBroadcast();
     }
 
     private void updateLastScanList() {
@@ -226,6 +249,13 @@ public class SearchFragment extends Fragment {
         intent.putExtra("event", BROADCAST_REQUEST_CONNECT_DEVICE);
         intent.putExtra("ip", ip);
         intent.putExtra("mac", mac);
+        sendBroadcastMessage(intent);
+    }
+
+    private void sendBroadcastRequestUpdateStatus() {
+        Log.e(TAG, "sendBroadcastRequestUpdateStatus: ");
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_REQUEST_UPDATE_STATUS);
         sendBroadcastMessage(intent);
     }
 }
