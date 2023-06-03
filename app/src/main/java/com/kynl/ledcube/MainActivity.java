@@ -3,6 +3,7 @@ package com.kynl.ledcube;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,11 +21,8 @@ public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
     private ServerManager.ServerState serverState;
     private ServerManager.ConnectionState connectionState;
-
-    private FragmentManager fragmentManager;
+    FragmentTransaction fragmentTransaction;
     private Fragment homeFragment, searchFragment, settingsFragment;
-    private String preFragmentClassName = "";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,14 +36,10 @@ public class MainActivity extends AppCompatActivity {
         /* Element */
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
 
-        /* Bottom navigation */
-        // fragmentManager
-        fragmentManager = getSupportFragmentManager();
-        homeFragment = new HomeFragment();
-        searchFragment = new SearchFragment();
-        settingsFragment = new SettingsFragment();
+        /* Fragment */
+        fragmentTransactionInit();
 
-        changeFragment(homeFragment);
+        /* Bottom navigation */
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             int itemIndex = -1; // Khởi tạo giá trị mặc định cho itemIndex là -1
@@ -77,14 +71,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-//        /* Server state changed */
-//        ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
-//            Log.i(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
-//            this.serverState = serverState;
-//            this.connectionState = connectionState;
-////            updateButtonState();
-//        });
-
         // Start Socket service
         Log.i(TAG, "onCreate: Start service");
         Intent intent = new Intent(this, NetworkService.class);
@@ -101,19 +87,46 @@ public class MainActivity extends AppCompatActivity {
         stopService(intent);
     }
 
+    private void fragmentTransactionInit() {
+        homeFragment = new HomeFragment();
+        searchFragment = new SearchFragment();
+        settingsFragment = new SettingsFragment();
+
+        fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.fragment_content, homeFragment);
+        fragmentTransaction.add(R.id.fragment_content, searchFragment);
+        fragmentTransaction.add(R.id.fragment_content, settingsFragment);
+
+        // Show default fragment
+        fragmentTransaction.hide(searchFragment);
+        fragmentTransaction.hide(settingsFragment);
+        fragmentTransaction.show(homeFragment);
+
+        fragmentTransaction.commit();
+    }
+
     private void changeFragment(Fragment fragment) {
         if (fragment == null) {
             Log.e(TAG, "changeFragment: Fragment is null");
             return;
         }
-        String fragmentClassName = fragment.getClass().getName();
-        if (!fragmentClassName.equals(preFragmentClassName)) {
-            try {
-                fragmentManager.beginTransaction().replace(R.id.fragment_content, fragment).commit();
-                preFragmentClassName = fragmentClassName;
-            } catch (Exception e) {
-                e.printStackTrace();
+        if (!fragment.isVisible()) {
+            fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            if (homeFragment.isVisible()) {
+                fragmentTransaction.hide(homeFragment);
+                homeFragment.onPause();
             }
+            if (searchFragment.isVisible()) {
+                fragmentTransaction.hide(searchFragment);
+                searchFragment.onPause();
+            }
+            if (settingsFragment.isVisible()) {
+                fragmentTransaction.hide(settingsFragment);
+                settingsFragment.onPause();
+            }
+            fragmentTransaction.show(fragment);
+            fragment.onResume();
+            fragmentTransaction.commit();
         }
     }
 
