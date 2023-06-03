@@ -51,7 +51,6 @@ public class SubnetDevices {
 
     /**
      * @param inetAddress - an ip address in the subnet
-     *
      * @return - this for chaining
      */
     public static SubnetDevices fromIPAddress(InetAddress inetAddress) {
@@ -61,7 +60,6 @@ public class SubnetDevices {
     /**
      * @param ipAddress - the ipAddress string of any device in the subnet i.e. "192.168.0.1"
      *                  the final part will be ignored
-     *
      * @return - this for chaining
      */
     public static SubnetDevices fromIPAddress(final String ipAddress) {
@@ -77,7 +75,7 @@ public class SubnetDevices {
         subnetDevice.addresses = new ArrayList<>();
 
         // Get addresses from ARP Info first as they are likely to be reachable
-        for(String ip : ARPInfo.getAllIPAddressesInARPCache()) {
+        for (String ip : ARPInfo.getAllIPAddressesInARPCache()) {
             if (ip.startsWith(segment)) {
                 subnetDevice.addresses.add(ip);
             }
@@ -97,7 +95,6 @@ public class SubnetDevices {
 
     /**
      * @param ipAddresses - the ipAddresses of devices to be checked
-     *
      * @return - this for chaining
      */
     public static SubnetDevices fromIPList(final List<String> ipAddresses) {
@@ -115,10 +112,8 @@ public class SubnetDevices {
     /**
      * @param noThreads set the number of threads to work with, note we default to a large number
      *                  as these requests are network heavy not cpu heavy.
-     *
-     * @throws IllegalArgumentException - if invalid number of threads requested
-     *
      * @return - this for chaining
+     * @throws IllegalArgumentException - if invalid number of threads requested
      */
     public SubnetDevices setNoThreads(int noThreads) throws IllegalArgumentException {
         if (noThreads < 1) throw new IllegalArgumentException("Cannot have less than 1 thread");
@@ -130,9 +125,7 @@ public class SubnetDevices {
      * Sets the timeout for each address we try to ping
      *
      * @param timeOutMillis - timeout in milliseconds for each ping
-     *
      * @return this object to allow chaining
-     *
      * @throws IllegalArgumentException - if timeout is less than zero
      */
     public SubnetDevices setTimeOutMillis(int timeOutMillis) throws IllegalArgumentException {
@@ -142,7 +135,6 @@ public class SubnetDevices {
     }
 
     /**
-     *
      * @param disable if set to true we will not attempt to read from /proc/net/arp
      *                directly. This avoids any Android 10 permissions logs appearing.
      */
@@ -242,7 +234,7 @@ public class SubnetDevices {
                         device.mac = ipMacHashMap.get(ia.getHostAddress());
                     }
 
-                    device.time = pingResult.timeTaken;
+                    device.ping = Math.round(pingResult.timeTaken);
                     subnetDeviceFound(device);
                 }
             } catch (UnknownHostException e) {
