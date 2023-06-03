@@ -302,7 +302,7 @@ public class NetworkService extends Service {
 
     private String getCurrentTimeString() {
         Date now = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.US);
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm dd/MM", Locale.US);
         return formatter.format(now);
     }
 

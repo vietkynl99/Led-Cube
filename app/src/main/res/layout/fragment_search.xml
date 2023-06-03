@@ -4,25 +4,71 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/backgroundColor"
     android:orientation="vertical"
     tools:context=".fragment.SearchFragment">
 
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/refreshBtn2"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:background="@drawable/transparent_rectangle"
+            android:contentDescription="@string/contentDescription"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/back_50" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:text="@string/header_search"
+            android:textAlignment="textStart"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <ImageButton
+            android:id="@+id/refreshBtn3"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:background="@drawable/transparent_rectangle"
+            android:contentDescription="@string/contentDescription"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ellipsis_50" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:orientation="horizontal"
-        android:paddingStart="15dp"
-        android:paddingEnd="15dp">
+        android:layout_marginTop="15dp">
+
+        <TextView
+            android:id="@+id/informationText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="15dp"
+            android:layout_weight="1"
+            android:text="@string/demo_last_scan"
+            android:textColor="@color/white" />
 
         <ImageButton
             android:id="@+id/refreshBtn"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:background="@drawable/rounded_rectangle_15"
-            android:backgroundTint="@color/selector_button_color"
+            android:background="@drawable/transparent_rectangle"
             android:contentDescription="@string/contentDescription"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -30,20 +76,13 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/informationText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="15dp"
-        android:text="@string/last_scan"
-        android:textColor="@color/white" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/deviceListRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="15dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:background="@drawable/rounded_rectangle_15"
+        android:backgroundTint="#865E575E"
         tools:itemCount="7"
         tools:listitem="@layout/recycler_view_item" />
 

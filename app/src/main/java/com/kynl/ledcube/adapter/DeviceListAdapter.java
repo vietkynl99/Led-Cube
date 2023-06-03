@@ -126,7 +126,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
-            LinearLayout mainItemView = itemView.findViewById(R.id.mainItemView);
+            ViewGroup mainItemView = itemView.findViewById(R.id.mainItemView);
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
 

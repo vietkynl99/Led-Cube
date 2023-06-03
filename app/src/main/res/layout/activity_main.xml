@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/backgroundColor"
+    android:background="@drawable/background"
     android:orientation="vertical"
     android:theme="@style/Theme_LedCube_Night"
     tools:context=".MainActivity">

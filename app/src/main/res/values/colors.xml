@@ -10,11 +10,27 @@
 
     <color name="text_smoke_color">#DADADA</color>
 
-    <color name="backgroundDark">#202128</color>
+    <!--    <color name="backgroundDark">#202128</color>-->
+    <color name="backgroundDark">#19191B</color>
+    <color name="OnBackgroundDark">#383839</color>
     <color name="backgroundLight">#FFFFFFFF</color>
 
     <color name="buttonBackground">#008375</color>
     <color name="buttonBackgroundPressed">#006056</color>
     <color name="buttonBackgroundDisabled">#2B4744</color>
 
+    <color name="item_background">#85333333</color>
+
+
+
+
+
+
+    <color name="_bg___1_color">#19191B</color>
+    <color name="ellipse_1_color">#FE53BB</color>
+    <color name="ellipse_2_color">#09FBD3</color>
+    <color name="border_color">#ffffff</color>
+    <color name="capacity_color">#FFFFFF</color>
+    <color name="ellipse_213_color">#08F7FE</color>
+    <color name="ellipse_217_color">#C4C4C4</color>
 </resources>
