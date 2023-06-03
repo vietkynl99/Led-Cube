@@ -77,12 +77,10 @@ public class ServerManager {
     }
 
     public void setIpAddress(String ipAddress) {
-        Log.d(TAG, "setIpAddress: " + ipAddress);
         this.ipAddress = ipAddress;
     }
 
     public void setMacAddress(String macAddress) {
-        Log.d(TAG, "setMacAddress: " + macAddress);
         this.macAddress = macAddress;
     }
 

@@ -2,7 +2,6 @@ package com.kynl.ledcube;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
@@ -14,14 +13,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
 import com.kynl.ledcube.fragment.SettingsFragment;
-import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.service.NetworkService;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
-    private ServerManager.ServerState serverState;
-    private ServerManager.ConnectionState connectionState;
-    FragmentTransaction fragmentTransaction;
     private Fragment homeFragment, searchFragment, settingsFragment;
 
     @Override
@@ -30,8 +25,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /* Variable */
-        serverState = ServerManager.getInstance().getServerState();
-        connectionState = ServerManager.getInstance().getConnectionState();
 
         /* Element */
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
@@ -42,11 +35,11 @@ public class MainActivity extends AppCompatActivity {
         /* Bottom navigation */
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            int itemIndex = -1; // Khởi tạo giá trị mặc định cho itemIndex là -1
+            int itemIndex = -1;
             Menu menu = bottomNavigationView.getMenu();
             for (int i = 0; i < menu.size(); i++) {
                 if (menu.getItem(i).getItemId() == itemId) {
-                    itemIndex = i; // Lưu lại index của item được chọn
+                    itemIndex = i;
                     break;
                 }
             }
@@ -92,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         searchFragment = new SearchFragment();
         settingsFragment = new SettingsFragment();
 
-        fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.fragment_content, homeFragment);
         fragmentTransaction.add(R.id.fragment_content, searchFragment);
         fragmentTransaction.add(R.id.fragment_content, settingsFragment);
@@ -111,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!fragment.isVisible()) {
-            fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             if (homeFragment.isVisible()) {
                 fragmentTransaction.hide(homeFragment);
                 homeFragment.onPause();
@@ -129,12 +122,5 @@ public class MainActivity extends AppCompatActivity {
             fragmentTransaction.commit();
         }
     }
-
-//    private void updateButtonState() {
-//        pairDeviceBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
-////        pairDeviceBtn.setText(getResources().getString(connectionState == CONNECTION_STATE_PENDING_PAIR ?
-////                R.string.pairing_device : R.string.pair_device));
-//        refreshBtn.setEnabled(connectionState == CONNECTION_STATE_NONE);
-//    }
 
 }
