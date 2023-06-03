@@ -235,7 +235,11 @@ public class SubnetDevices {
                     }
 
                     device.ping = Math.round(pingResult.timeTaken);
-                    subnetDeviceFound(device);
+
+                    // Check Device info is valid: Is not of hub network, not empty,...
+                    if (device.isValid()) {
+                        subnetDeviceFound(device);
+                    }
                 }
             } catch (UnknownHostException e) {
                 e.printStackTrace();

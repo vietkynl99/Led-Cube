@@ -139,15 +139,12 @@ public class NetworkService extends Service {
         ServerManager.getInstance().setOnSubnetDeviceFoundListener(new SubnetDevices.OnSubnetDeviceFound() {
             @Override
             public void onDeviceFound(Device device) {
-                if (device.isValid()) {
-                    Log.d(TAG, "onDeviceFound: " + device);
-                    sendBroadcastAddSubnetDevice(device);
-                }
+                Log.d(TAG, "onDeviceFound: " + device);
+                sendBroadcastAddSubnetDevice(device);
             }
 
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
-                removeInvalidDevices(devicesFound);
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
                 lastScanTime = getCurrentTimeString();
@@ -301,14 +298,6 @@ public class NetworkService extends Service {
         ServerManager.getInstance().setIpAddress("");
         ServerManager.getInstance().setMacAddress("");
         ServerManager.getInstance().findSubnetDevices();
-    }
-
-    private void removeInvalidDevices(ArrayList<Device> devices) {
-        for (int i = devices.size() - 1; i >= 0; i--) {
-            if (!devices.get(i).isValid()) {
-                devices.remove(i);
-            }
-        }
     }
 
     private String getCurrentTimeString() {
