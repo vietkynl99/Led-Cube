@@ -28,13 +28,18 @@ import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
     private final int RETRY_ON_STARTUP_MAX = 3;
     private final Gson gson = new Gson();
     private String savedIpAddress, savedMacAddress;
+    private String lastScanTime, lastScanDevicesList;
     private NetworkServiceState networkServiceState;
     private int retryCount;
     private boolean autoDetect;
@@ -78,11 +83,13 @@ public class NetworkService extends Service {
 
         savedIpAddress = "";
         savedMacAddress = "";
+        lastScanTime = "";
+        lastScanDevicesList = "";
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
         autoDetect = true;
 
-        readSharedPreferences();
+        readDeviceInformation();
 
         /* ServerManager */
         ServerManager.getInstance().init(getApplicationContext());
@@ -111,7 +118,7 @@ public class NetworkService extends Service {
                         if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
                             savedIpAddress = ipAddress;
                             savedMacAddress = macAddress;
-                            saveSharedPreferences();
+                            saveDeviceInformation();
                         }
                     }
                 }
@@ -133,6 +140,9 @@ public class NetworkService extends Service {
                 removeInvalidDevices(devicesFound);
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 networkServiceState = NetworkServiceState.STATE_NONE;
+                lastScanTime = getCurrentTimeString();
+                lastScanDevicesList = convertDevicesListToString(devicesFound);
+                saveLastScanInformation();
                 sendBroadcastFinishFindSubnetDevices(devicesFound);
                 if (autoDetect) {
                     autoDetectDeviceInSubnetList(devicesFound);
@@ -196,7 +206,6 @@ public class NetworkService extends Service {
     private void sendBroadcastFinishFindSubnetDevices(ArrayList<Device> devicesList) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE);
-        intent.putExtra("devicesList", convertDevicesListToString(devicesList));
         sendBroadcastMessage(intent);
     }
 
@@ -263,13 +272,19 @@ public class NetworkService extends Service {
         }
     }
 
-    private void saveSharedPreferences() {
+    private String getCurrentTimeString() {
+        Date now = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.US);
+        return formatter.format(now);
+    }
+
+    private void saveDeviceInformation() {
         if (savedIpAddress.isEmpty()) {
-            Log.e(TAG, "saveSharedPreferences: Cannot save due to empty savedIpAddress");
+            Log.e(TAG, "saveDeviceInformation: Cannot save due to empty savedIpAddress");
             return;
         }
         if (savedMacAddress.isEmpty()) {
-            Log.e(TAG, "saveSharedPreferences: Cannot save due to empty savedMacAddress");
+            Log.e(TAG, "saveDeviceInformation: Cannot save due to empty savedMacAddress");
             return;
         }
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
@@ -278,14 +293,40 @@ public class NetworkService extends Service {
         editor.putString("savedMacAddress", savedMacAddress);
         editor.apply();
 
-        Log.e(TAG, "saveSharedPreferences: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
+        Log.i(TAG, "saveDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
-    private void readSharedPreferences() {
+    private void readDeviceInformation() {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         savedIpAddress = prefs.getString("savedIpAddress", "");
         savedMacAddress = prefs.getString("savedMacAddress", "");
 
-        Log.e(TAG, "readSharedPreferences: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
+        Log.i(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
+    }
+
+    private void saveLastScanInformation() {
+        if (lastScanTime.isEmpty()) {
+            Log.e(TAG, "saveLastScanInformation: Cannot save due to empty lastScanTime");
+            return;
+        }
+        if (lastScanDevicesList.isEmpty()) {
+            Log.e(TAG, "saveLastScanInformation: Cannot save due to empty lastScanDevicesList");
+            return;
+        }
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("lastScanTime", lastScanTime);
+        editor.putString("lastScanDevicesList", lastScanDevicesList);
+        editor.apply();
+
+        Log.i(TAG, "saveLastScanInformation: lastScanTime[" + lastScanTime + "]");
+    }
+
+    private void readLastScanInformation() {
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        lastScanTime = prefs.getString("lastScanTime", "");
+        lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
+
+        Log.i(TAG, "readLastScanInformation: lastScanTime[" + lastScanTime + "] lastScanDevicesList[" + lastScanDevicesList + "]");
     }
 }

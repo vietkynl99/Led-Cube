@@ -4,12 +4,14 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -36,10 +38,11 @@ import java.util.ArrayList;
 public class SearchFragment extends Fragment {
 
     private final String TAG = "SearchFragment";
-
+    private String lastScanTime, lastScanDevicesList;
     private final Gson gson = new Gson();
     private DeviceListAdapter deviceListAdapter;
     private ImageButton refreshBtn;
+    private TextView informationText;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -64,16 +67,12 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
-                        String jsonDevicesList = intent.getStringExtra("devicesList");
-                        if (!jsonDevicesList.isEmpty()) {
-                            ArrayList<Device> devicesList = convertStringToDevicesList(jsonDevicesList);
-                            Activity activity = getActivity();
-                            if (activity != null) {
-                                activity.runOnUiThread(() -> {
-                                    deviceListAdapter.syncList(devicesList);
-                                    setRefreshButtonEnable(true);
-                                });
-                            }
+                        Activity activity = getActivity();
+                        if (activity != null) {
+                            activity.runOnUiThread(() -> {
+                                updateLastScanList();
+                                setRefreshButtonEnable(true);
+                            });
                         }
                         break;
                     }
@@ -84,12 +83,6 @@ public class SearchFragment extends Fragment {
         }
     };
 
-    private ArrayList<Device> convertStringToDevicesList(String jsonString) {
-        Type type = new TypeToken<ArrayList<Device>>() {
-        }.getType();
-        return gson.fromJson(jsonString, type);
-    }
-
     public SearchFragment() {
         // Required empty public constructor
     }
@@ -98,7 +91,8 @@ public class SearchFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        registerBroadcast();
+        lastScanTime = "";
+        lastScanDevicesList = "";
     }
 
     @Override
@@ -110,7 +104,7 @@ public class SearchFragment extends Fragment {
         /* Elements */
         RecyclerView deviceListRecyclerView = view.findViewById(R.id.deviceListRecyclerView);
         refreshBtn = view.findViewById(R.id.refreshBtn);
-        TextView informationText = view.findViewById(R.id.informationText);
+        informationText = view.findViewById(R.id.informationText);
 
         /* Recycler view */
         deviceListAdapter = new DeviceListAdapter();
@@ -125,6 +119,10 @@ public class SearchFragment extends Fragment {
         /* Information text */
         informationText.setText("Last scan: ");
 
+        registerBroadcast();
+
+        updateLastScanList();
+
         return view;
     }
 
@@ -133,6 +131,31 @@ public class SearchFragment extends Fragment {
         super.onDestroy();
         unRegisterBroadcast();
     }
+
+    private void updateLastScanList() {
+        readLastScanInformation();
+        if (!lastScanDevicesList.isEmpty() && !lastScanTime.isEmpty()) {
+            ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
+            informationText.setText("Last scan: " + lastScanTime);
+            deviceListAdapter.syncList(devicesList);
+        }
+    }
+
+    private void readLastScanInformation() {
+        SharedPreferences prefs = getContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        lastScanTime = prefs.getString("lastScanTime", "");
+        lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
+
+        Log.i(TAG, "readLastScanInformation: lastScanTime[" + lastScanTime + "]");
+    }
+
+
+    private ArrayList<Device> convertStringToDevicesList(String jsonString) {
+        Type type = new TypeToken<ArrayList<Device>>() {
+        }.getType();
+        return gson.fromJson(jsonString, type);
+    }
+
 
     private void refreshDeviceList() {
         Log.d(TAG, "refreshDeviceList: ");
