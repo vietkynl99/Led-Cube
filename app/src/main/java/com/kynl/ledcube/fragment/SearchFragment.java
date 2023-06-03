@@ -9,7 +9,6 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
-import static com.kynl.ledcube.service.NetworkService.NetworkServiceState.STATE_NONE;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -64,9 +63,7 @@ public class SearchFragment extends Fragment {
                             if (!ip.isEmpty() && !mac.isEmpty()) {
                                 Activity activity = getActivity();
                                 if (activity != null) {
-                                    activity.runOnUiThread(() -> {
-                                        deviceListAdapter.insertNonExistMacAddress(new Device(ip, mac));
-                                    });
+                                    activity.runOnUiThread(() -> deviceListAdapter.insertNonExistMacAddress(new Device(ip, mac)));
                                 }
                             }
                         }
@@ -128,9 +125,7 @@ public class SearchFragment extends Fragment {
         deviceListAdapter.setOnSubItemClickListener(this::sendBroadcastRequestConnectDevice);
 
         /* Refresh button */
-        refreshBtn.setOnClickListener(v -> {
-            refreshDeviceList();
-        });
+        refreshBtn.setOnClickListener(v -> refreshDeviceList());
 
 //        updateLastScanList();
 
