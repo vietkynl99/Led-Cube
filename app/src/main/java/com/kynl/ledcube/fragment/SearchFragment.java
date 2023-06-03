@@ -1,6 +1,7 @@
 package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
@@ -110,18 +111,17 @@ public class SearchFragment extends Fragment {
         deviceListAdapter = new DeviceListAdapter();
         deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         deviceListRecyclerView.setAdapter(deviceListAdapter);
+        deviceListAdapter.setOnSubItemClickListener(this::sendBroadcastRequestConnectDevice);
 
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> {
             refreshDeviceList();
         });
 
-        /* Information text */
-        informationText.setText("Last scan: ");
-
+        /* Broad cast */
         registerBroadcast();
 
-        updateLastScanList();
+//        updateLastScanList();
 
         return view;
     }
@@ -136,12 +136,17 @@ public class SearchFragment extends Fragment {
         readLastScanInformation();
         if (!lastScanDevicesList.isEmpty() && !lastScanTime.isEmpty()) {
             ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
-            informationText.setText("Last scan: " + lastScanTime);
+            setInformationText("Last scan: " + lastScanTime);
             deviceListAdapter.syncList(devicesList);
         }
     }
 
     private void readLastScanInformation() {
+        Context context = getContext();
+        if (context == null) {
+            Log.e(TAG, "readLastScanInformation: Context is null");
+            return;
+        }
         SharedPreferences prefs = getContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         lastScanTime = prefs.getString("lastScanTime", "");
         lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
@@ -160,6 +165,7 @@ public class SearchFragment extends Fragment {
     private void refreshDeviceList() {
         Log.d(TAG, "refreshDeviceList: ");
         setRefreshButtonEnable(false);
+        setInformationText("Scanning...");
         sendBroadcastRequestFindSubnetDevice();
     }
 
@@ -169,8 +175,13 @@ public class SearchFragment extends Fragment {
         }
     }
 
+    private void setInformationText(String text) {
+        if (informationText != null) {
+            informationText.setText(text);
+        }
+    }
+
     private void registerBroadcast() {
-        // Register broadcast
         Context context = getContext();
         if (context != null) {
             LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
@@ -183,7 +194,11 @@ public class SearchFragment extends Fragment {
     private void unRegisterBroadcast() {
         Context context = getContext();
         if (context != null) {
-            context.unregisterReceiver(mBroadcastReceiver);
+            try {
+                context.unregisterReceiver(mBroadcastReceiver);
+            } catch (Exception ignored) {
+
+            }
         } else {
             Log.e(TAG, "unRegisterBroadcast: Context is null");
         }
@@ -199,9 +214,18 @@ public class SearchFragment extends Fragment {
     }
 
     private void sendBroadcastRequestFindSubnetDevice() {
-        Log.d(TAG, "sendBroadcastRequestFindSubnetDevice: ");
+        Log.e(TAG, "sendBroadcastRequestFindSubnetDevice: ");
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_REQUEST_FIND_SUBNET_DEVICE);
+        sendBroadcastMessage(intent);
+    }
+
+    private void sendBroadcastRequestConnectDevice(String ip, String mac) {
+        Log.e(TAG, "sendBroadcastRequestConnectDevice: IP[" + ip + "] MAC[" + mac + "]");
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_REQUEST_CONNECT_DEVICE);
+        intent.putExtra("ip", ip);
+        intent.putExtra("mac", mac);
         sendBroadcastMessage(intent);
     }
 }

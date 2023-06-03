@@ -36,8 +36,8 @@ import java.util.Locale;
 
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
-    private final int RETRY_ON_STARTUP_MAX = 3;
     private final Gson gson = new Gson();
+    private int retryMax;
     private String savedIpAddress, savedMacAddress;
     private String lastScanTime, lastScanDevicesList;
     private NetworkServiceState networkServiceState;
@@ -62,7 +62,11 @@ public class NetworkService extends Service {
                         break;
                     }
                     case BROADCAST_REQUEST_CONNECT_DEVICE: {
-//                        tryToConnectDevice();
+                        String ip = intent.getStringExtra("ip");
+                        String mac = intent.getStringExtra("mac");
+                        if (!ip.isEmpty() && !mac.isEmpty()) {
+                            tryToConnectDevice(ip, mac);
+                        }
                     }
                     default:
                         break;
@@ -87,6 +91,7 @@ public class NetworkService extends Service {
         lastScanDevicesList = "";
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
+        retryMax = 1;
         autoDetect = true;
 
         readDeviceInformation();
@@ -103,7 +108,7 @@ public class NetworkService extends Service {
                     if (serverState == SERVER_STATE_DISCONNECTED) {
                         // Cannot connect to server
                         retryCount++;
-                        if (retryCount >= RETRY_ON_STARTUP_MAX) {
+                        if (retryCount >= retryMax) {
                             Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Stop retry");
                             networkServiceState = NetworkServiceState.STATE_NONE;
                         } else {
@@ -143,7 +148,7 @@ public class NetworkService extends Service {
                 lastScanTime = getCurrentTimeString();
                 lastScanDevicesList = convertDevicesListToString(devicesFound);
                 saveLastScanInformation();
-                sendBroadcastFinishFindSubnetDevices(devicesFound);
+                sendBroadcastFinishFindSubnetDevices();
                 if (autoDetect) {
                     autoDetectDeviceInSubnetList(devicesFound);
                 }
@@ -151,7 +156,7 @@ public class NetworkService extends Service {
         });
 
         if (!savedIpAddress.isEmpty()) {
-            tryToConnectDevice(savedIpAddress, savedMacAddress);
+            tryToConnectDevice(savedIpAddress, savedMacAddress, 3);
         } else {
             findSubnetDevicesList();
         }
@@ -203,13 +208,21 @@ public class NetworkService extends Service {
         sendBroadcastMessage(intent);
     }
 
-    private void sendBroadcastFinishFindSubnetDevices(ArrayList<Device> devicesList) {
+    private void sendBroadcastFinishFindSubnetDevices() {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE);
         sendBroadcastMessage(intent);
     }
 
     private void tryToConnectDevice(String ipAddress, String macAddress) {
+        connectDevice(ipAddress, macAddress, 1);
+    }
+
+    private void tryToConnectDevice(String ipAddress, String macAddress, int reTryMax) {
+        connectDevice(ipAddress, macAddress, reTryMax);
+    }
+
+    private void connectDevice(String ipAddress, String macAddress, int retryMax) {
         if (ipAddress.isEmpty()) {
             Log.e(TAG, "tryToConnectDevice: IP is empty");
             return;
@@ -220,6 +233,7 @@ public class NetworkService extends Service {
         }
         Log.d(TAG, "tryToConnectDevice: ");
         retryCount = 0;
+        this.retryMax = retryMax;
         networkServiceState = NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE;
         ServerManager.getInstance().setIpAddress(savedIpAddress);
         if (!macAddress.isEmpty()) {
@@ -320,13 +334,5 @@ public class NetworkService extends Service {
         editor.apply();
 
         Log.i(TAG, "saveLastScanInformation: lastScanTime[" + lastScanTime + "]");
-    }
-
-    private void readLastScanInformation() {
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        lastScanTime = prefs.getString("lastScanTime", "");
-        lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
-
-        Log.i(TAG, "readLastScanInformation: lastScanTime[" + lastScanTime + "] lastScanDevicesList[" + lastScanDevicesList + "]");
     }
 }

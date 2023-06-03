@@ -5,7 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.model.Device;
+import com.kynl.ledcube.myinterface.OnSubItemClickListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +25,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     private List<Device> deviceList;
     private final ReentrantLock lock = new ReentrantLock();
     private int selectedItemPosition;
-//        private OnSubItemClickListener onSubItemClickListener;
+    private OnSubItemClickListener onSubItemClickListener;
 
     public DeviceListAdapter() {
         this.deviceList = new ArrayList<>();
@@ -42,13 +43,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         Device device = deviceList.get(position);
         holder.bind(device.getIp(), device.getMac());
-//            holder.bind(menuIconList.get(position), position == selectedItemPosition);
-//            holder.menuIconLayout.setOnClickListener(v -> {
-//                // not use text
-//                if (onSubItemClickListener != null) {
-//                    onSubItemClickListener.onSubItemClick(position, "");
-//                }
-//            });
+        holder.setOnSubItemClickListener(onSubItemClickListener);
     }
 
     @Override
@@ -56,9 +51,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         return (deviceList != null) ? deviceList.size() : 0;
     }
 
-//        public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
-//            this.onSubItemClickListener = onSubItemClickListener;
-//        }
+    public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
+        this.onSubItemClickListener = onSubItemClickListener;
+    }
 
     private boolean isExistItem(Device device) {
         for (int i = 0; i < deviceList.size(); i++) {
@@ -74,7 +69,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         // synchronize the values in the list like the new list
         // avoid changing the order in the old list (user experience)
         lock.lock();
-        Log.e(TAG, "syncList: ");
+        Log.i(TAG, "syncList: ");
         ArrayList<Boolean> checkList;
         if (deviceList.size() > 0) {
             checkList = new ArrayList<>(Collections.nCopies(deviceList.size(), false));
@@ -126,20 +121,29 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
 
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        ImageView deviceImage;
-        TextView deviceMac, deviceIp;
+        private final TextView deviceMac, deviceIp;
+        private OnSubItemClickListener onSubItemClickListener;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
-            deviceImage = itemView.findViewById(R.id.deviceImage);
+            LinearLayout mainItemView = itemView.findViewById(R.id.mainItemView);
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
+
+            mainItemView.setOnClickListener(v -> {
+                if (onSubItemClickListener != null) {
+                    onSubItemClickListener.onSubItemClick((String) deviceIp.getText(), (String) deviceMac.getText());
+                }
+            });
         }
 
         public void bind(String ip, String mac) {
-//            deviceImage.setImageResource(iconId);
             deviceIp.setText(ip);
             deviceMac.setText(mac);
+        }
+
+        public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
+            this.onSubItemClickListener = onSubItemClickListener;
         }
     }
 }
