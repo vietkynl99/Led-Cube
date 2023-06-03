@@ -113,8 +113,10 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             }
         }
         if (isExist) {
-            deviceList.set(position, device);
-            notifyItemChanged(position);
+            if (!deviceList.get(position).getIp().equals(device.getIp())) {
+                deviceList.set(position, device);
+                notifyItemChanged(position);
+            }
         } else {
             deviceList.add(device);
             notifyItemInserted(deviceList.size() - 1);

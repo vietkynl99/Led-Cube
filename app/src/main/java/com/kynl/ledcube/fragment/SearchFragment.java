@@ -24,15 +24,20 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
 import com.kynl.ledcube.model.Device;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class SearchFragment extends Fragment {
 
     private final String TAG = "SearchFragment";
+
+    private final Gson gson = new Gson();
     private DeviceListAdapter deviceListAdapter;
     private ImageButton refreshBtn;
 
@@ -59,13 +64,16 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
-                        ArrayList<Device> devicesList = (ArrayList<Device>) intent.getSerializableExtra("devicesList");
-                        Activity activity = getActivity();
-                        if (activity != null) {
-                            activity.runOnUiThread(() -> {
-                                deviceListAdapter.syncList(devicesList);
-                                setRefreshButtonEnable(true);
-                            });
+                        String jsonDevicesList = intent.getStringExtra("devicesList");
+                        if (!jsonDevicesList.isEmpty()) {
+                            ArrayList<Device> devicesList = convertStringToDevicesList(jsonDevicesList);
+                            Activity activity = getActivity();
+                            if (activity != null) {
+                                activity.runOnUiThread(() -> {
+                                    deviceListAdapter.syncList(devicesList);
+                                    setRefreshButtonEnable(true);
+                                });
+                            }
                         }
                         break;
                     }
@@ -76,6 +84,11 @@ public class SearchFragment extends Fragment {
         }
     };
 
+    private ArrayList<Device> convertStringToDevicesList(String jsonString) {
+        Type type = new TypeToken<ArrayList<Device>>() {
+        }.getType();
+        return gson.fromJson(jsonString, type);
+    }
 
     public SearchFragment() {
         // Required empty public constructor

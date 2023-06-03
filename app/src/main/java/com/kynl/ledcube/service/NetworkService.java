@@ -21,15 +21,19 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
     private final int RETRY_ON_STARTUP_MAX = 3;
+    private final Gson gson = new Gson();
     private String savedIpAddress, savedMacAddress;
     private NetworkServiceState networkServiceState;
     private int retryCount;
@@ -126,7 +130,7 @@ public class NetworkService extends Service {
 
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
-                devicesFound = removeInvalidDevices(devicesFound);
+                removeInvalidDevices(devicesFound);
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 networkServiceState = NetworkServiceState.STATE_NONE;
                 sendBroadcastFinishFindSubnetDevices(devicesFound);
@@ -159,6 +163,11 @@ public class NetworkService extends Service {
         return null;
     }
 
+    private String convertDevicesListToString(ArrayList<Device> devices) {
+        return gson.toJson(devices);
+    }
+
+
     private void registerBroadcast() {
         // Register broadcast
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(mBroadcastReceiver,
@@ -187,7 +196,7 @@ public class NetworkService extends Service {
     private void sendBroadcastFinishFindSubnetDevices(ArrayList<Device> devicesList) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE);
-        intent.putExtra("devicesList", devicesList);
+        intent.putExtra("devicesList", convertDevicesListToString(devicesList));
         sendBroadcastMessage(intent);
     }
 
@@ -246,13 +255,12 @@ public class NetworkService extends Service {
         ServerManager.getInstance().findSubnetDevices();
     }
 
-    private ArrayList<Device> removeInvalidDevices(ArrayList<Device> devices) {
+    private void removeInvalidDevices(ArrayList<Device> devices) {
         for (int i = devices.size() - 1; i >= 0; i--) {
             if (!devices.get(i).isValid()) {
                 devices.remove(i);
             }
         }
-        return devices;
     }
 
     private void saveSharedPreferences() {

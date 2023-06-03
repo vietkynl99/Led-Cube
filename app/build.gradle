@@ -40,4 +40,5 @@ dependencies {
 
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'io.netty:netty-all:4.1.68.Final'
+    implementation 'com.google.code.gson:gson:2.8.8'
 }
