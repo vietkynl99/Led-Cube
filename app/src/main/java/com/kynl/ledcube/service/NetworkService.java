@@ -3,6 +3,7 @@ package com.kynl.ledcube.service;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
@@ -12,6 +13,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATU
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.manager.ServerManager.ConnectionState.CONNECTION_STATE_NONE;
+import static com.kynl.ledcube.manager.ServerManager.ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
 import static com.kynl.ledcube.manager.ServerManager.ServerState.SERVER_STATE_DISCONNECTED;
 
 import android.app.Service;
@@ -49,7 +51,8 @@ public class NetworkService extends Service {
     public enum NetworkServiceState {
         STATE_NONE,
         STATE_TRY_TO_CONNECT_DEVICE,
-        STATE_FIND_SUBNET_DEVICES
+        STATE_FIND_SUBNET_DEVICES,
+        STATE_PAIR_DEVICE
     }
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -68,6 +71,14 @@ public class NetworkService extends Service {
                         String mac = intent.getStringExtra("mac");
                         if (!ip.isEmpty() && !mac.isEmpty()) {
                             connectToDevice(ip, mac);
+                        }
+                        break;
+                    }
+                    case BROADCAST_REQUEST_PAIR_DEVICE: {
+                        String ip = intent.getStringExtra("ip");
+                        String mac = intent.getStringExtra("mac");
+                        if (!ip.isEmpty() && !mac.isEmpty()) {
+                            pairDevice(ip, mac);
                         }
                         break;
                     }
@@ -111,27 +122,43 @@ public class NetworkService extends Service {
             Log.e(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
             // Sent request is done
             if (connectionState == CONNECTION_STATE_NONE) {
-                if (networkServiceState == NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
-                    if (serverState == SERVER_STATE_DISCONNECTED) {
-                        // Cannot connect to server
-                        retryCount++;
-                        if (retryCount >= retryMax) {
-                            Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Stop retry");
-                            setNetworkServiceState(NetworkServiceState.STATE_NONE);
+                switch (networkServiceState) {
+                    case STATE_TRY_TO_CONNECT_DEVICE: {
+                        if (serverState == SERVER_STATE_DISCONNECTED) {
+                            // Cannot connect to server
+                            retryCount++;
+                            if (retryCount >= retryMax) {
+                                Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Stop retry");
+                                setNetworkServiceState(NetworkServiceState.STATE_NONE);
+                            } else {
+                                Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Continue retry");
+                                ServerManager.getInstance().sendCheckConnectionRequest();
+                            }
                         } else {
-                            Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Continue retry");
-                            ServerManager.getInstance().sendCheckConnectionRequest();
+                            // Able to connect to server
+                            String ipAddress = ServerManager.getInstance().getIpAddress();
+                            String macAddress = ServerManager.getInstance().getMacAddress();
+                            if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
+                                savedIpAddress = ipAddress;
+                                savedMacAddress = macAddress;
+                                saveDeviceInformation();
+                            }
+                            setNetworkServiceState(NetworkServiceState.STATE_NONE);
                         }
-                    } else {
-                        // Able to connect to server
-                        String ipAddress = ServerManager.getInstance().getIpAddress();
-                        String macAddress = ServerManager.getInstance().getMacAddress();
-                        if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
-                            savedIpAddress = ipAddress;
-                            savedMacAddress = macAddress;
-                            saveDeviceInformation();
+                        break;
+                    }
+                    case STATE_PAIR_DEVICE: {
+                        if (serverState == SERVER_STATE_DISCONNECTED) {
+                            Log.i(TAG, "Server status changed: Can not pair to " + ServerManager.getInstance().getIpAddress() + " " + ServerManager.getInstance().getMacAddress());
+                        } else if(serverState ==SERVER_STATE_CONNECTED_AND_PAIRED) {
+                            Log.i(TAG, "Server status changed: Pair successfully!");
                         }
                         setNetworkServiceState(NetworkServiceState.STATE_NONE);
+                        break;
+                    }
+                    default: {
+                        Log.e(TAG, "Server status changed: Unhandled event " + networkServiceState);
+                        break;
                     }
                 }
                 sendBroadcastServerStatusChanged(serverState, connectionState);
@@ -260,6 +287,23 @@ public class NetworkService extends Service {
             Log.e(TAG, "Service state changed: " + networkServiceState);
             sendBroadcastServiceStateChanged();
         }
+    }
+
+    private void pairDevice(String ipAddress, String macAddress) {
+        if (ipAddress.isEmpty()) {
+            Log.e(TAG, "requestPairDevice: IP is empty");
+            return;
+        }
+        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+            Log.e(TAG, "requestPairDevice: Network Service is busy. Please try again. State:" + networkServiceState);
+            return;
+        }
+        Log.d(TAG, "requestPairDevice: ");
+        retryCount = 0;
+        setNetworkServiceState(NetworkServiceState.STATE_PAIR_DEVICE);
+        ServerManager.getInstance().setIpAddress(ipAddress);
+        ServerManager.getInstance().setMacAddress(macAddress);
+        ServerManager.getInstance().sendPairRequest();
     }
 
     private void connectToDevice(String ipAddress, String macAddress) {

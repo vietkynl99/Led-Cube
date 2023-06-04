@@ -3,6 +3,7 @@ package com.kynl.ledcube.fragment;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
@@ -62,7 +63,7 @@ public class SearchFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             String event = intent.getStringExtra("event");
-//            Log.i(TAG, "onReceive: Get board cast event: " + event);
+            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
                     case BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS: {
@@ -86,7 +87,9 @@ public class SearchFragment extends Fragment {
                     }
                     case BROADCAST_SERVICE_SERVER_STATUS_CHANGED: {
                         ServerManager.ServerState serverState = (ServerManager.ServerState) intent.getSerializableExtra("serverState");
-                        if (serverState != ServerManager.ServerState.SERVER_STATE_DISCONNECTED) {
+                        if (serverState == ServerManager.ServerState.SERVER_STATE_DISCONNECTED) {
+                            deviceListAdapter.resetConnectingDevice();
+                        } else {
                             readSavedDeviceInformation();
                             deviceListAdapter.setConnectedDeviceMac(savedMacAddress);
                         }
@@ -162,7 +165,8 @@ public class SearchFragment extends Fragment {
                 deviceListAdapter.setConnectingDevice(mac);
                 handler.postDelayed(() -> {
                     isDebouncing = false;
-                    sendBroadcastRequestConnectDevice(ip, mac);
+//                    sendBroadcastRequestConnectDevice(ip, mac);
+                    sendBroadcastRequestPairDevice(ip, mac);
                 }, 1000);
             }
         });
@@ -299,6 +303,15 @@ public class SearchFragment extends Fragment {
         Log.e(TAG, "sendBroadcastRequestConnectDevice: IP[" + ip + "] MAC[" + mac + "]");
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_REQUEST_CONNECT_DEVICE);
+        intent.putExtra("ip", ip);
+        intent.putExtra("mac", mac);
+        sendBroadcastMessage(intent);
+    }
+
+    private void sendBroadcastRequestPairDevice(String ip, String mac) {
+        Log.e(TAG, "sendBroadcastRequestPairDevice: IP[" + ip + "] MAC[" + mac + "]");
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_REQUEST_PAIR_DEVICE);
         intent.putExtra("ip", ip);
         intent.putExtra("mac", mac);
         sendBroadcastMessage(intent);
