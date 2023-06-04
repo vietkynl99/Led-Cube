@@ -192,8 +192,8 @@ public class SubnetDevices {
                 // because of the scan.
                 ipMacHashMap = disableProcNetMethod ? ARPInfo.getAllIPandMACAddressesFromIPSleigh() : ARPInfo.getAllIPAndMACAddressesInARPCache();
                 for (Device device : devicesFound) {
-                    if (device.mac == null && ipMacHashMap.containsKey(device.ip)) {
-                        device.mac = ipMacHashMap.get(device.ip);
+                    if (device.getMac().isEmpty() && ipMacHashMap.containsKey(device.getIp())) {
+                        device.setMac(ipMacHashMap.get(device.getIp()));
                     }
                 }
 
@@ -231,10 +231,10 @@ public class SubnetDevices {
 
                     // Add the device MAC address if it is in the cache
                     if (ipMacHashMap.containsKey(ia.getHostAddress())) {
-                        device.mac = ipMacHashMap.get(ia.getHostAddress());
+                        device.setMac(ipMacHashMap.get(ia.getHostAddress()));
                     }
 
-                    device.ping = String.valueOf(Math.round(pingResult.timeTaken));
+                    device.setPing(String.valueOf(Math.round(pingResult.timeTaken)));
 
                     // Check Device info is valid: Is not of hub network, not empty,...
                     if (device.isValid()) {

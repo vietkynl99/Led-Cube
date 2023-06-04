@@ -6,9 +6,9 @@ import java.io.Serializable;
 import java.net.InetAddress;
 
 public class Device implements Serializable {
-    public String ip;
-    public String mac;
-    public String ping;
+    private String ip;
+    private String mac;
+    private String ping;
 
     public Device(InetAddress ip) {
         this.ip = ip.getHostAddress();
@@ -42,6 +42,18 @@ public class Device implements Serializable {
 
     public String getPing() {
         return ping;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
+    }
+
+    public void setPing(String ping) {
+        this.ping = ping;
     }
 }
 
