@@ -9,6 +9,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.manager.ServerManager.ConnectionState.CONNECTION_STATE_NONE;
 import static com.kynl.ledcube.manager.ServerManager.ServerState.SERVER_STATE_DISCONNECTED;
@@ -145,6 +146,11 @@ public class NetworkService extends Service {
                 sendBroadcastAddSubnetDevice(device);
             }
 
+            public void onProcessed(int processed, int total) {
+                int percent = 100 * processed / total;
+                sendBroadcastUpdateSubnetProgress(percent);
+            }
+
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
@@ -218,6 +224,13 @@ public class NetworkService extends Service {
         intent.putExtra("ip", device.getIp());
         intent.putExtra("mac", device.getMac());
         intent.putExtra("ping", device.getPing());
+        sendBroadcastMessage(intent);
+    }
+
+    private void sendBroadcastUpdateSubnetProgress(int percent) {
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS);
+        intent.putExtra("percent", percent);
         sendBroadcastMessage(intent);
     }
 

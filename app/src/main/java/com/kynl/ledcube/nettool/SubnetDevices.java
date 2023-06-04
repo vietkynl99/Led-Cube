@@ -17,6 +17,8 @@ public class SubnetDevices {
 
     private ArrayList<String> addresses;
     private ArrayList<Device> devicesFound;
+    private int processedDevice = 0;
+    private int totalDevice = 0;
     private OnSubnetDeviceFound listener;
     private int timeOutMillis = 2500;
     private boolean cancelled = false;
@@ -30,6 +32,8 @@ public class SubnetDevices {
 
     public interface OnSubnetDeviceFound {
         void onDeviceFound(Device device);
+
+        void onProcessed(int processed, int total);
 
         void onFinished(ArrayList<Device> devicesFound);
     }
@@ -161,49 +165,51 @@ public class SubnetDevices {
 
         cancelled = false;
         devicesFound = new ArrayList<>();
+        processedDevice = 0;
+        totalDevice = addresses.size();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        new Thread(() -> {
+            // Load mac addresses into cache var (to avoid hammering the /proc/net/arp file when
+            // lots of devices are found on the network.
+            ipMacHashMap = disableProcNetMethod ? ARPInfo.getAllIPandMACAddressesFromIPSleigh() : ARPInfo.getAllIPAndMACAddressesInARPCache();
 
-                // Load mac addresses into cache var (to avoid hammering the /proc/net/arp file when
-                // lots of devices are found on the network.
-                ipMacHashMap = disableProcNetMethod ? ARPInfo.getAllIPandMACAddressesFromIPSleigh() : ARPInfo.getAllIPAndMACAddressesInARPCache();
+            ExecutorService executor = Executors.newFixedThreadPool(noThreads);
 
-                ExecutorService executor = Executors.newFixedThreadPool(noThreads);
-
-                for (final String add : addresses) {
-                    Runnable worker = new SubnetDeviceFinderRunnable(add);
-                    executor.execute(worker);
-                }
-
-                // This will make the executor accept no new threads
-                // and finish all existing threads in the queue
-                executor.shutdown();
-                // Wait until all threads are finish
-                try {
-                    executor.awaitTermination(1, TimeUnit.HOURS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // Loop over devices found and add in the MAC addresses if missing.
-                // We do this after scanning for all devices as /proc/net/arp may add info
-                // because of the scan.
-                ipMacHashMap = disableProcNetMethod ? ARPInfo.getAllIPandMACAddressesFromIPSleigh() : ARPInfo.getAllIPAndMACAddressesInARPCache();
-                for (Device device : devicesFound) {
-                    if (device.getMac().isEmpty() && ipMacHashMap.containsKey(device.getIp())) {
-                        device.setMac(ipMacHashMap.get(device.getIp()));
-                    }
-                }
-
-
-                listener.onFinished(devicesFound);
-
+            for (final String add : addresses) {
+                Runnable worker = new SubnetDeviceFinderRunnable(add);
+                executor.execute(worker);
             }
+
+            // This will make the executor accept no new threads
+            // and finish all existing threads in the queue
+            executor.shutdown();
+            // Wait until all threads are finish
+            try {
+                executor.awaitTermination(1, TimeUnit.HOURS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Loop over devices found and add in the MAC addresses if missing.
+            // We do this after scanning for all devices as /proc/net/arp may add info
+            // because of the scan.
+            ipMacHashMap = disableProcNetMethod ? ARPInfo.getAllIPandMACAddressesFromIPSleigh() : ARPInfo.getAllIPAndMACAddressesInARPCache();
+            for (Device device : devicesFound) {
+                if (device.getMac().isEmpty() && ipMacHashMap.containsKey(device.getIp())) {
+                    device.setMac(ipMacHashMap.get(device.getIp()));
+                }
+            }
+
+            listener.onFinished(devicesFound);
+
         }).start();
 
         return this;
+    }
+
+    private synchronized void updateProcessedDevice() {
+        processedDevice++;
+        listener.onProcessed(processedDevice, totalDevice);
     }
 
     private synchronized void subnetDeviceFound(Device device) {
@@ -220,7 +226,6 @@ public class SubnetDevices {
 
         @Override
         public void run() {
-
             if (cancelled) return;
 
             try {
@@ -244,6 +249,8 @@ public class SubnetDevices {
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
+
+            updateProcessedDevice();
         }
     }
 

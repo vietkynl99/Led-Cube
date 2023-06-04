@@ -14,7 +14,6 @@
         android:layout_height="wrap_content">
 
         <ImageButton
-            android:id="@+id/refreshBtn2"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="center"
@@ -28,7 +27,7 @@
             android:id="@+id/textView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
+            android:layout_gravity="start|center_vertical"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_weight="1"
@@ -38,7 +37,6 @@
             android:textSize="18sp" />
 
         <ImageButton
-            android:id="@+id/refreshBtn3"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="center"
@@ -76,6 +74,12 @@
             app:srcCompat="@drawable/refresh_w_52" />
 
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/deviceListRecyclerView"

@@ -9,6 +9,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 
 import android.app.Activity;
@@ -24,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -52,6 +54,7 @@ public class SearchFragment extends Fragment {
     private DeviceListAdapter deviceListAdapter;
     private ImageButton refreshBtn;
     private TextView informationText;
+    private ProgressBar progressBar;
 
     // Debounce
     private boolean isDebouncing = false;
@@ -63,6 +66,15 @@ public class SearchFragment extends Fragment {
 //            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
+                    case BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS: {
+                        if (progressBar != null) {
+                            int percent = intent.getIntExtra("percent", -1);
+                            if (percent >= 0) {
+                                progressBar.setProgress(Math.max(percent, 10));
+                            }
+                        }
+                        break;
+                    }
                     case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
                         Activity activity = getActivity();
                         if (activity != null) {
@@ -91,6 +103,9 @@ public class SearchFragment extends Fragment {
                         if (networkServiceState == NetworkService.NetworkServiceState.STATE_NONE) {
                             setRefreshButtonEnable(true);
                             deviceListAdapter.resetConnectingDevice();
+                            if (progressBar != null) {
+                                progressBar.setProgress(0);
+                            }
                         } else {
                             setRefreshButtonEnable(false);
                         }
@@ -135,6 +150,7 @@ public class SearchFragment extends Fragment {
         RecyclerView deviceListRecyclerView = view.findViewById(R.id.deviceListRecyclerView);
         refreshBtn = view.findViewById(R.id.refreshBtn);
         informationText = view.findViewById(R.id.informationText);
+        progressBar = view.findViewById(R.id.progressBar);
 
         /* Recycler view */
         deviceListAdapter = new DeviceListAdapter();
