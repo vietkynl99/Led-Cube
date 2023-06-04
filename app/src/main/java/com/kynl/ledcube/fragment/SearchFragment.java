@@ -45,7 +45,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class SearchFragment extends Fragment {
-
     private final String TAG = "SearchFragment";
     private String savedIpAddress, savedMacAddress;
     private String lastScanTime, lastScanDevicesList;
@@ -166,8 +165,6 @@ public class SearchFragment extends Fragment {
                     sendBroadcastRequestConnectDevice(ip, mac);
                 }, 1000);
             }
-
-
         });
 
         /* Refresh button */
