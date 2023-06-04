@@ -122,7 +122,6 @@ public class NetworkService extends Service {
                         }
                     } else {
                         // Able to connect to server
-                        setNetworkServiceState(NetworkServiceState.STATE_NONE);
                         String ipAddress = ServerManager.getInstance().getIpAddress();
                         String macAddress = ServerManager.getInstance().getMacAddress();
                         if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
@@ -130,6 +129,7 @@ public class NetworkService extends Service {
                             savedMacAddress = macAddress;
                             saveDeviceInformation();
                         }
+                        setNetworkServiceState(NetworkServiceState.STATE_NONE);
                     }
                 }
             }
@@ -146,10 +146,10 @@ public class NetworkService extends Service {
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
-                setNetworkServiceState(NetworkServiceState.STATE_NONE);
                 lastScanTime = getCurrentTimeString();
                 lastScanDevicesList = convertDevicesListToString(devicesFound);
                 saveLastScanInformation();
+                setNetworkServiceState(NetworkServiceState.STATE_NONE);
                 sendBroadcastFinishFindSubnetDevices();
                 if (autoDetect) {
                     autoDetectDeviceInSubnetList(devicesFound);
