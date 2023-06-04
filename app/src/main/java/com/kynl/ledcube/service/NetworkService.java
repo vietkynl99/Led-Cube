@@ -207,6 +207,7 @@ public class NetworkService extends Service {
         intent.putExtra("event", BROADCAST_SERVICE_ADD_SUBNET_DEVICE);
         intent.putExtra("ip", device.getIp());
         intent.putExtra("mac", device.getMac());
+        intent.putExtra("ping", device.getPing());
         sendBroadcastMessage(intent);
     }
 

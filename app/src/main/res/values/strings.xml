@@ -13,8 +13,13 @@
     <string name="menu_settings">Settings</string>
 
     <string name="header_search">Search</string>
-    <string name="demo_last_scan">Last scan: 08:00 01/01/2020</string>
 
+    <string name="demo_last_scan">Last scan: 08:00 01/01/2020</string>
+    <string name="demo_IP">192.168.1.1</string>
+    <string name="demo_MAC">00:11:22:33:44:55:66</string>
+    <string name="demo_ping">1000</string>
+
+    <string name="unit_ms">ms</string>
 
 
     <!-- TODO: Remove or change this placeholder text -->

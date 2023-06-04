@@ -42,7 +42,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         Device device = deviceList.get(position);
-        holder.bind(device.getIp(), device.getMac());
+        holder.bind(device.getIp(), device.getMac(), device.getPing() + "ms");
         holder.setOnSubItemClickListener(onSubItemClickListener);
     }
 
@@ -58,7 +58,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     private boolean isExistItem(Device device) {
         for (int i = 0; i < deviceList.size(); i++) {
             if (deviceList.get(i).getMac().equals(device.getMac()) &&
-                    deviceList.get(i).getIp().equals(device.getIp())) {
+                    deviceList.get(i).getIp().equals(device.getIp()) &&
+                    deviceList.get(i).getPing().equals(device.getPing())) {
                 return true;
             }
         }
@@ -121,7 +122,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
 
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        private final TextView deviceMac, deviceIp;
+        private final TextView deviceMac, deviceIp, devicePing;
         private OnSubItemClickListener onSubItemClickListener;
 
         public CustomViewHolder(@NonNull View itemView) {
@@ -129,6 +130,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             ViewGroup mainItemView = itemView.findViewById(R.id.mainItemView);
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
+            devicePing = itemView.findViewById(R.id.devicePing);
 
             mainItemView.setOnClickListener(v -> {
                 if (onSubItemClickListener != null) {
@@ -137,9 +139,10 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             });
         }
 
-        public void bind(String ip, String mac) {
+        public void bind(String ip, String mac, String ping) {
             deviceIp.setText(ip);
             deviceMac.setText(mac);
+            devicePing.setText(ping);
         }
 
         public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {

@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="8dp"
-            android:text="Device name"
+            android:text="@string/demo_IP"
             android:textColor="@color/white"
             android:textSize="16sp" />
 
@@ -46,20 +46,21 @@
             android:layout_height="20dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:text="IP address"
+            android:text="@string/demo_MAC"
             android:textColor="@color/text_smoke_color"
             android:textSize="12sp" />
+
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/nextBtn"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:background="@drawable/transparent_rectangle"
-        android:contentDescription="@string/contentDescription"
-        android:padding="7dp"
-        android:scaleType="fitCenter"
-        app:srcCompat="@drawable/more_than_50" />
+    <TextView
+        android:id="@+id/devicePing"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/demo_ping"
+        android:textColor="@color/text_smoke_color"
+        android:textSize="12sp" />
 
 </LinearLayout>

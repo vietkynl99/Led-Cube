@@ -234,7 +234,7 @@ public class SubnetDevices {
                         device.mac = ipMacHashMap.get(ia.getHostAddress());
                     }
 
-                    device.ping = Math.round(pingResult.timeTaken);
+                    device.ping = String.valueOf(Math.round(pingResult.timeTaken));
 
                     // Check Device info is valid: Is not of hub network, not empty,...
                     if (device.isValid()) {

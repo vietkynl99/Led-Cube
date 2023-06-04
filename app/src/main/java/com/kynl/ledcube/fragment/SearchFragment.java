@@ -61,10 +61,11 @@ public class SearchFragment extends Fragment {
                         if (deviceListAdapter != null) {
                             String ip = intent.getStringExtra("ip");
                             String mac = intent.getStringExtra("mac");
+                            String ping = intent.getStringExtra("ping");
                             if (!ip.isEmpty() && !mac.isEmpty()) {
                                 Activity activity = getActivity();
                                 if (activity != null) {
-                                    activity.runOnUiThread(() -> deviceListAdapter.insertNonExistMacAddress(new Device(ip, mac)));
+                                    activity.runOnUiThread(() -> deviceListAdapter.insertNonExistMacAddress(new Device(ip, mac, ping)));
                                 }
                             }
                         }

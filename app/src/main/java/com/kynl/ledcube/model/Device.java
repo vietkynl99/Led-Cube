@@ -8,18 +8,18 @@ import java.net.InetAddress;
 public class Device implements Serializable {
     public String ip;
     public String mac;
-    public int ping;
+    public String ping;
 
     public Device(InetAddress ip) {
         this.ip = ip.getHostAddress();
         this.mac = "";
-        this.ping = 0;
+        this.ping = "";
     }
 
-    public Device(String ip, String mac) {
+    public Device(String ip, String mac, String ping) {
         this.ip = ip;
         this.mac = mac;
-        this.ping = 0;
+        this.ping = ping;
     }
 
     @NonNull
@@ -40,7 +40,7 @@ public class Device implements Serializable {
         return mac;
     }
 
-    public int getPing() {
+    public String getPing() {
         return ping;
     }
 }
