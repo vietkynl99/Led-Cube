@@ -6,6 +6,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
@@ -99,7 +100,7 @@ public class NetworkService extends Service {
         retryMax = 1;
         autoDetect = true;
 
-        readDeviceInformation();
+        readSavedDeviceInformation();
 
         /* ServerManager */
         ServerManager.getInstance().init(getApplicationContext());
@@ -132,6 +133,7 @@ public class NetworkService extends Service {
                         setNetworkServiceState(NetworkServiceState.STATE_NONE);
                     }
                 }
+                sendBroadcastServerStatusChanged(serverState, connectionState);
             }
         });
 
@@ -200,6 +202,14 @@ public class NetworkService extends Service {
 
     private void sendBroadcastMessage(Intent intent) {
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+    }
+
+    private void sendBroadcastServerStatusChanged(ServerManager.ServerState serverState, ServerManager.ConnectionState connectionState) {
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_SERVICE_SERVER_STATUS_CHANGED);
+        intent.putExtra("serverState", serverState);
+        intent.putExtra("connectionState", connectionState);
+        sendBroadcastMessage(intent);
     }
 
     private void sendBroadcastAddSubnetDevice(Device device) {
@@ -303,7 +313,7 @@ public class NetworkService extends Service {
 
     private String getCurrentTimeString() {
         Date now = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm dd/MM", Locale.US);
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM", Locale.US);
         return formatter.format(now);
     }
 
@@ -325,7 +335,7 @@ public class NetworkService extends Service {
         Log.e(TAG, "saveDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
-    private void readDeviceInformation() {
+    private void readSavedDeviceInformation() {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         savedIpAddress = prefs.getString("savedIpAddress", "");
         savedMacAddress = prefs.getString("savedMacAddress", "");

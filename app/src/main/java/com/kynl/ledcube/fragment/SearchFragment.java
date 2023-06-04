@@ -6,6 +6,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
@@ -17,18 +18,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -44,11 +45,16 @@ import java.util.ArrayList;
 public class SearchFragment extends Fragment {
 
     private final String TAG = "SearchFragment";
+    private String savedIpAddress, savedMacAddress;
     private String lastScanTime, lastScanDevicesList;
     private final Gson gson = new Gson();
+    private final Handler handler = new Handler();
     private DeviceListAdapter deviceListAdapter;
     private ImageButton refreshBtn;
     private TextView informationText;
+
+    // Debounce
+    private boolean isDebouncing = false;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -57,56 +63,43 @@ public class SearchFragment extends Fragment {
 //            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
-                    case BROADCAST_SERVICE_ADD_SUBNET_DEVICE: {
-                        if (deviceListAdapter != null) {
-                            String ip = intent.getStringExtra("ip");
-                            String mac = intent.getStringExtra("mac");
-                            String ping = intent.getStringExtra("ping");
-                            if (!ip.isEmpty() && !mac.isEmpty()) {
-                                Activity activity = getActivity();
-                                if (activity != null) {
-                                    activity.runOnUiThread(() -> deviceListAdapter.insertNonExistMacAddress(new Device(ip, mac, ping)));
-                                }
-                            }
+                    case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
+                        Activity activity = getActivity();
+                        if (activity != null) {
+                            activity.runOnUiThread(() -> {
+                                updateLastScanList();
+                                setRefreshButtonEnable(true);
+                            });
                         }
                         break;
                     }
-                    case BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE: {
-//                        Activity activity = getActivity();
-//                        if (activity != null) {
-//                            activity.runOnUiThread(() -> {
-//                                updateLastScanList();
-//                                setRefreshButtonEnable(true);
-//                            });
-//                        }
+                    case BROADCAST_SERVICE_SERVER_STATUS_CHANGED: {
+                        ServerManager.ServerState serverState = (ServerManager.ServerState) intent.getSerializableExtra("serverState");
+                        if (serverState != ServerManager.ServerState.SERVER_STATE_DISCONNECTED) {
+                            readSavedDeviceInformation();
+                            deviceListAdapter.setConnectedDeviceMac(savedMacAddress);
+                        }
+                        if (serverState == ServerManager.ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
+                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
+                        } else if (serverState == ServerManager.ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
+                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_AND_PAIRED);
+                        }
                         break;
                     }
-                    case BROADCAST_SERVICE_STATE_CHANGED:
+                    case BROADCAST_SERVICE_STATE_CHANGED: {
+                        NetworkService.NetworkServiceState networkServiceState = (NetworkService.NetworkServiceState) intent.getSerializableExtra("serviceState");
+                        if (networkServiceState == NetworkService.NetworkServiceState.STATE_NONE) {
+                            setRefreshButtonEnable(true);
+                            deviceListAdapter.resetConnectingDevice();
+                        } else {
+                            setRefreshButtonEnable(false);
+                        }
+                        break;
+                    }
                     case BROADCAST_SERVICE_UPDATE_STATUS: {
                         NetworkService.NetworkServiceState networkServiceState = (NetworkService.NetworkServiceState) intent.getSerializableExtra("serviceState");
-                        switch (networkServiceState) {
-                            case STATE_NONE: {
-                                setRefreshButtonEnable(true);
-                                if (event.equals(BROADCAST_SERVICE_UPDATE_STATUS)) {
-                                    updateLastScanList();
-                                } else {
-                                    setInformationText("Last scan: " + lastScanTime);
-                                }
-                                break;
-                            }
-                            case STATE_TRY_TO_CONNECT_DEVICE: {
-                                setRefreshButtonEnable(false);
-                                setInformationText("Connecting to " + ServerManager.getInstance().getIpAddress() + "...");
-                                break;
-                            }
-                            case STATE_FIND_SUBNET_DEVICES: {
-                                setRefreshButtonEnable(false);
-                                setInformationText("Scanning...");
-                                break;
-                            }
-                            default: {
-                                break;
-                            }
+                        if (networkServiceState == NetworkService.NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
+                            deviceListAdapter.setConnectingDevice(ServerManager.getInstance().getMacAddress());
                         }
                         break;
                     }
@@ -125,8 +118,11 @@ public class SearchFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        savedIpAddress = "";
+        savedMacAddress = "";
         lastScanTime = "";
         lastScanDevicesList = "";
+        readSavedDeviceInformation();
     }
 
     @Override
@@ -144,13 +140,25 @@ public class SearchFragment extends Fragment {
         deviceListAdapter = new DeviceListAdapter();
         deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         deviceListRecyclerView.setAdapter(deviceListAdapter);
-        deviceListAdapter.setOnSubItemClickListener(this::sendBroadcastRequestConnectDevice);
+        deviceListAdapter.setOnSubItemClickListener((ip, mac) -> {
+            // Debounce
+            if (!isDebouncing) {
+                isDebouncing = true;
+                deviceListAdapter.setConnectingDevice(mac);
+                handler.postDelayed(() -> {
+                    isDebouncing = false;
+                    sendBroadcastRequestConnectDevice(ip, mac);
+                }, 1000);
+            }
+
+
+        });
 
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> refreshDeviceList());
 
-//        updateLastScanList();
-        sendBroadcastRequestUpdateStatus();
+        updateLastScanList();
+        registerBroadcast();
 
         return view;
     }
@@ -158,7 +166,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        registerBroadcast();
+        sendBroadcastRequestUpdateStatus();
     }
 
     @Override
@@ -178,8 +186,22 @@ public class SearchFragment extends Fragment {
             ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
             setInformationText("Last scan: " + lastScanTime);
             deviceListAdapter.syncList(devicesList);
+            readSavedDeviceInformation();
+            deviceListAdapter.setConnectedDeviceMac(savedMacAddress);
         }
     }
+
+    private void readSavedDeviceInformation() {
+        Context context = getContext();
+        if (context != null) {
+            SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+            savedIpAddress = prefs.getString("savedIpAddress", "");
+            savedMacAddress = prefs.getString("savedMacAddress", "");
+        }
+
+        Log.e(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
+    }
+
 
     private void readLastScanInformation() {
         Context context = getContext();
@@ -205,7 +227,7 @@ public class SearchFragment extends Fragment {
     private void refreshDeviceList() {
         Log.d(TAG, "refreshDeviceList: ");
         setRefreshButtonEnable(false);
-        setInformationText("Scanning...");
+//        setInformationText("Scanning...");
         sendBroadcastRequestFindSubnetDevice();
     }
 

@@ -5,7 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,16 +20,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import io.netty.channel.epoll.EpollServerChannelConfig;
+
 public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.CustomViewHolder> {
     private final String TAG = "DeviceListAdapter";
-    private List<Device> deviceList;
     private final ReentrantLock lock = new ReentrantLock();
-    private int selectedItemPosition;
+    private List<Device> deviceList;
+    private String connectedDeviceMac;
+    private Device.DeviceState connectedDeviceState;
     private OnSubItemClickListener onSubItemClickListener;
 
     public DeviceListAdapter() {
         this.deviceList = new ArrayList<>();
-        selectedItemPosition = -1;
+        connectedDeviceMac = "";
+        connectedDeviceState = Device.DeviceState.STATE_NONE;
     }
 
     @NonNull
@@ -42,28 +46,76 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         Device device = deviceList.get(position);
-        holder.bind(device.getIp(), device.getMac(), device.getPing() + "ms");
+        holder.bind(device, connectedDeviceMac, connectedDeviceState);
         holder.setOnSubItemClickListener(onSubItemClickListener);
     }
 
     @Override
     public int getItemCount() {
-        return (deviceList != null) ? deviceList.size() : 0;
+        return deviceList != null ? deviceList.size() : 0;
     }
 
     public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
         this.onSubItemClickListener = onSubItemClickListener;
     }
 
+    public void setConnectedDeviceMac(String connectedDeviceMac) {
+        this.connectedDeviceMac = connectedDeviceMac;
+    }
+
+    public void setConnectedDeviceState(Device.DeviceState connectedDeviceState) {
+        this.connectedDeviceState = connectedDeviceState;
+    }
+
     private boolean isExistItem(Device device) {
         for (int i = 0; i < deviceList.size(); i++) {
-            if (deviceList.get(i).getMac().equals(device.getMac()) &&
-                    deviceList.get(i).getIp().equals(device.getIp()) &&
-                    deviceList.get(i).getPing().equals(device.getPing())) {
+            if (deviceList.get(i).equals(device)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private int findMacDevicePosition(String mac) {
+        for (int i = 0; i < deviceList.size(); i++) {
+            if (deviceList.get(i).getMac().equals(mac)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void setConnectingDevice(String mac) {
+        // find position by MAC
+        lock.lock();
+        int position = -1;
+        for (int i = 0; i < deviceList.size(); i++) {
+            if (deviceList.get(i).getMac().equals(mac)) {
+                position = i;
+            }
+            // reset old state
+            if (deviceList.get(i).getDeviceState() == Device.DeviceState.STATE_CONNECTING &&
+                    !deviceList.get(i).getMac().equals(mac)) {
+                deviceList.get(i).setDeviceState(Device.DeviceState.STATE_NONE);
+                notifyItemChanged(i);
+            }
+        }
+        if (position >= 0) {
+            deviceList.get(position).setDeviceState(Device.DeviceState.STATE_CONNECTING);
+            notifyItemChanged(position);
+        }
+        lock.unlock();
+    }
+
+    public void resetConnectingDevice() {
+        lock.lock();
+        for (int i = 0; i < deviceList.size(); i++) {
+            if (deviceList.get(i).getDeviceState() == Device.DeviceState.STATE_CONNECTING) {
+                deviceList.get(i).setDeviceState(Device.DeviceState.STATE_NONE);
+                notifyItemChanged(i);
+            }
+        }
+        lock.unlock();
     }
 
     public void syncList(List<Device> newDeviceList) {
@@ -71,58 +123,15 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         // avoid changing the order in the old list (user experience)
         lock.lock();
         Log.i(TAG, "syncList: ");
-        ArrayList<Boolean> checkList;
-        if (deviceList.size() > 0) {
-            checkList = new ArrayList<>(Collections.nCopies(deviceList.size(), false));
-        } else {
-            checkList = new ArrayList<>();
-        }
-        for (int i = 0; i < newDeviceList.size(); i++) {
-            Device newDevice = newDeviceList.get(i);
-            if (isExistItem(newDevice)) {
-                checkList.set(i, true);
-            } else {
-                deviceList.add(newDevice);
-                checkList.add(true);
-                notifyItemInserted(deviceList.size() - 1);
-            }
-        }
-        // remove unchecked device
-        for (int i = checkList.size() - 1; i >= 0; i--) {
-            if (!checkList.get(i)) {
-                deviceList.remove(i);
-                notifyItemRemoved(i);
-            }
-        }
+        deviceList = new ArrayList<>();
+        deviceList.addAll(newDeviceList);
+        notifyDataSetChanged();
         lock.unlock();
     }
-
-    public void insertNonExistMacAddress(Device device) {
-        lock.lock();
-        boolean isExist = false;
-        int position = -1;
-        for (int i = 0; i < deviceList.size(); i++) {
-            if (deviceList.get(i).getMac().equals(device.getMac())) {
-                isExist = true;
-                position = i;
-                break;
-            }
-        }
-        if (isExist) {
-            if (!deviceList.get(position).getIp().equals(device.getIp())) {
-                deviceList.set(position, device);
-                notifyItemChanged(position);
-            }
-        } else {
-            deviceList.add(device);
-            notifyItemInserted(deviceList.size() - 1);
-        }
-        lock.unlock();
-    }
-
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        private final TextView deviceMac, deviceIp, devicePing;
+        private final TextView deviceMac, deviceIp, devicePing, deviceConnecting;
+        private final ImageView deviceConnected;
         private OnSubItemClickListener onSubItemClickListener;
 
         public CustomViewHolder(@NonNull View itemView) {
@@ -131,6 +140,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
             devicePing = itemView.findViewById(R.id.devicePing);
+            deviceConnecting = itemView.findViewById(R.id.deviceConnecting);
+            deviceConnected = itemView.findViewById(R.id.deviceConnected);
 
             mainItemView.setOnClickListener(v -> {
                 if (onSubItemClickListener != null) {
@@ -139,10 +150,18 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             });
         }
 
-        public void bind(String ip, String mac, String ping) {
-            deviceIp.setText(ip);
-            deviceMac.setText(mac);
-            devicePing.setText(ping);
+        public void bind(Device device, String connectedDeviceMac, Device.DeviceState connectedDeviceState) {
+            String pingText = device.getPing() + "ms";
+            Device.DeviceState state = device.getDeviceState();
+            boolean isConnectedDevice = device.getMac().equals(connectedDeviceMac);
+            deviceIp.setText(device.getIp());
+            deviceMac.setText(device.getMac());
+            devicePing.setText(pingText);
+            deviceConnecting.setVisibility(state == Device.DeviceState.STATE_CONNECTING ? View.VISIBLE : View.GONE);
+            // Use for connected device
+            deviceConnected.setVisibility(isConnectedDevice ? View.VISIBLE : View.GONE);
+            deviceConnected.setImageResource(connectedDeviceState == Device.DeviceState.STATE_CONNECTED_AND_PAIRED ?
+                    R.drawable.checked_g_48 : R.drawable.checked_w_30);
         }
 
         public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
