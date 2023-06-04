@@ -11,8 +11,8 @@
     <color name="text_smoke_color">#DADADA</color>
 
     <!--    <color name="backgroundDark">#202128</color>-->
-    <color name="backgroundDark">#19191B</color>
-    <color name="OnBackgroundDark">#383839</color>
+    <color name="backgroundDark">#202128</color>
+    <color name="OnBackgroundDark">#4C4D63</color>
     <color name="backgroundLight">#FFFFFFFF</color>
 
     <color name="buttonBackground">#008375</color>
