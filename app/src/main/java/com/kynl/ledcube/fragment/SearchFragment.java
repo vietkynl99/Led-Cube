@@ -149,6 +149,7 @@ public class SearchFragment extends Fragment {
         refreshBtn.setOnClickListener(v -> refreshDeviceList());
 
 //        updateLastScanList();
+        sendBroadcastRequestUpdateStatus();
 
         return view;
     }
@@ -157,18 +158,17 @@ public class SearchFragment extends Fragment {
     public void onResume() {
         super.onResume();
         registerBroadcast();
-        sendBroadcastRequestUpdateStatus();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        unRegisterBroadcast();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unRegisterBroadcast();
     }
 
     private void updateLastScanList() {
