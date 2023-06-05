@@ -7,6 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00FFFFFF</color>
 
     <color name="text_smoke_color">#DADADA</color>
 
@@ -22,8 +23,10 @@
     <color name="item_background">#85333333</color>
 
 
+    <color name="shape_color">#27282A</color>
 
 
+    <color name="text_color">#9B9CA3</color>
 
 
     <color name="_bg___1_color">#19191B</color>
@@ -33,4 +36,12 @@
     <color name="capacity_color">#FFFFFF</color>
     <color name="ellipse_213_color">#08F7FE</color>
     <color name="ellipse_217_color">#C4C4C4</color>
+
+
+    <color name="_bg__home_page_color">#000000</color>
+    <color name="max_width_or_height__2x__28pt_x_28pt_color">#FF3B30</color>
+    <color name="symbol_ek1_color">#EBEBF5</color>
+    <color name="ellipse_803_color">#ffffff</color>
+    <color name="neon_background_color">#ffffff</color>
+    <color name="neon_background_1_color">#56CCF2</color>
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?><!-- _bg__home_page from your XD file. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+<!--    <solid android:color="@color/_bg__home_page_color" />-->
+    <gradient
+        android:angle="270"
+        android:endColor="#ff131313"
+        android:startColor="#ff2a2c32"
+        android:type="linear" />
+</shape>
+
