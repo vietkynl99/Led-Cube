@@ -63,7 +63,7 @@ public class SearchFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             String event = intent.getStringExtra("event");
-            Log.i(TAG, "onReceive: Get board cast event: " + event);
+//            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
                     case BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS: {

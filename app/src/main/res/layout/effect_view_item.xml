@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_marginStart="20dp"
+    android:layout_marginEnd="20dp"
     android:orientation="horizontal">
 
+    <View
+        android:id="@+id/highlight_view"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:alpha="0.2"
+        android:background="@drawable/highlight_bg_20"
+        android:backgroundTint="#81C0E1" />
+
     <ImageView
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="35dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="35dp"
-        android:layout_marginBottom="15dp"
+        android:id="@+id/effect_item_icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+
+        android:layout_gravity="center"
+        android:padding="10dp"
         app:srcCompat="@drawable/music_52" />
-</LinearLayout>
+</FrameLayout>

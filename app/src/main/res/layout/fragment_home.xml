@@ -66,9 +66,9 @@
 
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/effectRecyclerView"
+                android:id="@+id/effectListRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_effect_list"
                 android:backgroundTint="@color/shape_color"
                 android:outlineProvider="background"
@@ -76,7 +76,7 @@
                 android:paddingTop="5dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="5dp"
-                tools:itemCount="4"
+                tools:itemCount="3"
                 tools:layoutManager="GridLayoutManager"
                 tools:listitem="@layout/effect_view_item"
                 tools:spanCount="5" />
