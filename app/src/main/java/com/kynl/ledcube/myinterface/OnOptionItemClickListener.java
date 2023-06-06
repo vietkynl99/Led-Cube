@@ -1,5 +1,5 @@
 package com.kynl.ledcube.myinterface;
 
-public interface OnEffectItemClickListener {
+public interface OnOptionItemClickListener {
     void onItemClick(int position);
 }

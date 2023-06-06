@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.EffectListAdapter;
+import com.kynl.ledcube.adapter.OptionListAdapter;
 
 
 public class HomeFragment extends Fragment {
@@ -39,8 +40,9 @@ public class HomeFragment extends Fragment {
 
         /* Elements */
         RecyclerView effectListRecyclerView = view.findViewById(R.id.effectListRecyclerView);
+        RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
 
-        /* Recycler view */
+        /* Effect Recycler view */
         EffectListAdapter effectListAdapter = new EffectListAdapter();
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         effectListRecyclerView.setAdapter(effectListAdapter);
@@ -50,6 +52,12 @@ public class HomeFragment extends Fragment {
             Log.d(TAG, "onCreateView: Select effect " + position);
             effectListAdapter.setSelectedPosition(position);
         });
+
+        /* Option Recycler view */
+        OptionListAdapter optionListAdapter = new OptionListAdapter();
+        optionListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        optionListRecyclerView.setAdapter(optionListAdapter);
+
 
         return view;
     }

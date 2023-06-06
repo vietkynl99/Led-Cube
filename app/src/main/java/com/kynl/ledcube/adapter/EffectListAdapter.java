@@ -19,7 +19,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.CustomViewHolder> {
     private final String TAG = "EffectListAdapter";
-    private final ReentrantLock lock = new ReentrantLock();
     private List<EffectItem> effectItemList;
     private int selectedPosition;
     private OnEffectItemClickListener onEffectItemClickListener;
@@ -27,9 +26,9 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
     public EffectListAdapter() {
         effectItemList = new ArrayList<>();
         effectItemList.add(new EffectItem("Rgb", R.drawable.rgb_64, R.drawable.rgb_hightlight_64));
-        effectItemList.add(new EffectItem("Lightning", R.drawable.lightning_60, R.drawable.lightning_hightlight_60));
         effectItemList.add(new EffectItem("Music", R.drawable.music_52, R.drawable.music_hightlight_52));
         effectItemList.add(new EffectItem("Wave", R.drawable.wave_50, R.drawable.wave_hightlight_50));
+        effectItemList.add(new EffectItem("Lightning", R.drawable.lightning_60, R.drawable.lightning_hightlight_60));
         selectedPosition = -1;
     }
 
@@ -46,7 +45,7 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
         holder.bind(position == selectedPosition, position == selectedPosition ? item.getHighlightIconId() : item.getIconId());
         holder.icon.setOnClickListener(v -> {
             if (onEffectItemClickListener != null) {
-                onEffectItemClickListener.onSubItemClick(position);
+                onEffectItemClickListener.onItemClick(position);
             }
         });
     }

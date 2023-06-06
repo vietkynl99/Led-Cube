@@ -2,21 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/option_item_main_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingStart="20dp"
+    android:paddingStart="25dp"
     android:paddingTop="15dp"
     android:paddingEnd="20dp"
     android:paddingBottom="15dp">
 
     <ImageView
+        android:id="@+id/option_item_icon"
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:layout_gravity="center"
         app:srcCompat="@drawable/brightness_48" />
 
     <TextView
+        android:id="@+id/option_item_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
