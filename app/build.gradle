@@ -39,6 +39,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.etebarian:meow-bottom-navigation-java:1.2.0'
     implementation 'com.larswerkman:HoloColorPicker:1.5'
+    implementation 'com.github.cachapa:ExpandableLayout:2.9.2'
 
     testImplementation 'junit:junit:'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

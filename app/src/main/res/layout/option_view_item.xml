@@ -42,38 +42,39 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/option_item_panel"
+    <net.cachapa.expandablelayout.ExpandableLayout
+        android:id="@+id/expandable_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:layout_height="wrap_content"
+        app:el_duration="300"
+        app:el_expanded="false"
+        app:el_parallax="0.5">
 
-        <TextView
-            android:id="@+id/option_value_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="10dp"
-            android:padding="5dp"
-            android:textColor="@color/text_color"
-            tools:text="@tools:sample/lorem" />
-
-        <SeekBar
-            android:id="@+id/option_seek_bar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:max="100"
-            android:progress="0"
-            android:secondaryProgress="0" />
+            android:layout_height="match_parent">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/option_value_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="10dp"
+                android:padding="5dp"
+                android:textColor="@color/text_color"
+                tools:text="@tools:sample/lorem" />
 
+            <SeekBar
+                android:id="@+id/option_seek_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:max="100"
+                android:progress="0"
+                android:secondaryProgress="0" />
 
-
-
-
+        </LinearLayout>
+    </net.cachapa.expandablelayout.ExpandableLayout>
 
 </LinearLayout>

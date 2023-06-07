@@ -3,12 +3,10 @@ package com.kynl.ledcube.model;
 public class OptionItem {
     private int iconId;
     private String text;
-    private boolean collapse;
 
     public OptionItem(int iconId, String text) {
         this.iconId = iconId;
         this.text = text;
-        this.collapse = true;
     }
 
     public int getIconId() {
@@ -27,11 +25,4 @@ public class OptionItem {
         this.text = text;
     }
 
-    public boolean isCollapse() {
-        return collapse;
-    }
-
-    public void setCollapse(boolean collapse) {
-        this.collapse = collapse;
-    }
 }
