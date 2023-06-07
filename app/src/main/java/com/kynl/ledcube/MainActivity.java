@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 
+import com.etebarian.meowbottomnavigation.MeowBottomNavigation;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
@@ -27,42 +28,12 @@ public class MainActivity extends AppCompatActivity {
         /* Variable */
 
         /* Element */
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
 
-        /* Fragment */
+        /* Fragment Transaction*/
         fragmentTransactionInit();
 
         /* Bottom navigation */
-        bottomNavigationView.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            int itemIndex = -1;
-            Menu menu = bottomNavigationView.getMenu();
-            for (int i = 0; i < menu.size(); i++) {
-                if (menu.getItem(i).getItemId() == itemId) {
-                    itemIndex = i;
-                    break;
-                }
-            }
-            switch (itemIndex) {
-                case 0: {
-                    changeFragment(homeFragment);
-                    break;
-                }
-                case 1: {
-                    changeFragment(searchFragment);
-                    break;
-                }
-                case 2: {
-                    changeFragment(settingsFragment);
-                    break;
-                }
-                default: {
-                    Log.e(TAG, "onCreate: Index error");
-                    break;
-                }
-            }
-            return true;
-        });
+        initBottomNavigation();
 
         // Start Socket service
         Log.i(TAG, "onCreate: Start service");
@@ -78,6 +49,38 @@ public class MainActivity extends AppCompatActivity {
         // Stop service
         Intent intent = new Intent(this, NetworkService.class);
         stopService(intent);
+    }
+
+    private void initBottomNavigation() {
+        MeowBottomNavigation bottomNavigation = findViewById(R.id.meowBottomNavigation);
+
+        bottomNavigation.add(new MeowBottomNavigation.Model(1, R.drawable.home_w_48));
+        bottomNavigation.add(new MeowBottomNavigation.Model(2, R.drawable.search_w_50));
+        bottomNavigation.add(new MeowBottomNavigation.Model(3, R.drawable.settings_w_48));
+
+        bottomNavigation.setOnClickMenuListener(item -> {
+            Log.e(TAG, "onCreate: clicked " + item.getId());
+            switch (item.getId()) {
+                case 1: {
+                    changeFragment(homeFragment);
+                    break;
+                }
+                case 2: {
+                    changeFragment(searchFragment);
+                    break;
+                }
+                case 3: {
+                    changeFragment(settingsFragment);
+                    break;
+                }
+            }
+        });
+        bottomNavigation.setOnShowListener(item -> {
+        });
+        bottomNavigation.setOnReselectListener(item -> {
+        });
+
+        bottomNavigation.show(1, false);
     }
 
     private void fragmentTransactionInit() {

@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme_LedCube_Night" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">#008375</item>
+        <item name="colorPrimary">#61CFEE</item>
         <item name="colorPrimaryVariant">#736398</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->

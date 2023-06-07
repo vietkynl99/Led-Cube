@@ -58,8 +58,6 @@
             android:layout_height="wrap_content"
             android:src="@drawable/image_35" />
 
-
-
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -82,16 +80,23 @@
                 tools:spanCount="5" />
         </FrameLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/optionListRecyclerView"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="30dp"
             android:background="@drawable/bg_option_list"
             android:paddingTop="15dp"
-            android:paddingBottom="15dp"
-            tools:itemCount="3"
-            tools:listitem="@layout/option_view_item" />
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="70dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/optionListRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:itemCount="6"
+                tools:listitem="@layout/option_view_item" />
+        </FrameLayout>
 
 
     </LinearLayout>
