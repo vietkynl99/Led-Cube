@@ -74,10 +74,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:outlineProvider="background"
-                tools:itemCount="3"
+                tools:itemCount="4"
                 tools:layoutManager="GridLayoutManager"
                 tools:listitem="@layout/effect_view_item"
-                tools:spanCount="5" />
+                tools:spanCount="4" />
         </FrameLayout>
 
         <FrameLayout
