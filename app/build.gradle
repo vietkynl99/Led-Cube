@@ -38,6 +38,7 @@ dependencies {
     implementation 'io.netty:netty-all:4.1.68.Final'
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.etebarian:meow-bottom-navigation-java:1.2.0'
+    implementation 'com.larswerkman:HoloColorPicker:1.5'
 
     testImplementation 'junit:junit:'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

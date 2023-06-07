@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/backgroundDark"
     android:orientation="vertical"
     android:theme="@style/Theme_LedCube_Night"
     tools:context=".MainActivity">
@@ -26,7 +25,7 @@
         app:mbn_countTextColor="#ffffff"
         app:mbn_defaultIconColor="#929298"
         app:mbn_rippleColor="#2f424242"
-        app:mbn_selectedIconColor="#61CFEE"
+        app:mbn_selectedIconColor="@color/color_secondary"
         app:mbn_shadowColor="#1f212121" />
 
 </FrameLayout>

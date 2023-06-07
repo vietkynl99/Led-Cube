@@ -11,21 +11,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.kynl.ledcube.R;
-import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
-import com.kynl.ledcube.myinterface.OnEffectItemClickListener;
 import com.kynl.ledcube.myinterface.OnOptionItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.CustomViewHolder> {
-    private final String TAG = "OptionListAdapter";
-    private final ReentrantLock lock = new ReentrantLock();
-    private List<OptionItem> optionItemList;
-    private int selectedPosition;
-    private OnOptionItemClickListener onOptionItemClickListener;
+    private final List<OptionItem> optionItemList;
+    private int collapsedItemPosition;
+    private final OnOptionItemClickListener onOptionItemClickListener;
 
     public OptionListAdapter() {
         optionItemList = new ArrayList<>();
@@ -34,7 +29,21 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         optionItemList.add(new OptionItem(R.drawable.brightness_48, "Speed"));
         optionItemList.add(new OptionItem(R.drawable.brightness_48, "Direction"));
         optionItemList.add(new OptionItem(R.drawable.brightness_48, "Sensitivity"));
-        selectedPosition = -1;
+        collapsedItemPosition = -1;
+
+        onOptionItemClickListener = position -> {
+            // toggle data setting panel
+            if (collapsedItemPosition >= 0 && collapsedItemPosition != position) {
+                // uncollapse old position
+                if (!optionItemList.get(collapsedItemPosition).isCollapse()) {
+                    optionItemList.get(collapsedItemPosition).setCollapse(true);
+                    notifyItemChanged(collapsedItemPosition);
+                }
+            }
+            collapsedItemPosition = position;
+            optionItemList.get(position).setCollapse(!optionItemList.get(position).isCollapse());
+            notifyItemChanged(position);
+        };
     }
 
     @NonNull
@@ -60,26 +69,26 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         return optionItemList != null ? optionItemList.size() : 0;
     }
 
-    public void setOnOptionItemClickListener(OnOptionItemClickListener onOptionItemClickListener) {
-        this.onOptionItemClickListener = onOptionItemClickListener;
-    }
-
-
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        private final ViewGroup option_item_main_view;
-        private final ImageView icon;
+        private final ViewGroup option_item_main_view, option_item_panel;
+        private final ImageView icon, arrow;
         private final TextView option_item_text;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
             option_item_main_view = itemView.findViewById(R.id.option_item_main_view);
+            option_item_panel = itemView.findViewById(R.id.option_item_panel);
             icon = itemView.findViewById(R.id.option_item_icon);
+            arrow = itemView.findViewById(R.id.option_arrow);
             option_item_text = itemView.findViewById(R.id.option_item_text);
         }
 
         public void bind(OptionItem item) {
             icon.setImageResource(item.getIconId());
             option_item_text.setText(item.getText());
+            option_item_panel.setVisibility(item.isCollapse() ? View.GONE : View.VISIBLE);
+            arrow.setImageResource(item.isCollapse() ? R.drawable.baseline_keyboard_arrow_right_48 :
+                    R.drawable.baseline_keyboard_arrow_down_48);
         }
     }
 }

@@ -11,6 +11,10 @@
 
     <color name="text_smoke_color">#DADADA</color>
 
+    <color name="color_primary">#61CFEE</color>
+    <color name="color_secondary">#61CFEE</color>
+    <color name="color_secondary_variant">#18B8E7</color>
+
     <!--    <color name="backgroundDark">#202128</color>-->
     <color name="backgroundDark">#202128</color>
     <color name="OnBackgroundDark">#4C4D63</color>
