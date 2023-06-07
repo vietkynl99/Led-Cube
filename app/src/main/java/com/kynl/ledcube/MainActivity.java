@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation.add(new MeowBottomNavigation.Model(3, R.drawable.settings_w_48));
 
         bottomNavigation.setOnClickMenuListener(item -> {
-            Log.e(TAG, "onCreate: clicked " + item.getId());
             switch (item.getId()) {
                 case 1: {
                     changeFragment(homeFragment);

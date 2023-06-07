@@ -60,20 +60,20 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_effect_list"
+            android:backgroundTint="@color/shape_color"
+            android:paddingStart="20dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="5dp">
 
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/effectListRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_effect_list"
-                android:backgroundTint="@color/shape_color"
                 android:outlineProvider="background"
-                android:paddingStart="10dp"
-                android:paddingTop="5dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="5dp"
                 tools:itemCount="3"
                 tools:layoutManager="GridLayoutManager"
                 tools:listitem="@layout/effect_view_item"
@@ -85,8 +85,8 @@
             android:layout_height="match_parent"
             android:layout_marginTop="30dp"
             android:background="@drawable/bg_option_list"
-            android:paddingTop="15dp"
             android:paddingStart="20dp"
+            android:paddingTop="15dp"
             android:paddingEnd="20dp"
             android:paddingBottom="70dp">
 
