@@ -1,28 +1,41 @@
 package com.kynl.ledcube.model;
 
-public class OptionItem {
-    private int iconId;
-    private String text;
+import com.kynl.ledcube.R;
 
-    public OptionItem(int iconId, String text) {
-        this.iconId = iconId;
-        this.text = text;
+public class OptionItem {
+    public enum OptionType {
+        BRIGHTNESS,
+        COLOR,
+        SPEED,
+        DIRECTION,
+        SENSITIVITY
+    }
+
+    private final OptionType type;
+
+    public OptionItem(OptionType type) {
+        this.type = type;
     }
 
     public int getIconId() {
-        return iconId;
+        return R.drawable.brightness_48;
     }
 
     public String getText() {
-        return text;
-    }
-
-    public void setIconId(int iconId) {
-        this.iconId = iconId;
-    }
-
-    public void setText(String text) {
-        this.text = text;
+        switch (type) {
+            case BRIGHTNESS:
+                return "Brightness";
+            case COLOR:
+                return "Color";
+            case SPEED:
+                return "Speed";
+            case DIRECTION:
+                return "Direction";
+            case SENSITIVITY:
+                return "Sensitivity";
+            default:
+                return "";
+        }
     }
 
 }

@@ -1,25 +1,60 @@
 package com.kynl.ledcube.model;
 
+import com.kynl.ledcube.R;
+
+import java.util.List;
+
 public class EffectItem {
-    private String name;
-    private int iconId;
-    private int highlightIconId;
-
-    public EffectItem(String name, int iconId, int highlightIconId) {
-        this.name = name;
-        this.iconId = iconId;
-        this.highlightIconId = highlightIconId;
+    public enum EffectType {
+        RGB,
+        MUSIC,
+        WAVE,
+        FLASH
     }
 
-    public String getName() {
-        return name;
+    private final EffectType type;
+    private final List<OptionItem> optionItemList;
+
+    public EffectItem(EffectType type, List<OptionItem> optionItemList) {
+        this.type = type;
+        this.optionItemList = optionItemList;
     }
 
-    public int getIconId() {
-        return iconId;
+    public EffectType getType() {
+        return type;
     }
 
-    public int getHighlightIconId() {
-        return highlightIconId;
+    public List<OptionItem> getOptionItemList() {
+        return optionItemList;
+    }
+
+    public int getIconId () {
+        switch (type) {
+            case RGB:
+                return R.drawable.rgb_64;
+            case MUSIC:
+                return R.drawable.music_52;
+            case WAVE:
+                return R.drawable.wave_50;
+            case FLASH:
+                return R.drawable.lightning_60;
+            default:
+                return -1;
+        }
+    }
+
+    public int getHighlightIconId () {
+        switch (type) {
+            case RGB:
+                return R.drawable.rgb_hightlight_64;
+            case MUSIC:
+                return R.drawable.music_hightlight_52;
+            case WAVE:
+                return R.drawable.wave_hightlight_50;
+            case FLASH:
+                return R.drawable.lightning_hightlight_60;
+            default:
+                return -1;
+        }
     }
 }

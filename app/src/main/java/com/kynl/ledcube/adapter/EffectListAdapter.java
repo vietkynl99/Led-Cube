@@ -13,22 +13,15 @@ import com.kynl.ledcube.R;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.myinterface.OnEffectItemClickListener;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.CustomViewHolder> {
-    private final String TAG = "EffectListAdapter";
-    private List<EffectItem> effectItemList;
+    private final List<EffectItem> effectItemList;
     private int selectedPosition;
     private OnEffectItemClickListener onEffectItemClickListener;
 
-    public EffectListAdapter() {
-        effectItemList = new ArrayList<>();
-        effectItemList.add(new EffectItem("Rgb", R.drawable.rgb_64, R.drawable.rgb_hightlight_64));
-        effectItemList.add(new EffectItem("Music", R.drawable.music_52, R.drawable.music_hightlight_52));
-        effectItemList.add(new EffectItem("Wave", R.drawable.wave_50, R.drawable.wave_hightlight_50));
-        effectItemList.add(new EffectItem("Lightning", R.drawable.lightning_60, R.drawable.lightning_hightlight_60));
+    public EffectListAdapter(List<EffectItem> effectItemList) {
+        this.effectItemList = effectItemList;
         selectedPosition = -1;
     }
 
@@ -41,8 +34,8 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
 
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
-        EffectItem item = effectItemList.get(position);
-        holder.bind(position == selectedPosition, position == selectedPosition ? item.getHighlightIconId() : item.getIconId());
+        EffectItem element = effectItemList.get(position);
+        holder.bind(position == selectedPosition, position == selectedPosition ? element.getHighlightIconId() : element.getIconId());
         holder.icon.setOnClickListener(v -> {
             if (onEffectItemClickListener != null) {
                 onEffectItemClickListener.onItemClick(position);
@@ -53,6 +46,14 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
     @Override
     public int getItemCount() {
         return effectItemList != null ? effectItemList.size() : 0;
+    }
+
+    public EffectItem.EffectType getCurrentEffectType() {
+        if (selectedPosition >= 0 && selectedPosition < effectItemList.size()) {
+            return effectItemList.get(selectedPosition).getType();
+        } else {
+            return null;
+        }
     }
 
     public void setOnEffectItemClickListener(OnEffectItemClickListener onEffectItemClickListener) {

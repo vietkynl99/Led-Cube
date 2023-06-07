@@ -21,15 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.CustomViewHolder> {
-    private final List<OptionItem> optionItemList;
+    private List<OptionItem> optionItemList;
 
     public OptionListAdapter() {
-        optionItemList = new ArrayList<>();
-        optionItemList.add(new OptionItem(R.drawable.brightness_48, "Brightness"));
-        optionItemList.add(new OptionItem(R.drawable.brightness_48, "Color"));
-        optionItemList.add(new OptionItem(R.drawable.brightness_48, "Speed"));
-        optionItemList.add(new OptionItem(R.drawable.brightness_48, "Direction"));
-        optionItemList.add(new OptionItem(R.drawable.brightness_48, "Sensitivity"));
     }
 
     @NonNull
@@ -49,6 +43,11 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
     @Override
     public int getItemCount() {
         return optionItemList != null ? optionItemList.size() : 0;
+    }
+
+    public void setOptionItemList(List<OptionItem> optionItemList) {
+        this.optionItemList = optionItemList;
+        notifyDataSetChanged();
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {

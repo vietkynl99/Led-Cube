@@ -14,7 +14,8 @@ import android.view.ViewGroup;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.EffectListAdapter;
 import com.kynl.ledcube.adapter.OptionListAdapter;
-
+import com.kynl.ledcube.manager.EffectManager;
+import com.kynl.ledcube.model.EffectItem;
 
 public class HomeFragment extends Fragment {
 
@@ -30,6 +31,7 @@ public class HomeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Log.e(TAG, "onCreate: ");
 
+        EffectManager.getInstance().init();
     }
 
     @Override
@@ -42,21 +44,24 @@ public class HomeFragment extends Fragment {
         RecyclerView effectListRecyclerView = view.findViewById(R.id.effectListRecyclerView);
         RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
 
+        /* Option Recycler view */
+        OptionListAdapter optionListAdapter = new OptionListAdapter();
+        optionListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        optionListRecyclerView.setAdapter(optionListAdapter);
+        EffectItem.EffectType savedType = EffectItem.EffectType.RGB;
+        optionListAdapter.setOptionItemList(EffectManager.getInstance().getOptionItemList(savedType));
+
         /* Effect Recycler view */
-        EffectListAdapter effectListAdapter = new EffectListAdapter();
+        EffectListAdapter effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectElementList());
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         effectListRecyclerView.setAdapter(effectListAdapter);
 
         effectListAdapter.setSelectedPosition(0);
         effectListAdapter.setOnEffectItemClickListener(position -> {
-            Log.d(TAG, "onCreateView: Select effect " + position);
             effectListAdapter.setSelectedPosition(position);
+            EffectItem.EffectType type = effectListAdapter.getCurrentEffectType();
+            optionListAdapter.setOptionItemList(EffectManager.getInstance().getOptionItemList(type));
         });
-
-        /* Option Recycler view */
-        OptionListAdapter optionListAdapter = new OptionListAdapter();
-        optionListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        optionListRecyclerView.setAdapter(optionListAdapter);
 
 
         return view;
