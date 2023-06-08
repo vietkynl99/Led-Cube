@@ -16,6 +16,8 @@ public class CommonUtils {
     public static final String BROADCAST_REQUEST_CONNECT_DEVICE = "BROADCAST_REQUEST_CONNECT_DEVICE";
     public static final String BROADCAST_REQUEST_PAIR_DEVICE = "BROADCAST_REQUEST_PAIR_DEVICE";
     public static final String BROADCAST_REQUEST_UPDATE_STATUS = "BROADCAST_REQUEST_UPDATE_STATUS";
+    public static final String BROADCAST_REQUEST_RESUME_NETWORK_SCAN = "BROADCAST_REQUEST_RESUME_NETWORK_SCAN";
+    public static final String BROADCAST_REQUEST_PAUSE_NETWORK_SCAN = "BROADCAST_REQUEST_PAUSE_NETWORK_SCAN";
 
     // Server device name
     public static final String SERVER_DEVICE_NAME = "ledCube";

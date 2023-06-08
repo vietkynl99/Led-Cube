@@ -1,9 +1,16 @@
 package com.kynl.ledcube;
 
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESUME_NETWORK_SCAN;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,11 +41,24 @@ public class MainActivity extends AppCompatActivity {
 
         /* Bottom navigation */
         initBottomNavigation();
+    }
 
-        // Start Socket service
-        Log.i(TAG, "onCreate: Start service");
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Start service
         Intent intent = new Intent(this, NetworkService.class);
         startService(intent);
+
+        // resume scan
+        sendBroadcastEvent(BROADCAST_REQUEST_RESUME_NETWORK_SCAN);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sendBroadcastEvent(BROADCAST_REQUEST_PAUSE_NETWORK_SCAN);
     }
 
     @Override
@@ -125,4 +145,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    private void sendBroadcastMessage(Intent intent) {
+        Context context = getApplicationContext();
+        if (context != null) {
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        } else {
+            Log.e(TAG, "sendBroadcastMessage: Context is null");
+        }
+    }
+
+    private void sendBroadcastEvent(String event) {
+        Log.e(TAG, "sendBroadcastRequestFindSubnetDevice: ");
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", event);
+        sendBroadcastMessage(intent);
+    }
 }

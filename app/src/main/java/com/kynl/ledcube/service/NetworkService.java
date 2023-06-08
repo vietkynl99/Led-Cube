@@ -4,6 +4,8 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESUME_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
@@ -52,6 +54,7 @@ public class NetworkService extends Service {
     private int retryCount;
     private boolean autoDetect;
     private long lastFreeTime;
+    private boolean enableNetworkScan;
 
     public enum NetworkServiceState {
         STATE_NONE,
@@ -91,6 +94,14 @@ public class NetworkService extends Service {
                         sendBroadcastUpdateStatus();
                         break;
                     }
+                    case BROADCAST_REQUEST_RESUME_NETWORK_SCAN: {
+                        enableNetworkScan = true;
+                        break;
+                    }
+                    case BROADCAST_REQUEST_PAUSE_NETWORK_SCAN: {
+                        enableNetworkScan = false;
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -116,6 +127,7 @@ public class NetworkService extends Service {
         retryCount = 0;
         autoDetect = true;
         lastFreeTime = System.currentTimeMillis();
+        enableNetworkScan = true;
 
         readSavedDeviceInformation();
 
@@ -203,10 +215,12 @@ public class NetworkService extends Service {
         /* Runnable */
         mHandler = new Handler();
         mRunnable = () -> {
-            // If it have free time for 5 seconds, then start checking the connection
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastFreeTime > networkScanTime * 500) {
-                requestConnectToSavedDevice();
+            if (enableNetworkScan) {
+                // If it have free time for 5 seconds, then start checking the connection
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastFreeTime > networkScanTime * 500) {
+                    requestConnectToSavedDevice();
+                }
             }
             mHandler.postDelayed(mRunnable, networkScanTime * 1000);
         };
@@ -214,6 +228,7 @@ public class NetworkService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "onStartCommand: " );
         // Try to connect in first time
         if (!savedIpAddress.isEmpty()) {
             requestConnectToDevice(savedIpAddress, savedMacAddress);
