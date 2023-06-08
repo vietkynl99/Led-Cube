@@ -12,9 +12,28 @@ public class OptionItem {
     }
 
     private final OptionType type;
+    private int value;
 
     public OptionItem(OptionType type) {
         this.type = type;
+        this.value = 0;
+    }
+
+    public OptionItem(OptionType type, int value) {
+        this.type = type;
+        this.value = value;
+    }
+
+    public OptionType getType() {
+        return type;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 
     public int getIconId() {

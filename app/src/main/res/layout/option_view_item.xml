@@ -31,7 +31,7 @@
             android:layout_weight="1"
             android:padding="5dp"
             android:textColor="@color/text_color"
-            tools:text="@tools:sample/lorem" />
+            tools:text="Brightness" />
 
         <ImageView
             android:id="@+id/option_arrow"
@@ -56,20 +56,21 @@
 
             <TextView
                 android:id="@+id/option_value_text"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="10dp"
-                android:padding="5dp"
+                android:maxLength="5"
+                android:textAlignment="center"
                 android:textColor="@color/text_color"
-                tools:text="@tools:sample/lorem" />
+                tools:text="100" />
 
             <SeekBar
                 android:id="@+id/option_seek_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="0dp"
                 android:max="100"
                 android:progress="0"
                 android:secondaryProgress="0" />

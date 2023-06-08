@@ -6,24 +6,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.kynl.ledcube.R;
+import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
-import com.kynl.ledcube.myinterface.OnOptionItemClickListener;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.CustomViewHolder> {
+    private final String TAG = "OptionListAdapter";
+    private final List<EffectItem> effectItemList;
     private List<OptionItem> optionItemList;
 
-    public OptionListAdapter() {
+    public OptionListAdapter(List<EffectItem> effectItemList) {
+        this.effectItemList = effectItemList;
     }
 
     @NonNull
@@ -33,11 +36,30 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         return new CustomViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
-        OptionItem item = optionItemList.get(position);
-        holder.bind(item);
+        holder.bind(optionItemList.get(position));
         holder.option_item_main_view.setOnClickListener(v -> holder.expandable_layout.toggle());
+        holder.option_seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int pos = holder.getAdapterPosition();
+                optionItemList.get(pos).setValue(progress);
+                holder.option_value_text.setText(String.valueOf(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int pos = holder.getAdapterPosition();
+                Log.e(TAG, "onProgressChanged: " + optionItemList.get(pos).getText() +
+                        " changed to " + optionItemList.get(pos).getValue());
+            }
+        });
     }
 
     @Override
@@ -45,16 +67,23 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         return optionItemList != null ? optionItemList.size() : 0;
     }
 
-    public void setOptionItemList(List<OptionItem> optionItemList) {
-        this.optionItemList = optionItemList;
-        notifyDataSetChanged();
+    public void select(EffectItem.EffectType type) {
+        for (int i = 0; i < effectItemList.size(); i++) {
+            if (effectItemList.get(i).getType() == type) {
+                EffectItem effectItem = effectItemList.get(i);
+                optionItemList = effectItem.getOptionItemList();
+                Log.i(TAG, "updateEffectType: Update effect type " + effectItem.getType());
+                notifyDataSetChanged();
+            }
+        }
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
         private final ViewGroup option_item_main_view;
         private final ImageView icon;
-        private final TextView option_item_text;
+        private final TextView option_item_text, option_value_text;
         private final ExpandableLayout expandable_layout;
+        private final SeekBar option_seek_bar;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -62,11 +91,15 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             expandable_layout = itemView.findViewById(R.id.expandable_layout);
             icon = itemView.findViewById(R.id.option_item_icon);
             option_item_text = itemView.findViewById(R.id.option_item_text);
+            option_value_text = itemView.findViewById(R.id.option_value_text);
+            option_seek_bar = itemView.findViewById(R.id.option_seek_bar);
         }
 
         public void bind(OptionItem item) {
             icon.setImageResource(item.getIconId());
             option_item_text.setText(item.getText());
+            option_value_text.setText(String.valueOf(item.getValue()));
+            option_seek_bar.setProgress(item.getValue());
         }
     }
 }

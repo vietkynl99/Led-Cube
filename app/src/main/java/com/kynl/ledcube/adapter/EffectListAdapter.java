@@ -1,6 +1,7 @@
 package com.kynl.ledcube.adapter;
 
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import com.kynl.ledcube.myinterface.OnEffectItemClickListener;
 import java.util.List;
 
 public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.CustomViewHolder> {
+    private final String TAG = "EffectListAdapter";
     private final List<EffectItem> effectItemList;
     private int selectedPosition;
     private OnEffectItemClickListener onEffectItemClickListener;
@@ -38,7 +40,7 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
         holder.bind(position == selectedPosition, position == selectedPosition ? element.getHighlightIconId() : element.getIconId());
         holder.icon.setOnClickListener(v -> {
             if (onEffectItemClickListener != null) {
-                onEffectItemClickListener.onItemClick(position);
+                onEffectItemClickListener.onItemClick(effectItemList.get(position).getType());
             }
         });
     }
@@ -61,9 +63,10 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
     }
 
 
-    public void setSelectedPosition(int selectedPosition) {
+    private void setSelectedPosition(int selectedPosition) {
         if (selectedPosition >= 0 && selectedPosition <= effectItemList.size()) {
             if (this.selectedPosition != selectedPosition) {
+                Log.i(TAG, "setSelectedPosition: type " + effectItemList.get(selectedPosition).getType());
                 // notify old position
                 if (this.selectedPosition >= 0) {
                     notifyItemChanged(this.selectedPosition);
@@ -73,6 +76,16 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
                 notifyItemChanged(this.selectedPosition);
             }
         }
+    }
+
+    public void select(EffectItem.EffectType type) {
+        for (int i = 0; i < effectItemList.size(); i++) {
+            if (effectItemList.get(i).getType() == type) {
+                setSelectedPosition(i);
+                return;
+            }
+        }
+        Log.e(TAG, "select: Error. Can not find type " + type);
     }
 
 

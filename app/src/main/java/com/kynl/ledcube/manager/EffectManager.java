@@ -57,16 +57,8 @@ public class EffectManager {
         effectItemList.add(new EffectItem(EffectItem.EffectType.FLASH, flashOptionItemList));
     }
 
-    public List<EffectItem> getEffectElementList() {
+    public List<EffectItem> getEffectItemList() {
         return effectItemList;
     }
 
-    public List<OptionItem> getOptionItemList(EffectItem.EffectType type) {
-        for (int i = 0; i < effectItemList.size(); i++) {
-            if(effectItemList.get(i).getType() == type) {
-                return effectItemList.get(i).getOptionItemList();
-            }
-        }
-        return null;
-    }
 }

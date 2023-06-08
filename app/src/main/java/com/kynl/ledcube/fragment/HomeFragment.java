@@ -20,6 +20,7 @@ import com.kynl.ledcube.model.EffectItem;
 public class HomeFragment extends Fragment {
 
     private final String TAG = "HomeFragment";
+    private final EffectItem.EffectType savedType = EffectItem.EffectType.RGB;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -45,22 +46,20 @@ public class HomeFragment extends Fragment {
         RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
 
         /* Option Recycler view */
-        OptionListAdapter optionListAdapter = new OptionListAdapter();
+        OptionListAdapter optionListAdapter = new OptionListAdapter(EffectManager.getInstance().getEffectItemList());
         optionListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         optionListRecyclerView.setAdapter(optionListAdapter);
-        EffectItem.EffectType savedType = EffectItem.EffectType.RGB;
-        optionListAdapter.setOptionItemList(EffectManager.getInstance().getOptionItemList(savedType));
+        optionListAdapter.select(savedType);
 
         /* Effect Recycler view */
-        EffectListAdapter effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectElementList());
+        EffectListAdapter effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectItemList());
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         effectListRecyclerView.setAdapter(effectListAdapter);
+        effectListAdapter.select(savedType);
 
-        effectListAdapter.setSelectedPosition(0);
-        effectListAdapter.setOnEffectItemClickListener(position -> {
-            effectListAdapter.setSelectedPosition(position);
-            EffectItem.EffectType type = effectListAdapter.getCurrentEffectType();
-            optionListAdapter.setOptionItemList(EffectManager.getInstance().getOptionItemList(type));
+        effectListAdapter.setOnEffectItemClickListener(type -> {
+            effectListAdapter.select(type);
+            optionListAdapter.select(type);
         });
 
 
