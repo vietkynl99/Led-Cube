@@ -6,14 +6,19 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 public class EffectManager {
     private final String TAG = "EffectManager";
+    private final Gson gson = new Gson();
     private static EffectManager instance;
     private Context context;
     private List<EffectItem> effectItemList;
@@ -32,12 +37,20 @@ public class EffectManager {
     public void init(Context context) {
         this.context = context;
 
-        // default value
-        currentEffectType = EffectItem.EffectType.RGB;
+        // Effect list
+        if (!readOldEffectList()) {
+            createDefaultEffectList();
+            saveEffectList();
+        }
 
-        // Read old value from SHARED PREFERENCES
-        readOldEffectType();
+        // Current effect type
+        if (!readOldEffectType()) {
+            currentEffectType = EffectItem.EffectType.RGB;
+            saveEffectType();
+        }
+    }
 
+    public void createDefaultEffectList() {
         effectItemList = new ArrayList<>();
 
         // RGB
@@ -89,25 +102,93 @@ public class EffectManager {
         }
     }
 
-    private void readOldEffectType() {
+    public void setOptionValue(EffectItem.EffectType effectType, OptionItem.OptionType optionType, int value) {
+        // find effectType position
+        int effectTypePosition = -1;
+        for (int i = 0; i < effectItemList.size(); i++) {
+            if (effectItemList.get(i).getType() == effectType) {
+                effectTypePosition = i;
+            }
+        }
+        if (effectTypePosition < 0) {
+            Log.e(TAG, "setOptionValue: Can not find position of effect " + effectType);
+            return;
+        }
+        // find optionType position
+        List<OptionItem> optionItemList = effectItemList.get(effectTypePosition).getOptionItemList();
+        int optionTypePosition = -1;
+        for (int i = 0; i < optionItemList.size(); i++) {
+            if (optionItemList.get(i).getType() == optionType) {
+                optionTypePosition = i;
+            }
+        }
+        if (optionTypePosition < 0) {
+            Log.e(TAG, "setOptionValue: Can not find position of option " + optionType);
+            return;
+        }
+        // set value
+        optionItemList.get(optionTypePosition).setValue(value);
+        saveEffectList();
+    }
+
+    private String getEffectItemListAsString() {
+        return gson.toJson(effectItemList);
+    }
+
+    private List<EffectItem> convertStringToEffectList(String jsonString) {
+        try {
+            Type type = new TypeToken<List<EffectItem>>() {
+            }.getType();
+            return gson.fromJson(jsonString, type);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean readOldEffectType() {
+        Log.i(TAG, "readOldEffectType: ");
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         String currentEffectTypeStr = prefs.getString("currentEffectType", "");
         if (!currentEffectTypeStr.isEmpty()) {
             try {
                 currentEffectType = EffectItem.EffectType.valueOf(currentEffectTypeStr);
+                return true;
             } catch (Exception ignored) {
             }
         }
 
         Log.i(TAG, "readOldEffectType: currentEffectType[" + currentEffectType + "]");
+        return false;
     }
 
     private void saveEffectType() {
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("currentEffectType", currentEffectType.toString());
+        editor.putString("currentEffectType", String.valueOf(currentEffectType));
         editor.apply();
 
         Log.d(TAG, "saveEffectType: currentEffectType[" + currentEffectType + "]");
+    }
+
+    private boolean readOldEffectList() {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        String effectItemListStr = prefs.getString("effectItemList", "");
+        if (!effectItemListStr.isEmpty()) {
+            try {
+                effectItemList = convertStringToEffectList(effectItemListStr);
+                if (effectItemList != null) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
+    private void saveEffectList() {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("effectItemList", getEffectItemListAsString());
+        editor.apply();
     }
 }

@@ -49,6 +49,11 @@ public class HomeFragment extends Fragment {
         optionListRecyclerView.setAdapter(optionListAdapter);
         optionListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
 
+        optionListAdapter.setOnOptionValueChangeListener((effectType, optionType, value) -> {
+            Log.d(TAG, "Option data changed: " + effectType + " " + optionType + " " + value);
+            EffectManager.getInstance().setOptionValue(effectType, optionType, value);
+        });
+
         /* Effect Recycler view */
         EffectListAdapter effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectItemList());
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));

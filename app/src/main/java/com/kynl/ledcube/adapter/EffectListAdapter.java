@@ -50,14 +50,6 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
         return effectItemList != null ? effectItemList.size() : 0;
     }
 
-    public EffectItem.EffectType getCurrentEffectType() {
-        if (selectedPosition >= 0 && selectedPosition < effectItemList.size()) {
-            return effectItemList.get(selectedPosition).getType();
-        } else {
-            return null;
-        }
-    }
-
     public void setOnEffectItemClickListener(OnEffectItemClickListener onEffectItemClickListener) {
         this.onEffectItemClickListener = onEffectItemClickListener;
     }

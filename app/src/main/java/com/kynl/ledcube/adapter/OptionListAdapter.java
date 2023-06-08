@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
+import com.kynl.ledcube.myinterface.OnOptionValueChangeListener;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
@@ -22,8 +23,10 @@ import java.util.List;
 
 public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.CustomViewHolder> {
     private final String TAG = "OptionListAdapter";
+    private EffectItem effectItem;
     private final List<EffectItem> effectItemList;
     private List<OptionItem> optionItemList;
+    private OnOptionValueChangeListener onOptionValueChangeListener;
 
     public OptionListAdapter(List<EffectItem> effectItemList) {
         this.effectItemList = effectItemList;
@@ -56,8 +59,11 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int pos = holder.getAdapterPosition();
-                Log.e(TAG, "onProgressChanged: " + optionItemList.get(pos).getText() +
-                        " changed to " + optionItemList.get(pos).getValue());
+                if (onOptionValueChangeListener != null) {
+                    onOptionValueChangeListener.onValueChanged(effectItem.getType(),
+                            optionItemList.get(pos).getType(),
+                            optionItemList.get(pos).getValue());
+                }
             }
         });
     }
@@ -67,10 +73,14 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         return optionItemList != null ? optionItemList.size() : 0;
     }
 
+    public void setOnOptionValueChangeListener(OnOptionValueChangeListener onOptionValueChangeListener) {
+        this.onOptionValueChangeListener = onOptionValueChangeListener;
+    }
+
     public void select(EffectItem.EffectType type) {
         for (int i = 0; i < effectItemList.size(); i++) {
             if (effectItemList.get(i).getType() == type) {
-                EffectItem effectItem = effectItemList.get(i);
+                effectItem = effectItemList.get(i);
                 optionItemList = effectItem.getOptionItemList();
                 Log.i(TAG, "updateEffectType: Update effect type " + effectItem.getType());
                 notifyDataSetChanged();
@@ -100,7 +110,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             option_item_text.setText(item.getText());
             option_value_text.setText(String.valueOf(item.getValue()));
             option_seek_bar.setProgress(item.getValue());
-            expandable_layout.collapse();
+            expandable_layout.collapse(false);
         }
     }
 }
