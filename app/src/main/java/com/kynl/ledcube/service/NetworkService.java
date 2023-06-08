@@ -5,7 +5,6 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVI
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESUME_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
@@ -54,7 +53,6 @@ public class NetworkService extends Service {
     private int retryCount;
     private boolean autoDetect;
     private long lastFreeTime;
-    private boolean enableNetworkScan;
 
     public enum NetworkServiceState {
         STATE_NONE,
@@ -94,12 +92,11 @@ public class NetworkService extends Service {
                         sendBroadcastUpdateStatus();
                         break;
                     }
-                    case BROADCAST_REQUEST_RESUME_NETWORK_SCAN: {
-                        enableNetworkScan = true;
-                        break;
-                    }
+
                     case BROADCAST_REQUEST_PAUSE_NETWORK_SCAN: {
-                        enableNetworkScan = false;
+                        if (mHandler != null && mRunnable != null) {
+                            mHandler.removeCallbacks(mRunnable);
+                        }
                         break;
                     }
                     default:
@@ -127,7 +124,6 @@ public class NetworkService extends Service {
         retryCount = 0;
         autoDetect = true;
         lastFreeTime = System.currentTimeMillis();
-        enableNetworkScan = true;
 
         readSavedDeviceInformation();
 
@@ -215,8 +211,8 @@ public class NetworkService extends Service {
         /* Runnable */
         mHandler = new Handler();
         mRunnable = () -> {
-            if (enableNetworkScan) {
-                // If it have free time for 5 seconds, then start checking the connection
+            // If it have free time for 5 seconds, then start checking the connection
+            if (!isBusy()) {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastFreeTime > networkScanTime * 500) {
                     requestConnectToSavedDevice();
@@ -224,17 +220,18 @@ public class NetworkService extends Service {
             }
             mHandler.postDelayed(mRunnable, networkScanTime * 1000);
         };
-    }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(TAG, "onStartCommand: " );
         // Try to connect in first time
         if (!savedIpAddress.isEmpty()) {
             requestConnectToDevice(savedIpAddress, savedMacAddress);
         } else {
             requestFindSubnetDevicesList();
         }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "onStartCommand: ");
         // Runnable
         mHandler.postDelayed(mRunnable, networkScanTime * 1000);
         return START_STICKY;
@@ -332,12 +329,16 @@ public class NetworkService extends Service {
         }
     }
 
+    private boolean isBusy() {
+        return networkServiceState != NetworkServiceState.STATE_NONE;
+    }
+
     private void requestPairDevice(String ipAddress, String macAddress) {
         if (ipAddress.isEmpty()) {
             Log.e(TAG, "requestPairDevice: IP is empty");
             return;
         }
-        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+        if (isBusy()) {
             Log.e(TAG, "requestPairDevice: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }
@@ -354,7 +355,7 @@ public class NetworkService extends Service {
             Log.e(TAG, "requestConnectToDevice: IP is empty");
             return;
         }
-        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+        if (isBusy()) {
             Log.e(TAG, "requestConnectToDevice: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }
@@ -374,7 +375,7 @@ public class NetworkService extends Service {
     }
 
     private void requestAutoDetectDeviceInSubnetList(ArrayList<Device> devices) {
-        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+        if (isBusy()) {
             Log.e(TAG, "autoDetectDeviceInSubnetList: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }
@@ -398,7 +399,7 @@ public class NetworkService extends Service {
     }
 
     private void requestFindSubnetDevicesList() {
-        if (networkServiceState != NetworkServiceState.STATE_NONE) {
+        if (isBusy()) {
             Log.e(TAG, "findSubnetDevicesList: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }

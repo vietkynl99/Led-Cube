@@ -1,9 +1,7 @@
 package com.kynl.ledcube;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESUME_NETWORK_SCAN;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -14,10 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 
 import com.etebarian.meowbottomnavigation.MeowBottomNavigation;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
 import com.kynl.ledcube.fragment.SettingsFragment;
@@ -50,9 +46,6 @@ public class MainActivity extends AppCompatActivity {
         // Start service
         Intent intent = new Intent(this, NetworkService.class);
         startService(intent);
-
-        // resume scan
-        sendBroadcastEvent(BROADCAST_REQUEST_RESUME_NETWORK_SCAN);
     }
 
     @Override
