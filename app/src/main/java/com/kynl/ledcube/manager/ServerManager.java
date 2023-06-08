@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -12,17 +11,12 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
-import com.kynl.ledcube.nettool.Ping;
-import com.kynl.ledcube.nettool.PingResult;
-import com.kynl.ledcube.nettool.PingStats;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
-
-import java.net.UnknownHostException;
 
 public class ServerManager {
     public enum ServerState {
@@ -92,14 +86,6 @@ public class ServerManager {
         return macAddress;
     }
 
-    public ServerState getServerState() {
-        return serverState;
-    }
-
-    public ConnectionState getConnectionState() {
-        return connectionState;
-    }
-
     public void sendCheckConnectionRequest() {
         sendRequestToServer(new ServerMessage(apiKey, EVENT_REQUEST_CHECK_CONNECTION, ""));
     }
@@ -157,7 +143,6 @@ public class ServerManager {
         if (isError) {
             Log.e(TAG, "getResponseFromServer: get error: " + errorMessage);
             serverState = ServerState.SERVER_STATE_DISCONNECTED;
-            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show();
         } else {
             Log.i(TAG, "getResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
             switch (receivedData.getType()) {
@@ -165,22 +150,18 @@ public class ServerManager {
                     serverState = receivedData.getData().equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED : ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                         Log.i(TAG, "getResponseFromServer: The device has been paired.");
-                        Toast.makeText(context, "The device has been paired.", Toast.LENGTH_SHORT).show();
                     } else {
                         Log.i(TAG, "getResponseFromServer: The connection is successful, but the device is not paired.");
-                        Toast.makeText(context, "The connection is successful, but the device is not paired.", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_PAIRED: {
                     serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
                     Log.i(TAG, "getResponseFromServer: The device has been paired.");
-                    Toast.makeText(context, "The device has been paired.", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_IGNORED: {
                     serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                    Toast.makeText(context, "Pair request is ignored!", Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL: {
@@ -189,11 +170,9 @@ public class ServerManager {
                         serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
                         saveOldSetting();
                         Log.i(TAG, "getResponseFromServer: Paired -> apiKey = " + apiKey);
-                        Toast.makeText(context, "Device paired successfully", Toast.LENGTH_SHORT).show();
                     } catch (NumberFormatException e) {
                         serverState = ServerState.SERVER_STATE_DISCONNECTED;
                         Log.e(TAG, "getResponseFromServer: Invalid apiKey string: " + receivedData.getData());
-                        Toast.makeText(context, "Device pairing failed due to invalid key", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
@@ -230,8 +209,6 @@ public class ServerManager {
         Log.e(TAG, "readOldSetting: apiKey = " + apiKey);
     }
 
-
-    /* Scan device in network */
     public void setOnSubnetDeviceFoundListener(SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener) {
         this.onSubnetDeviceFoundListener = onSubnetDeviceFoundListener;
     }
@@ -243,17 +220,6 @@ public class ServerManager {
         }
         Log.d(TAG, "findSubnetDevices: Started!");
         subnetDevices = SubnetDevices.fromLocalAddress().findDevices(onSubnetDeviceFoundListener);
-//        subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
-//            @Override
-//            public void onDeviceFound(Device device) {
-//                Log.e(TAG, "onDeviceFound: " + device.time + " " + device.ip + " " + device.mac + " " + device.hostname);
-//            }
-//
-//            @Override
-//            public void onFinished(ArrayList<Device> devicesFound) {
-//                Log.e(TAG, "onFinished: Found " + devicesFound.size());
-//            }
-//        });
     }
 
     public void cancelFindSubnetDevices() {
@@ -264,55 +230,4 @@ public class ServerManager {
             }
         }
     }
-
-
-    public void doPing(String ipAddress) {
-
-        if (ipAddress.isEmpty()) {
-            return;
-        }
-
-
-        // Perform a single synchronous ping
-        PingResult pingResult = null;
-        try {
-            pingResult = Ping.onAddress(ipAddress).setTimeOutMillis(1000).doPing();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
-
-
-//        appendResultsText("Pinging Address: " + pingResult.getAddress().getHostAddress());
-//        appendResultsText("HostName: " + pingResult.getAddress().getHostName());
-//        appendResultsText(String.format("%.2f ms", pingResult.getTimeTaken()));
-
-
-        // Perform an asynchronous ping
-        Ping.onAddress(ipAddress).setTimeOutMillis(1000).setTimes(5).doPing(new Ping.PingListener() {
-            @Override
-            public void onResult(PingResult pingResult) {
-//                if (pingResult.isReachable) {
-//                    appendResultsText(String.format("%.2f ms", pingResult.getTimeTaken()));
-//                } else {
-//                    appendResultsText(getString(R.string.timeout));
-//                }
-            }
-
-            @Override
-            public void onFinished(PingStats pingStats) {
-//                appendResultsText(String.format("Pings: %d, Packets lost: %d",
-//                        pingStats.getNoPings(), pingStats.getPacketsLost()));
-//                appendResultsText(String.format("Min/Avg/Max Time: %.2f/%.2f/%.2f ms",
-//                        pingStats.getMinTimeTaken(), pingStats.getAverageTimeTaken(), pingStats.getMaxTimeTaken()));
-            }
-
-            @Override
-            public void onError(Exception e) {
-                // TODO: STUB METHOD
-            }
-        });
-
-    }
-
 }
