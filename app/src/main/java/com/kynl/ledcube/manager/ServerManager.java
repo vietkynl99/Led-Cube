@@ -227,7 +227,11 @@ public class ServerManager {
             return;
         }
         Log.d(TAG, "findSubnetDevices: Started!");
-        subnetDevices = SubnetDevices.fromLocalAddress().findDevices(onSubnetDeviceFoundListener);
+        try {
+            subnetDevices = SubnetDevices.fromLocalAddress().findDevices(onSubnetDeviceFoundListener);
+        } catch (IllegalAccessError e) {
+            Log.e(TAG, "findSubnetDevices: Error " + e.getMessage());
+        }
     }
 
     public void cancelFindSubnetDevices() {

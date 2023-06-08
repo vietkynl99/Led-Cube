@@ -368,8 +368,8 @@ public class NetworkService extends Service {
     }
 
     private void requestConnectToSavedDevice() {
-        Log.d(TAG, "requestConnectToSavedDevice: ");
         if (!savedIpAddress.isEmpty() && !savedMacAddress.isEmpty()) {
+            Log.d(TAG, "requestConnectToSavedDevice: ");
             requestConnectToDevice(savedIpAddress, savedMacAddress);
         }
     }
