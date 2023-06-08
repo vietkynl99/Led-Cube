@@ -70,6 +70,14 @@ public class ServerManager {
         isFindingSubnetDevices = false;
     }
 
+    public ServerState getServerState() {
+        return serverState;
+    }
+
+    public ConnectionState getConnectionState() {
+        return connectionState;
+    }
+
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
     }
@@ -99,7 +107,7 @@ public class ServerManager {
     }
 
     private void sendRequestToServer(ServerMessage sentData) {
-        Log.e(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
+        Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
         if (context == null) {
             Log.e(TAG, "sendRequestToServer: Context is null!");
             return;
@@ -128,7 +136,7 @@ public class ServerManager {
                     }
                 },
                 error -> {
-                    Log.e(TAG, "onErrorResponse: " + error.getMessage());
+//                    Log.e(TAG, "onErrorResponse: " + error.getMessage());
                     String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
                     getResponseFromServer(true, errorMessage, new ServerMessage());
                 });

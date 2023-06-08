@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -40,6 +41,9 @@ import java.util.Locale;
 
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
+    private final int networkScanTime = 10;
+    private Handler mHandler;
+    private Runnable mRunnable;
     private final Gson gson = new Gson();
     private final int retryMax = 1;
     private String savedIpAddress, savedMacAddress;
@@ -47,6 +51,7 @@ public class NetworkService extends Service {
     private NetworkServiceState networkServiceState;
     private int retryCount;
     private boolean autoDetect;
+    private long lastFreeTime;
 
     public enum NetworkServiceState {
         STATE_NONE,
@@ -63,7 +68,7 @@ public class NetworkService extends Service {
             if (event != null) {
                 switch (event) {
                     case BROADCAST_REQUEST_FIND_SUBNET_DEVICE: {
-                        findSubnetDevicesList();
+                        requestFindSubnetDevicesList();
                         break;
                     }
                     case BROADCAST_REQUEST_CONNECT_DEVICE: {
@@ -78,7 +83,7 @@ public class NetworkService extends Service {
                         String ip = intent.getStringExtra("ip");
                         String mac = intent.getStringExtra("mac");
                         if (!ip.isEmpty() && !mac.isEmpty()) {
-                            pairDevice(ip, mac);
+                            requestPairDevice(ip, mac);
                         }
                         break;
                     }
@@ -110,6 +115,7 @@ public class NetworkService extends Service {
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
         autoDetect = true;
+        lastFreeTime = System.currentTimeMillis();
 
         readSavedDeviceInformation();
 
@@ -118,7 +124,7 @@ public class NetworkService extends Service {
 
         /* Server status changed */
         ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
-            Log.e(TAG, "Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
+            Log.i(TAG, ">>> Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
             // Sent request is done
             if (connectionState == CONNECTION_STATE_NONE) {
                 switch (networkServiceState) {
@@ -127,10 +133,10 @@ public class NetworkService extends Service {
                             // Cannot connect to server
                             retryCount++;
                             if (retryCount >= retryMax) {
-                                Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Stop retry");
+                                Log.i(TAG, "Server status changed: Cannot connect (retry: " + retryCount + " ) -> Stop retry");
                                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
                             } else {
-                                Log.i(TAG, "Server status changed: Cannot connect on startup (retry: " + retryCount + " ) -> Continue retry");
+                                Log.i(TAG, "Server status changed: Cannot connect (retry: " + retryCount + " ) -> Continue retry");
                                 ServerManager.getInstance().sendCheckConnectionRequest();
                             }
                         } else {
@@ -186,25 +192,44 @@ public class NetworkService extends Service {
                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
                 sendBroadcastFinishFindSubnetDevices();
                 if (autoDetect) {
-                    autoDetectDeviceInSubnetList(devicesFound);
+                    requestAutoDetectDeviceInSubnetList(devicesFound);
                 }
             }
         });
 
+        /* Broadcast */
+        registerBroadcast();
+
+        /* Runnable */
+        mHandler = new Handler();
+        mRunnable = () -> {
+            // If it have free time for 5 seconds, then start checking the connection
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastFreeTime > networkScanTime * 500) {
+                requestConnectToSavedDevice();
+            }
+            mHandler.postDelayed(mRunnable, networkScanTime * 1000);
+        };
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // Try to connect in first time
         if (!savedIpAddress.isEmpty()) {
             requestConnectToDevice(savedIpAddress, savedMacAddress);
         } else {
-            findSubnetDevicesList();
+            requestFindSubnetDevicesList();
         }
-
-        /* Broadcast */
-        registerBroadcast();
+        // Runnable
+        mHandler.postDelayed(mRunnable, networkScanTime * 1000);
+        return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         Log.e(TAG, "onDestroy: ");
         super.onDestroy();
+        mHandler.removeCallbacks(mRunnable);
         unRegisterBroadcast();
     }
 
@@ -281,14 +306,18 @@ public class NetworkService extends Service {
     }
 
     private void setNetworkServiceState(NetworkServiceState networkServiceState) {
+        if (this.networkServiceState != NetworkServiceState.STATE_NONE &&
+                networkServiceState == NetworkServiceState.STATE_NONE) {
+            lastFreeTime = System.currentTimeMillis();
+        }
         if (this.networkServiceState != networkServiceState) {
             this.networkServiceState = networkServiceState;
-            Log.e(TAG, "Service state changed: " + networkServiceState);
+            Log.i(TAG, ">>> Service state changed: " + networkServiceState);
             sendBroadcastServiceStateChanged();
         }
     }
 
-    private void pairDevice(String ipAddress, String macAddress) {
+    private void requestPairDevice(String ipAddress, String macAddress) {
         if (ipAddress.isEmpty()) {
             Log.e(TAG, "requestPairDevice: IP is empty");
             return;
@@ -297,7 +326,7 @@ public class NetworkService extends Service {
             Log.e(TAG, "requestPairDevice: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }
-        Log.d(TAG, "requestPairDevice: ");
+        Log.d(TAG, "requestPairDevice: " + ipAddress + " " + macAddress);
         retryCount = 0;
         setNetworkServiceState(NetworkServiceState.STATE_PAIR_DEVICE);
         ServerManager.getInstance().setIpAddress(ipAddress);
@@ -307,14 +336,14 @@ public class NetworkService extends Service {
 
     private void requestConnectToDevice(String ipAddress, String macAddress) {
         if (ipAddress.isEmpty()) {
-            Log.e(TAG, "tryToConnectDevice: IP is empty");
+            Log.e(TAG, "requestConnectToDevice: IP is empty");
             return;
         }
         if (networkServiceState != NetworkServiceState.STATE_NONE) {
-            Log.e(TAG, "tryToConnectDevice: Network Service is busy. Please try again. State:" + networkServiceState);
+            Log.e(TAG, "requestConnectToDevice: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }
-        Log.d(TAG, "tryToConnectDevice: ");
+        Log.d(TAG, "requestConnectToDevice: " + ipAddress + " " + macAddress);
         retryCount = 0;
         setNetworkServiceState(NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE);
         ServerManager.getInstance().setIpAddress(ipAddress);
@@ -322,7 +351,14 @@ public class NetworkService extends Service {
         ServerManager.getInstance().sendCheckConnectionRequest();
     }
 
-    private void autoDetectDeviceInSubnetList(ArrayList<Device> devices) {
+    private void requestConnectToSavedDevice() {
+        Log.d(TAG, "requestConnectToSavedDevice: ");
+        if (!savedIpAddress.isEmpty() && !savedMacAddress.isEmpty()) {
+            requestConnectToDevice(savedIpAddress, savedMacAddress);
+        }
+    }
+
+    private void requestAutoDetectDeviceInSubnetList(ArrayList<Device> devices) {
         if (networkServiceState != NetworkServiceState.STATE_NONE) {
             Log.e(TAG, "autoDetectDeviceInSubnetList: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
@@ -346,7 +382,7 @@ public class NetworkService extends Service {
         }
     }
 
-    private void findSubnetDevicesList() {
+    private void requestFindSubnetDevicesList() {
         if (networkServiceState != NetworkServiceState.STATE_NONE) {
             Log.e(TAG, "findSubnetDevicesList: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
