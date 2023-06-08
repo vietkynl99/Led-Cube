@@ -100,6 +100,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             option_item_text.setText(item.getText());
             option_value_text.setText(String.valueOf(item.getValue()));
             option_seek_bar.setProgress(item.getValue());
+            expandable_layout.collapse();
         }
     }
 }

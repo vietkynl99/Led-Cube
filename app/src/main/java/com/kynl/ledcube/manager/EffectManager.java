@@ -1,5 +1,11 @@
 package com.kynl.ledcube.manager;
 
+import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
+
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
 
@@ -7,8 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EffectManager {
+    private final String TAG = "EffectManager";
     private static EffectManager instance;
+    private Context context;
     private List<EffectItem> effectItemList;
+    private EffectItem.EffectType currentEffectType;
 
     private EffectManager() {
     }
@@ -20,7 +29,15 @@ public class EffectManager {
         return instance;
     }
 
-    public void init() {
+    public void init(Context context) {
+        this.context = context;
+
+        // default value
+        currentEffectType = EffectItem.EffectType.RGB;
+
+        // Read old value from SHARED PREFERENCES
+        readOldEffectType();
+
         effectItemList = new ArrayList<>();
 
         // RGB
@@ -61,4 +78,36 @@ public class EffectManager {
         return effectItemList;
     }
 
+    public EffectItem.EffectType getCurrentEffectType() {
+        return currentEffectType;
+    }
+
+    public void setCurrentEffectType(EffectItem.EffectType currentEffectType) {
+        if (this.currentEffectType != currentEffectType) {
+            this.currentEffectType = currentEffectType;
+            saveEffectType();
+        }
+    }
+
+    private void readOldEffectType() {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        String currentEffectTypeStr = prefs.getString("currentEffectType", "");
+        if (!currentEffectTypeStr.isEmpty()) {
+            try {
+                currentEffectType = EffectItem.EffectType.valueOf(currentEffectTypeStr);
+            } catch (Exception ignored) {
+            }
+        }
+
+        Log.i(TAG, "readOldEffectType: currentEffectType[" + currentEffectType + "]");
+    }
+
+    private void saveEffectType() {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("currentEffectType", currentEffectType.toString());
+        editor.apply();
+
+        Log.d(TAG, "saveEffectType: currentEffectType[" + currentEffectType + "]");
+    }
 }

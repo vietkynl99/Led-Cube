@@ -18,21 +18,19 @@ import com.kynl.ledcube.manager.EffectManager;
 import com.kynl.ledcube.model.EffectItem;
 
 public class HomeFragment extends Fragment {
-
     private final String TAG = "HomeFragment";
-    private final EffectItem.EffectType savedType = EffectItem.EffectType.RGB;
+
 
     public HomeFragment() {
         // Required empty public constructor
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.e(TAG, "onCreate: ");
 
-        EffectManager.getInstance().init();
+        EffectManager.getInstance().init(getContext());
     }
 
     @Override
@@ -49,15 +47,16 @@ public class HomeFragment extends Fragment {
         OptionListAdapter optionListAdapter = new OptionListAdapter(EffectManager.getInstance().getEffectItemList());
         optionListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         optionListRecyclerView.setAdapter(optionListAdapter);
-        optionListAdapter.select(savedType);
+        optionListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
 
         /* Effect Recycler view */
         EffectListAdapter effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectItemList());
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         effectListRecyclerView.setAdapter(effectListAdapter);
-        effectListAdapter.select(savedType);
+        effectListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
 
         effectListAdapter.setOnEffectItemClickListener(type -> {
+            EffectManager.getInstance().setCurrentEffectType(type);
             effectListAdapter.select(type);
             optionListAdapter.select(type);
         });
