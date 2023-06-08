@@ -52,6 +52,7 @@ public class HomeFragment extends Fragment {
         optionListAdapter.setOnOptionValueChangeListener((effectType, optionType, value) -> {
             Log.d(TAG, "Option data changed: " + effectType + " " + optionType + " " + value);
             EffectManager.getInstance().setOptionValue(effectType, optionType, value);
+            // TODO: send data to server
         });
 
         /* Effect Recycler view */

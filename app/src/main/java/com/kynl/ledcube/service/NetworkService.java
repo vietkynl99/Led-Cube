@@ -41,7 +41,7 @@ import java.util.Locale;
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
     private final Gson gson = new Gson();
-    private int retryMax;
+    private final int retryMax = 1;
     private String savedIpAddress, savedMacAddress;
     private String lastScanTime, lastScanDevicesList;
     private NetworkServiceState networkServiceState;
@@ -70,7 +70,7 @@ public class NetworkService extends Service {
                         String ip = intent.getStringExtra("ip");
                         String mac = intent.getStringExtra("mac");
                         if (!ip.isEmpty() && !mac.isEmpty()) {
-                            connectToDevice(ip, mac);
+                            requestConnectToDevice(ip, mac);
                         }
                         break;
                     }
@@ -109,7 +109,6 @@ public class NetworkService extends Service {
         lastScanDevicesList = "";
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
-        retryMax = 1;
         autoDetect = true;
 
         readSavedDeviceInformation();
@@ -150,7 +149,7 @@ public class NetworkService extends Service {
                     case STATE_PAIR_DEVICE: {
                         if (serverState == SERVER_STATE_DISCONNECTED) {
                             Log.i(TAG, "Server status changed: Can not pair to " + ServerManager.getInstance().getIpAddress() + " " + ServerManager.getInstance().getMacAddress());
-                        } else if(serverState ==SERVER_STATE_CONNECTED_AND_PAIRED) {
+                        } else if (serverState == SERVER_STATE_CONNECTED_AND_PAIRED) {
                             Log.i(TAG, "Server status changed: Pair successfully!");
                         }
                         setNetworkServiceState(NetworkServiceState.STATE_NONE);
@@ -193,7 +192,7 @@ public class NetworkService extends Service {
         });
 
         if (!savedIpAddress.isEmpty()) {
-            connectToDeviceWithRetry(savedIpAddress, savedMacAddress);
+            requestConnectToDevice(savedIpAddress, savedMacAddress);
         } else {
             findSubnetDevicesList();
         }
@@ -306,15 +305,7 @@ public class NetworkService extends Service {
         ServerManager.getInstance().sendPairRequest();
     }
 
-    private void connectToDevice(String ipAddress, String macAddress) {
-        requestConnectToDevice(ipAddress, macAddress, 1);
-    }
-
-    private void connectToDeviceWithRetry(String ipAddress, String macAddress) {
-        requestConnectToDevice(ipAddress, macAddress, 3);
-    }
-
-    private void requestConnectToDevice(String ipAddress, String macAddress, int retryMax) {
+    private void requestConnectToDevice(String ipAddress, String macAddress) {
         if (ipAddress.isEmpty()) {
             Log.e(TAG, "tryToConnectDevice: IP is empty");
             return;
@@ -325,7 +316,6 @@ public class NetworkService extends Service {
         }
         Log.d(TAG, "tryToConnectDevice: ");
         retryCount = 0;
-        this.retryMax = retryMax;
         setNetworkServiceState(NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE);
         ServerManager.getInstance().setIpAddress(ipAddress);
         ServerManager.getInstance().setMacAddress(macAddress);
@@ -350,7 +340,7 @@ public class NetworkService extends Service {
         }
         // connect to device which has same MAC address
         if (hasMacAddressInList && sameMacAddressDevice != null) {
-            connectToDevice(sameMacAddressDevice.getIp(), sameMacAddressDevice.getMac());
+            requestConnectToDevice(sameMacAddressDevice.getIp(), sameMacAddressDevice.getMac());
         } else {
             Log.i(TAG, "autoDetectDeviceInSubnetList: Cannot find device which has same MAC address in list");
         }
