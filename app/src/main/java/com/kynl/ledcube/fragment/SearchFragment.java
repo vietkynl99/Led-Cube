@@ -216,7 +216,7 @@ public class SearchFragment extends Fragment {
             savedMacAddress = prefs.getString("savedMacAddress", "");
         }
 
-        Log.e(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
+        Log.d(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
 

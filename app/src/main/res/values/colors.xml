@@ -11,6 +11,8 @@
 
     <color name="text_smoke_color">#DADADA</color>
 
+    <color name="icon_color">#606065</color>
+
     <color name="color_primary">#61CFEE</color>
     <color name="color_secondary">#61CFEE</color>
     <color name="color_secondary_variant">#18B8E7</color>

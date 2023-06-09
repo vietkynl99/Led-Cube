@@ -12,6 +12,7 @@ import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
 import com.kynl.ledcube.nettool.SubnetDevices;
+import com.kynl.ledcube.service.NetworkService;
 
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
@@ -43,6 +44,7 @@ public class ServerManager {
     SubnetDevices subnetDevices;
     private SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener;
     private boolean isFindingSubnetDevices;
+    private String savedIpAddress, savedMacAddress;
 
     private ServerManager() {
     }
@@ -60,7 +62,7 @@ public class ServerManager {
         if (requestQueue == null) {
             requestQueue = Volley.newRequestQueue(context);
         }
-        readOldSetting();
+        readApiKey();
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
         connectionState = ConnectionState.CONNECTION_STATE_NONE;
         onServerStatusChangedListener = null;
@@ -68,6 +70,10 @@ public class ServerManager {
         macAddress = "";
         subnetDevices = null;
         isFindingSubnetDevices = false;
+        savedIpAddress = "";
+        savedMacAddress = "";
+
+        readSavedDeviceInformation();
     }
 
     public ServerState getServerState() {
@@ -92,6 +98,46 @@ public class ServerManager {
 
     public String getMacAddress() {
         return macAddress;
+    }
+
+    public String getSavedIpAddress() {
+        return savedIpAddress;
+    }
+
+    public String getSavedMacAddress() {
+        return savedMacAddress;
+    }
+
+    public boolean hasSavedDevice() {
+        return !savedIpAddress.isEmpty() && !savedMacAddress.isEmpty();
+    }
+
+    public void saveDevice(String ip, String mac) {
+        if (!ip.isEmpty() && !mac.isEmpty()) {
+            if (!ip.equals(savedIpAddress) || !mac.equals(savedMacAddress)) {
+                savedIpAddress = ip;
+                savedMacAddress = mac;
+                saveDeviceInformation();
+            }
+        }
+    }
+
+    private void saveDeviceInformation() {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("savedIpAddress", savedIpAddress);
+        editor.putString("savedMacAddress", savedMacAddress);
+        editor.apply();
+
+        Log.e(TAG, "saveDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
+    }
+
+    private void readSavedDeviceInformation() {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        savedIpAddress = prefs.getString("savedIpAddress", "");
+        savedMacAddress = prefs.getString("savedMacAddress", "");
+
+        Log.e(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
     public void sendCheckConnectionRequest() {
@@ -176,7 +222,7 @@ public class ServerManager {
                     try {
                         apiKey = Integer.parseInt(receivedData.getData());
                         serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                        saveOldSetting();
+                        saveApiKey();
                         Log.i(TAG, "getResponseFromServer: Paired -> apiKey = " + apiKey);
                     } catch (NumberFormatException e) {
                         serverState = ServerState.SERVER_STATE_DISCONNECTED;
@@ -193,6 +239,10 @@ public class ServerManager {
         }
         connectionState = ConnectionState.CONNECTION_STATE_NONE;
 
+        if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
+            saveDevice(ipAddress, macAddress);
+        }
+
         notifyServerStatusChanged();
     }
 
@@ -202,7 +252,7 @@ public class ServerManager {
         }
     }
 
-    private void saveOldSetting() {
+    private void saveApiKey() {
         // server address
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -210,7 +260,7 @@ public class ServerManager {
         editor.apply();
     }
 
-    private void readOldSetting() {
+    private void readApiKey() {
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         apiKey = prefs.getInt("apiKey", 0);
 

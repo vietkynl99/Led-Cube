@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@drawable/background_page_shape"
+    android:orientation="vertical"
     tools:context=".fragment.HomeFragment">
 
     <LinearLayout
@@ -44,13 +44,36 @@
                 android:textColor="@color/white"
                 android:textSize="32sp" />
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/iconStatus"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:backgroundTintMode="multiply"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/sensors_off_48" />
+
+                <TextView
+                    android:id="@+id/textStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="0dp"
+                    android:text="@string/no_device"
+                    android:textColor="@color/icon_color" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/textView3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:alpha="0.3"
                 android:text="[Battery icon] 80%"
-                android:textColor="#EBEBF5" />
+                android:textColor="@color/icon_color" />
         </LinearLayout>
 
         <ImageView

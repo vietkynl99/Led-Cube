@@ -18,7 +18,11 @@
     <string name="demo_IP">192.168.1.1</string>
     <string name="demo_MAC">00:11:22:33:44:55:66</string>
     <string name="demo_ping">1000</string>
+
     <string name="connecting">Connecting…</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="no_device">No device</string>
 
     <string name="unit_ms">ms</string>
 

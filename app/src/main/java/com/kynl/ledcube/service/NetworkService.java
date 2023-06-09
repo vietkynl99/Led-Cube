@@ -47,7 +47,6 @@ public class NetworkService extends Service {
     private Runnable mRunnable;
     private final Gson gson = new Gson();
     private final int retryMax = 1;
-    private String savedIpAddress, savedMacAddress;
     private String lastScanTime, lastScanDevicesList;
     private NetworkServiceState networkServiceState;
     private int retryCount;
@@ -116,16 +115,12 @@ public class NetworkService extends Service {
 
         Log.i(TAG, "onCreate: create service");
 
-        savedIpAddress = "";
-        savedMacAddress = "";
         lastScanTime = "";
         lastScanDevicesList = "";
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
         autoDetect = true;
         lastFreeTime = System.currentTimeMillis();
-
-        readSavedDeviceInformation();
 
         /* ServerManager */
         ServerManager.getInstance().init(getApplicationContext());
@@ -141,21 +136,14 @@ public class NetworkService extends Service {
                             // Cannot connect to server
                             retryCount++;
                             if (retryCount >= retryMax) {
-                                Log.i(TAG, "Server status changed: Cannot connect (retry: " + retryCount + " ) -> Stop retry");
+                                Log.i(TAG, "Server status changed: Cannot connect (retry: " + retryCount + " ) -> Stop");
                                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
                             } else {
-                                Log.i(TAG, "Server status changed: Cannot connect (retry: " + retryCount + " ) -> Continue retry");
+                                Log.i(TAG, "Server status changed: Cannot connect (retry: " + retryCount + " ) -> Retry");
                                 ServerManager.getInstance().sendCheckConnectionRequest();
                             }
                         } else {
                             // Able to connect to server
-                            String ipAddress = ServerManager.getInstance().getIpAddress();
-                            String macAddress = ServerManager.getInstance().getMacAddress();
-                            if (!ipAddress.equals(savedIpAddress) || !macAddress.equals(savedMacAddress)) {
-                                savedIpAddress = ipAddress;
-                                savedMacAddress = macAddress;
-                                saveDeviceInformation();
-                            }
                             setNetworkServiceState(NetworkServiceState.STATE_NONE);
                         }
                         break;
@@ -222,8 +210,8 @@ public class NetworkService extends Service {
         };
 
         // Try to connect in first time
-        if (!savedIpAddress.isEmpty()) {
-            requestConnectToDevice(savedIpAddress, savedMacAddress);
+        if (ServerManager.getInstance().hasSavedDevice()) {
+            requestConnectToSavedDevice();
         } else {
             requestFindSubnetDevicesList();
         }
@@ -368,9 +356,11 @@ public class NetworkService extends Service {
     }
 
     private void requestConnectToSavedDevice() {
-        if (!savedIpAddress.isEmpty() && !savedMacAddress.isEmpty()) {
+        if (ServerManager.getInstance().hasSavedDevice()) {
             Log.d(TAG, "requestConnectToSavedDevice: ");
-            requestConnectToDevice(savedIpAddress, savedMacAddress);
+            String ip = ServerManager.getInstance().getSavedIpAddress();
+            String mac = ServerManager.getInstance().getMacAddress();
+            requestConnectToDevice(ip, mac);
         }
     }
 
@@ -379,9 +369,12 @@ public class NetworkService extends Service {
             Log.e(TAG, "autoDetectDeviceInSubnetList: Network Service is busy. Please try again. State:" + networkServiceState);
             return;
         }
+
         Log.d(TAG, "autoDetectDeviceInSubnetList: ");
+        String savedMacAddress = ServerManager.getInstance().getSavedMacAddress();
         boolean hasMacAddressInList = false;
         Device sameMacAddressDevice = null;
+
         if (!savedMacAddress.isEmpty()) {
             for (int i = 0; i < devices.size(); i++) {
                 if (devices.get(i).getMac().equals(savedMacAddress)) {
@@ -414,32 +407,6 @@ public class NetworkService extends Service {
         Date now = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM", Locale.US);
         return formatter.format(now);
-    }
-
-    private void saveDeviceInformation() {
-        if (savedIpAddress.isEmpty()) {
-            Log.e(TAG, "saveDeviceInformation: Cannot save due to empty savedIpAddress");
-            return;
-        }
-        if (savedMacAddress.isEmpty()) {
-            Log.e(TAG, "saveDeviceInformation: Cannot save due to empty savedMacAddress");
-            return;
-        }
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("savedIpAddress", savedIpAddress);
-        editor.putString("savedMacAddress", savedMacAddress);
-        editor.apply();
-
-        Log.e(TAG, "saveDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
-    }
-
-    private void readSavedDeviceInformation() {
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        savedIpAddress = prefs.getString("savedIpAddress", "");
-        savedMacAddress = prefs.getString("savedMacAddress", "");
-
-        Log.e(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
     private void saveLastScanInformation() {
