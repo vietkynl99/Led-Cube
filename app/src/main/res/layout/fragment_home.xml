@@ -62,18 +62,35 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginStart="10dp"
+                    android:layout_marginStart="8dp"
                     android:layout_marginEnd="0dp"
                     android:text="@string/offline"
                     android:textColor="@color/icon_color" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="[Battery icon] 80%"
-                android:textColor="@color/icon_color" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/batteryIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="0dp"
+                    android:src="@drawable/battery_icon" />
+
+                <TextView
+                    android:id="@+id/textBattery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="0dp"
+                    android:text="@string/demo_battery_level"
+                    android:textColor="@color/icon_color" />
+            </LinearLayout>
         </LinearLayout>
 
         <ImageView

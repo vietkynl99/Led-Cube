@@ -29,8 +29,8 @@ import com.kynl.ledcube.manager.ServerManager;
 
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
-    private ImageView iconStatus;
-    private TextView textStatus;
+    private ImageView iconStatus, batteryIcon;
+    private TextView textStatus, textBatteryLevel;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -72,6 +72,8 @@ public class HomeFragment extends Fragment {
         /* Elements */
         iconStatus = view.findViewById(R.id.iconStatus);
         textStatus = view.findViewById(R.id.textStatus);
+        batteryIcon = view.findViewById(R.id.batteryIcon);
+        textBatteryLevel = view.findViewById(R.id.textBattery);
         RecyclerView effectListRecyclerView = view.findViewById(R.id.effectListRecyclerView);
         RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
 
@@ -101,6 +103,8 @@ public class HomeFragment extends Fragment {
 
 
         registerBroadcast();
+
+        setBatteryLevel(60);
 
         return view;
     }
@@ -161,5 +165,17 @@ public class HomeFragment extends Fragment {
                 }
             }
         }
+    }
+
+    private void setBatteryLevel(int level) {
+        if (level < 0) {
+            level = 0;
+        }
+        if (level > 100) {
+            level = 100;
+        }
+        String text = level + "%";
+        textBatteryLevel.setText(text);
+        batteryIcon.setImageLevel((int) Math.round(level / 20.0));
     }
 }
