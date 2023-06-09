@@ -64,7 +64,7 @@
                     android:layout_gravity="center"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="0dp"
-                    android:text="@string/no_device"
+                    android:text="@string/offline"
                     android:textColor="@color/icon_color" />
             </LinearLayout>
 

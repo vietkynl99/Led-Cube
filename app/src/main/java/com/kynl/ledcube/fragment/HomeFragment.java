@@ -102,8 +102,6 @@ public class HomeFragment extends Fragment {
 
         registerBroadcast();
 
-        updateStatus(false);
-
         return view;
     }
 
