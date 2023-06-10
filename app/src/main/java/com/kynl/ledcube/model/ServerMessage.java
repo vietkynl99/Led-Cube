@@ -116,6 +116,6 @@ public class ServerMessage {
     }
 
     public boolean isValidResponseMessage() {
-        return name.equals(SERVER_DEVICE_NAME) && type != EventType.EVENT_NONE && !data.isEmpty();
+        return name.equals(SERVER_DEVICE_NAME) && type != EventType.EVENT_NONE;
     }
 }
