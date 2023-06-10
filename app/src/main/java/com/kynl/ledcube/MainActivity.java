@@ -1,4 +1,4 @@
-package com.kynl.ledcube.activity;
+package com.kynl.ledcube;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.etebarian.meowbottomnavigation.MeowBottomNavigation;
-import com.kynl.ledcube.R;
 import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
 import com.kynl.ledcube.fragment.SettingsFragment;
