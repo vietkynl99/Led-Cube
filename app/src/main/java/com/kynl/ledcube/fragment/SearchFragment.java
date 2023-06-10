@@ -5,7 +5,6 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVI
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
@@ -40,10 +39,13 @@ import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
 import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.model.Device;
-import com.kynl.ledcube.service.NetworkService;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+
+import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
+import com.kynl.ledcube.common.CommonUtils.ServerState;
+import com.kynl.ledcube.common.CommonUtils.ConnectionState;
 
 public class SearchFragment extends Fragment {
     private final String TAG = "SearchFragment";
@@ -86,23 +88,23 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_SERVER_STATUS_CHANGED: {
-                        ServerManager.ServerState serverState = (ServerManager.ServerState) intent.getSerializableExtra("serverState");
-                        if (serverState == ServerManager.ServerState.SERVER_STATE_DISCONNECTED) {
+                        ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
+                        if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
                             deviceListAdapter.resetConnectingDevice();
                         } else {
                             readSavedDeviceInformation();
                             deviceListAdapter.setConnectedDeviceMac(savedMacAddress);
                         }
-                        if (serverState == ServerManager.ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
+                        if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
                             deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
-                        } else if (serverState == ServerManager.ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
+                        } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                             deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_AND_PAIRED);
                         }
                         break;
                     }
                     case BROADCAST_SERVICE_STATE_CHANGED: {
-                        NetworkService.NetworkServiceState networkServiceState = (NetworkService.NetworkServiceState) intent.getSerializableExtra("serviceState");
-                        if (networkServiceState == NetworkService.NetworkServiceState.STATE_NONE) {
+                        NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("serviceState");
+                        if (networkServiceState == NetworkServiceState.STATE_NONE) {
                             setRefreshButtonEnable(true);
                             deviceListAdapter.resetConnectingDevice();
                             if (progressBar != null) {
@@ -114,8 +116,8 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_UPDATE_STATUS: {
-                        NetworkService.NetworkServiceState networkServiceState = (NetworkService.NetworkServiceState) intent.getSerializableExtra("serviceState");
-                        if (networkServiceState == NetworkService.NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
+                        NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("serviceState");
+                        if (networkServiceState == NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
                             deviceListAdapter.setConnectingDevice(ServerManager.getInstance().getMacAddress());
                         }
                         break;

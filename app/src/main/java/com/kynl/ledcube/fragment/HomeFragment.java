@@ -27,6 +27,10 @@ import com.kynl.ledcube.adapter.OptionListAdapter;
 import com.kynl.ledcube.manager.EffectManager;
 import com.kynl.ledcube.manager.ServerManager;
 
+import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
+import com.kynl.ledcube.common.CommonUtils.ServerState;
+import com.kynl.ledcube.common.CommonUtils.ConnectionState;
+
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
     private ImageView iconStatus, batteryIcon;
@@ -40,8 +44,8 @@ public class HomeFragment extends Fragment {
             if (event != null) {
                 switch (event) {
                     case BROADCAST_SERVICE_SERVER_STATUS_CHANGED: {
-                        ServerManager.ServerState serverState = (ServerManager.ServerState) intent.getSerializableExtra("serverState");
-                        updateStatus(serverState == ServerManager.ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
+                        ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
+                        updateStatus(serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
                         break;
                     }
                     default:

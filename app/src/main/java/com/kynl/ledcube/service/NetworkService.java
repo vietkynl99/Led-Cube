@@ -13,9 +13,6 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGE
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
-import static com.kynl.ledcube.manager.ServerManager.ConnectionState.CONNECTION_STATE_NONE;
-import static com.kynl.ledcube.manager.ServerManager.ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-import static com.kynl.ledcube.manager.ServerManager.ServerState.SERVER_STATE_DISCONNECTED;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -40,6 +37,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
+import com.kynl.ledcube.common.CommonUtils.ServerState;
+import com.kynl.ledcube.common.CommonUtils.ConnectionState;
+
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
     private final int networkScanTime = 10;
@@ -52,13 +53,6 @@ public class NetworkService extends Service {
     private int retryCount;
     private boolean autoDetect;
     private long lastFreeTime;
-
-    public enum NetworkServiceState {
-        STATE_NONE,
-        STATE_TRY_TO_CONNECT_DEVICE,
-        STATE_FIND_SUBNET_DEVICES,
-        STATE_PAIR_DEVICE
-    }
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -129,10 +123,10 @@ public class NetworkService extends Service {
         ServerManager.getInstance().setOnServerStatusChangedListener((serverState, connectionState) -> {
             Log.i(TAG, ">>> Server status changed: serverState[" + serverState + "] connectionState[" + connectionState + "]");
             // Sent request is done
-            if (connectionState == CONNECTION_STATE_NONE) {
+            if (connectionState == ConnectionState.CONNECTION_STATE_NONE) {
                 switch (networkServiceState) {
                     case STATE_TRY_TO_CONNECT_DEVICE: {
-                        if (serverState == SERVER_STATE_DISCONNECTED) {
+                        if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
                             // Cannot connect to server
                             retryCount++;
                             if (retryCount >= retryMax) {
@@ -149,9 +143,9 @@ public class NetworkService extends Service {
                         break;
                     }
                     case STATE_PAIR_DEVICE: {
-                        if (serverState == SERVER_STATE_DISCONNECTED) {
+                        if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
                             Log.i(TAG, "Server status changed: Can not pair to " + ServerManager.getInstance().getIpAddress() + " " + ServerManager.getInstance().getMacAddress());
-                        } else if (serverState == SERVER_STATE_CONNECTED_AND_PAIRED) {
+                        } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                             Log.i(TAG, "Server status changed: Pair successfully!");
                         }
                         setNetworkServiceState(NetworkServiceState.STATE_NONE);
@@ -261,7 +255,7 @@ public class NetworkService extends Service {
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
 
-    private void sendBroadcastServerStatusChanged(ServerManager.ServerState serverState, ServerManager.ConnectionState connectionState) {
+    private void sendBroadcastServerStatusChanged(ServerState serverState, ConnectionState connectionState) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_SERVER_STATUS_CHANGED);
         intent.putExtra("serverState", serverState);

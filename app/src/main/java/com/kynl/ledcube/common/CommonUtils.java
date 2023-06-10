@@ -20,8 +20,28 @@ public class CommonUtils {
 
     // Server device name
     public static final String SERVER_DEVICE_NAME = "ledCube";
-
     public static final String HTTP_FORMAT = "http://";
+
+    // Service
+    public enum NetworkServiceState {
+        STATE_NONE,
+        STATE_TRY_TO_CONNECT_DEVICE,
+        STATE_FIND_SUBNET_DEVICES,
+        STATE_PAIR_DEVICE
+    }
+
+    // Server Manager
+    public enum ServerState {
+        SERVER_STATE_DISCONNECTED,
+        SERVER_STATE_CONNECTED_BUT_NOT_PAIRED,
+        SERVER_STATE_CONNECTED_AND_PAIRED
+    }
+
+    public enum ConnectionState {
+        CONNECTION_STATE_NONE,
+        CONNECTION_STATE_PENDING_PAIR,
+        CONNECTION_STATE_PENDING_REQUEST
+    }
 
 }
 

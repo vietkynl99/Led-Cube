@@ -12,7 +12,9 @@ import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
 import com.kynl.ledcube.nettool.SubnetDevices;
-import com.kynl.ledcube.service.NetworkService;
+
+import com.kynl.ledcube.common.CommonUtils.ServerState;
+import com.kynl.ledcube.common.CommonUtils.ConnectionState;
 
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
@@ -20,18 +22,6 @@ import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
 
 public class ServerManager {
-    public enum ServerState {
-        SERVER_STATE_DISCONNECTED,
-        SERVER_STATE_CONNECTED_BUT_NOT_PAIRED,
-        SERVER_STATE_CONNECTED_AND_PAIRED
-    }
-
-    public enum ConnectionState {
-        CONNECTION_STATE_NONE,
-        CONNECTION_STATE_PENDING_PAIR,
-        CONNECTION_STATE_PENDING_REQUEST
-    }
-
     private final String TAG = "ServerManager";
     private String ipAddress, macAddress;
     private int apiKey = 0;
