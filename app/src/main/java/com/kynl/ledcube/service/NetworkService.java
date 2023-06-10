@@ -1,18 +1,11 @@
 package com.kynl.ledcube.service;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 
 import android.app.Service;
@@ -29,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
+import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.nettool.SubnetDevices;
@@ -66,14 +60,6 @@ public class NetworkService extends Service {
                         requestFindSubnetDevicesList();
                         break;
                     }
-                    case BROADCAST_REQUEST_CONNECT_DEVICE: {
-                        String ip = intent.getStringExtra("ip");
-                        String mac = intent.getStringExtra("mac");
-                        if (!ip.isEmpty() && !mac.isEmpty()) {
-                            requestConnectToDevice(ip, mac);
-                        }
-                        break;
-                    }
                     case BROADCAST_REQUEST_PAIR_DEVICE: {
                         String ip = intent.getStringExtra("ip");
                         String mac = intent.getStringExtra("mac");
@@ -87,9 +73,10 @@ public class NetworkService extends Service {
                         if (!data.isEmpty()) {
                             requestSendData(data);
                         }
+                        break;
                     }
                     case BROADCAST_REQUEST_UPDATE_STATUS: {
-                        sendBroadcastUpdateStatus();
+                        BroadcastManager.getInstance(getApplicationContext()).sendUpdateStatus(networkServiceState);
                         break;
                     }
                     case BROADCAST_REQUEST_PAUSE_NETWORK_SCAN: {
@@ -171,7 +158,7 @@ public class NetworkService extends Service {
                         break;
                     }
                 }
-                sendBroadcastServerStatusChanged(serverState, connectionState);
+                BroadcastManager.getInstance(getApplicationContext()).sendServerStatusChanged(serverState, connectionState);
             }
         });
 
@@ -180,12 +167,12 @@ public class NetworkService extends Service {
             @Override
             public void onDeviceFound(Device device) {
                 Log.d(TAG, "onDeviceFound: " + device);
-                sendBroadcastAddSubnetDevice(device);
+                BroadcastManager.getInstance(getApplicationContext()).sendAddSubnetDevice(device);
             }
 
             public void onProcessed(int processed, int total) {
                 int percent = 100 * processed / total;
-                sendBroadcastUpdateSubnetProgress(percent);
+                BroadcastManager.getInstance(getApplicationContext()).sendUpdateSubnetProgress(percent);
             }
 
             @Override
@@ -195,7 +182,7 @@ public class NetworkService extends Service {
                 lastScanDevicesList = convertDevicesListToString(devicesFound);
                 saveLastScanInformation();
                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
-                sendBroadcastFinishFindSubnetDevices();
+                BroadcastManager.getInstance(getApplicationContext()).sendFinishFindSubnetDevices();
                 if (autoDetect) {
                     requestAutoDetectDeviceInSubnetList(devicesFound);
                 }
@@ -266,54 +253,6 @@ public class NetworkService extends Service {
         }
     }
 
-    private void sendBroadcastMessage(Intent intent) {
-        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-    }
-
-    private void sendBroadcastServerStatusChanged(ServerState serverState, ConnectionState connectionState) {
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_SERVER_STATUS_CHANGED);
-        intent.putExtra("serverState", serverState);
-        intent.putExtra("connectionState", connectionState);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastAddSubnetDevice(Device device) {
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_ADD_SUBNET_DEVICE);
-        intent.putExtra("ip", device.getIp());
-        intent.putExtra("mac", device.getMac());
-        intent.putExtra("ping", device.getPing());
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastUpdateSubnetProgress(int percent) {
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS);
-        intent.putExtra("percent", percent);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastFinishFindSubnetDevices() {
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastServiceStateChanged() {
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_STATE_CHANGED);
-        intent.putExtra("serviceState", networkServiceState);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastUpdateStatus() {
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_UPDATE_STATUS);
-        intent.putExtra("serviceState", networkServiceState);
-        sendBroadcastMessage(intent);
-    }
-
     private void setNetworkServiceState(NetworkServiceState networkServiceState) {
         if (this.networkServiceState != NetworkServiceState.STATE_NONE &&
                 networkServiceState == NetworkServiceState.STATE_NONE) {
@@ -322,7 +261,7 @@ public class NetworkService extends Service {
         if (this.networkServiceState != networkServiceState) {
             this.networkServiceState = networkServiceState;
             Log.i(TAG, ">>> Service state changed: " + networkServiceState);
-            sendBroadcastServiceStateChanged();
+            BroadcastManager.getInstance(getApplicationContext()).sendNetWorkServiceStateChanged(networkServiceState);
         }
     }
 

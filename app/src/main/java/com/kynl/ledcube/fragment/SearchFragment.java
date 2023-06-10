@@ -1,10 +1,6 @@
 package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
@@ -37,6 +33,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
+import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.model.Device;
 
@@ -103,7 +100,7 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_STATE_CHANGED: {
-                        NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("serviceState");
+                        NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("networkServiceState");
                         if (networkServiceState == NetworkServiceState.STATE_NONE) {
                             setRefreshButtonEnable(true);
                             deviceListAdapter.resetConnectingDevice();
@@ -116,7 +113,7 @@ public class SearchFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_UPDATE_STATUS: {
-                        NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("serviceState");
+                        NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("networkServiceState");
                         if (networkServiceState == NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
                             deviceListAdapter.setConnectingDevice(ServerManager.getInstance().getMacAddress());
                         }
@@ -167,8 +164,7 @@ public class SearchFragment extends Fragment {
                 deviceListAdapter.setConnectingDevice(mac);
                 handler.postDelayed(() -> {
                     isDebouncing = false;
-//                    sendBroadcastRequestConnectDevice(ip, mac);
-                    sendBroadcastRequestPairDevice(ip, mac);
+                    BroadcastManager.getInstance(getContext()).sendRequestPairDevice(ip, mac);
                 }, 1000);
             }
         });
@@ -185,7 +181,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        sendBroadcastRequestUpdateStatus();
+        BroadcastManager.getInstance(getContext()).sendRequestUpdateStatus();
     }
 
     @Override
@@ -242,8 +238,7 @@ public class SearchFragment extends Fragment {
     private void refreshDeviceList() {
         Log.d(TAG, "refreshDeviceList: ");
         setRefreshButtonEnable(false);
-//        setInformationText("Scanning...");
-        sendBroadcastRequestFindSubnetDevice();
+        BroadcastManager.getInstance(getContext()).sendRequestFindSubnetDevice();
     }
 
     private void setRefreshButtonEnable(boolean enable) {
@@ -279,46 +274,5 @@ public class SearchFragment extends Fragment {
         } else {
             Log.e(TAG, "unRegisterBroadcast: Context is null");
         }
-    }
-
-    private void sendBroadcastMessage(Intent intent) {
-        Context context = getContext();
-        if (context != null) {
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-        } else {
-            Log.e(TAG, "sendBroadcastMessage: Context is null");
-        }
-    }
-
-    private void sendBroadcastRequestFindSubnetDevice() {
-        Log.e(TAG, "sendBroadcastRequestFindSubnetDevice: ");
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_REQUEST_FIND_SUBNET_DEVICE);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastRequestConnectDevice(String ip, String mac) {
-        Log.e(TAG, "sendBroadcastRequestConnectDevice: IP[" + ip + "] MAC[" + mac + "]");
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_REQUEST_CONNECT_DEVICE);
-        intent.putExtra("ip", ip);
-        intent.putExtra("mac", mac);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastRequestPairDevice(String ip, String mac) {
-        Log.e(TAG, "sendBroadcastRequestPairDevice: IP[" + ip + "] MAC[" + mac + "]");
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_REQUEST_PAIR_DEVICE);
-        intent.putExtra("ip", ip);
-        intent.putExtra("mac", mac);
-        sendBroadcastMessage(intent);
-    }
-
-    private void sendBroadcastRequestUpdateStatus() {
-        Log.e(TAG, "sendBroadcastRequestUpdateStatus: ");
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_REQUEST_UPDATE_STATUS);
-        sendBroadcastMessage(intent);
     }
 }
