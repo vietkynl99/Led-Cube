@@ -9,6 +9,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_D
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 
@@ -24,6 +25,7 @@ import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 import com.kynl.ledcube.common.CommonUtils.ConnectionState;
+import com.kynl.ledcube.model.ServerData;
 
 
 public class BroadcastManager {
@@ -95,6 +97,12 @@ public class BroadcastManager {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_UPDATE_STATUS);
         intent.putExtra("networkServiceState", networkServiceState);
+        sendBroadcast(intent);
+    }
+    public void sendUpdateServerData(ServerData serverData) {
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_SERVICE_UPDATE_SERVER_DATA);
+        intent.putExtra("batteryLevel", serverData.getBatteryLevel());
         sendBroadcast(intent);
     }
 

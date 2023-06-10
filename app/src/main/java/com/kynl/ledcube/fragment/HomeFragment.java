@@ -2,6 +2,7 @@ package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -49,6 +50,12 @@ public class HomeFragment extends Fragment {
                         ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
                         updateStatus(serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
                         break;
+                    }
+                    case BROADCAST_SERVICE_UPDATE_SERVER_DATA: {
+                        int batteryLevel = intent.getIntExtra("batteryLevel", -1);
+                        if (batteryLevel >= 0) {
+                            setBatteryLevel(batteryLevel);
+                        }
                     }
                     default:
                         break;
@@ -118,7 +125,7 @@ public class HomeFragment extends Fragment {
 
         registerBroadcast();
 
-        setBatteryLevel(60);
+        setBatteryLevel(-1);
 
         return view;
     }
@@ -183,7 +190,10 @@ public class HomeFragment extends Fragment {
 
     private void setBatteryLevel(int level) {
         if (level < 0) {
-            level = 0;
+            String text = "--%";
+            textBatteryLevel.setText(text);
+            batteryIcon.setImageLevel(0);
+            return;
         }
         if (level > 100) {
             level = 100;

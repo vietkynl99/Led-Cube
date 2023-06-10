@@ -162,6 +162,12 @@ public class NetworkService extends Service {
             }
         });
 
+        /* Server data changed */
+        ServerManager.getInstance().setOnServerDataChangeListener(serverData -> {
+            Log.d(TAG, "ServerDataChanged: " + serverData);
+            BroadcastManager.getInstance(getApplicationContext()).sendUpdateServerData(serverData);
+        });
+
         /* Found subnet devices */
         ServerManager.getInstance().setOnSubnetDeviceFoundListener(new SubnetDevices.OnSubnetDeviceFound() {
             @Override

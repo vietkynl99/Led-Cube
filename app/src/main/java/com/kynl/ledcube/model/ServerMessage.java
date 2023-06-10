@@ -9,17 +9,18 @@ public class ServerMessage {
     // Server Event
     public enum EventType {
         EVENT_NONE(100),
-        /* Request */
+        /* Request from App to Server */
         EVENT_REQUEST_CHECK_CONNECTION(200),
         EVENT_REQUEST_PAIR_DEVICE(201),
         EVENT_REQUEST_SEND_DATA(202),
-        /* Response */
+        /* Response from Server to App */
         EVENT_RESPONSE_CHECK_CONNECTION(300),
         EVENT_RESPONSE_INVALID_KEY(301),
         EVENT_RESPONSE_PAIR_DEVICE_IGNORED(302),
         EVENT_RESPONSE_PAIR_DEVICE_PAIRED(303),
         EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL(304),
-        EVENT_RESPONSE_GET_DATA_SUCCESSFUL(305);
+        EVENT_RESPONSE_GET_DATA_SUCCESSFUL(305),
+        EVENT_RESPONSE_UPDATE_DATA(306);
 
         private final int value;
 

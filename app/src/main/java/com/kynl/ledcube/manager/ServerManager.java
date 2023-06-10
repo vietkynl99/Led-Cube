@@ -9,7 +9,9 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.kynl.ledcube.model.ServerData;
 import com.kynl.ledcube.model.ServerMessage;
+import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
 import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
@@ -34,6 +36,7 @@ public class ServerManager {
     private ServerState serverState;
     private ConnectionState connectionState;
     private OnServerStatusChangedListener onServerStatusChangedListener;
+    private OnServerDataChangeListener onServerDataChangeListener;
     SubnetDevices subnetDevices;
     private SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener;
     private boolean isFindingSubnetDevices;
@@ -149,6 +152,10 @@ public class ServerManager {
         this.onServerStatusChangedListener = onServerStatusChangedListener;
     }
 
+    public void setOnServerDataChangeListener(OnServerDataChangeListener onServerDataChangeListener) {
+        this.onServerDataChangeListener = onServerDataChangeListener;
+    }
+
     private void sendRequestToServer(ServerMessage sentData) {
         Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
         if (context == null) {
@@ -226,7 +233,7 @@ public class ServerManager {
                         Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
                     } catch (Exception e) {
                         serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                        Log.e(TAG, "handleResponseFromServer: Invalid apiKey string: " + receivedData.getData());
+                        Log.e(TAG, "handleResponseFromServer: Invalid string: " + receivedData.getData());
                     }
                     break;
                 }
@@ -237,6 +244,19 @@ public class ServerManager {
                 }
                 case EVENT_RESPONSE_GET_DATA_SUCCESSFUL: {
                     serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
+                    break;
+                }
+                case EVENT_RESPONSE_UPDATE_DATA: {
+                    serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
+                    try {
+                        JSONObject jsonObject = new JSONObject(receivedData.getData());
+                        String batteryLevelStr = jsonObject.getString("batteryLevel");
+                        int batteryLevel = Integer.parseInt(batteryLevelStr);
+                        ServerData serverData = new ServerData(batteryLevel);
+                        notifyServerDataChanged(serverData);
+                    } catch (Exception e) {
+                        Log.e(TAG, "handleResponseFromServer: Invalid string: " + receivedData.getData());
+                    }
                     break;
                 }
                 // State is disconnected
@@ -269,6 +289,12 @@ public class ServerManager {
     private void notifyServerStatusChanged() {
         if (onServerStatusChangedListener != null) {
             onServerStatusChangedListener.onServerStateChanged(serverState, connectionState);
+        }
+    }
+
+    private void notifyServerDataChanged(ServerData serverData) {
+        if (onServerDataChangeListener != null) {
+            onServerDataChangeListener.onServerDataChanged(serverData);
         }
     }
 
