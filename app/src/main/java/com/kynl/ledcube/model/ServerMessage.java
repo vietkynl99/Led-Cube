@@ -1,27 +1,42 @@
 package com.kynl.ledcube.model;
 
-import com.kynl.ledcube.common.CommonUtils;
-
 import org.json.JSONObject;
 
-import static android.provider.Settings.Global.DEVICE_NAME;
 import static com.kynl.ledcube.common.CommonUtils.SERVER_DEVICE_NAME;
 
 public class ServerMessage {
 
     // Server Event
     public enum EventType {
-        EVENT_NONE,
+        EVENT_NONE(100),
         /* Request */
-        EVENT_REQUEST_CHECK_CONNECTION,
-        EVENT_REQUEST_PAIR_DEVICE,
+        EVENT_REQUEST_CHECK_CONNECTION(200),
+        EVENT_REQUEST_PAIR_DEVICE(201),
+        EVENT_REQUEST_SEND_DATA(202),
         /* Response */
-        EVENT_RESPONSE_CHECK_CONNECTION,
-        EVENT_RESPONSE_PAIR_DEVICE_IGNORED,
-        EVENT_RESPONSE_PAIR_DEVICE_PAIRED,
-        EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL,
-        /* Max */
-        EVENT_TYPE_MAX
+        EVENT_RESPONSE_CHECK_CONNECTION(300),
+        EVENT_RESPONSE_PAIR_DEVICE_IGNORED(301),
+        EVENT_RESPONSE_PAIR_DEVICE_PAIRED(302),
+        EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL(303);
+
+        private final int value;
+
+        EventType(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static EventType fromValue(int value) {
+            for (EventType e : EventType.values()) {
+                if (e.getValue() == value) {
+                    return e;
+                }
+            }
+            return EVENT_NONE;
+        }
     }
 
     private String name;
@@ -65,7 +80,7 @@ public class ServerMessage {
         }
         try {
             int intValue = json.getInt("type");
-            this.type = EventType.values()[intValue];
+            this.type = EventType.fromValue(intValue);
         } catch (Exception ignored) {
         }
         try {
@@ -91,7 +106,7 @@ public class ServerMessage {
     }
 
     public String getTypeAsString() {
-        return String.valueOf(type.ordinal());
+        return String.valueOf(type.getValue());
     }
 
     public String getData() {
@@ -99,6 +114,6 @@ public class ServerMessage {
     }
 
     public boolean isValidResponseMessage() {
-        return name.equals(SERVER_DEVICE_NAME) && type != EventType.EVENT_NONE && type != EventType.EVENT_TYPE_MAX && !data.isEmpty();
+        return name.equals(SERVER_DEVICE_NAME) && type != EventType.EVENT_NONE && !data.isEmpty();
     }
 }
