@@ -31,6 +31,7 @@ import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 import com.kynl.ledcube.common.CommonUtils.ConnectionState;
+import com.kynl.ledcube.model.EffectItem;
 
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
@@ -91,7 +92,7 @@ public class HomeFragment extends Fragment {
         optionListAdapter.setOnOptionValueChangeListener((effectType, optionType, value) -> {
             Log.d(TAG, "Option data changed: " + effectType + " " + optionType + " " + value);
             EffectManager.getInstance().setOptionValue(effectType, optionType, value);
-            // TODO: send data to server
+            // Send data to server
             String data = EffectManager.getInstance().getEffectDataAsJson(effectType);
             BroadcastManager.getInstance(getContext()).sendRequestSendData(data);
         });
@@ -103,9 +104,15 @@ public class HomeFragment extends Fragment {
         effectListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
 
         effectListAdapter.setOnEffectItemClickListener(type -> {
-            EffectManager.getInstance().setCurrentEffectType(type);
-            effectListAdapter.select(type);
-            optionListAdapter.select(type);
+            EffectItem.EffectType preType = EffectManager.getInstance().getCurrentEffectType();
+            if (type != preType) {
+                EffectManager.getInstance().setCurrentEffectType(type);
+                effectListAdapter.select(type);
+                optionListAdapter.select(type);
+                // Send data to server
+                String data = EffectManager.getInstance().getEffectDataAsJson(type);
+                BroadcastManager.getInstance(getContext()).sendRequestSendData(data);
+            }
         });
 
 
