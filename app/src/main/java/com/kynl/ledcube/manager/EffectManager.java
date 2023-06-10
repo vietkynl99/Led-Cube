@@ -8,9 +8,10 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
+
+import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -104,12 +105,7 @@ public class EffectManager {
 
     public void setOptionValue(EffectItem.EffectType effectType, OptionItem.OptionType optionType, int value) {
         // find effectType position
-        int effectTypePosition = -1;
-        for (int i = 0; i < effectItemList.size(); i++) {
-            if (effectItemList.get(i).getType() == effectType) {
-                effectTypePosition = i;
-            }
-        }
+        int effectTypePosition = findEffectTypePosition(effectType);
         if (effectTypePosition < 0) {
             Log.e(TAG, "setOptionValue: Can not find position of effect " + effectType);
             return;
@@ -129,6 +125,36 @@ public class EffectManager {
         // set value
         optionItemList.get(optionTypePosition).setValue(value);
         saveEffectList();
+    }
+
+    public String getEffectDataAsJson(EffectItem.EffectType type) {
+        int position = findEffectTypePosition(type);
+        if (position < 0) {
+            Log.e(TAG, "getEffectDataAsJson: Can not find position of " + type);
+            return "";
+        }
+        try {
+            List<OptionItem> optionItemList = effectItemList.get(position).getOptionItemList();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type", String.valueOf(effectItemList.get(position).getType()));
+            for (OptionItem item : optionItemList) {
+                jsonObject.put(item.getText(), item.getValue());
+            }
+            return jsonObject.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG, "getEffectDataAsJson: Error while converting to json");
+            return "";
+        }
+    }
+
+    private int findEffectTypePosition(EffectItem.EffectType type) {
+        for (int i = 0; i < effectItemList.size(); i++) {
+            if (effectItemList.get(i).getType() == type) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private String getEffectItemListAsString() {

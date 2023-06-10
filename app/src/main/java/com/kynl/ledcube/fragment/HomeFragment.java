@@ -87,6 +87,8 @@ public class HomeFragment extends Fragment {
             Log.d(TAG, "Option data changed: " + effectType + " " + optionType + " " + value);
             EffectManager.getInstance().setOptionValue(effectType, optionType, value);
             // TODO: send data to server
+            String data = EffectManager.getInstance().getEffectDataAsJson(effectType);
+            Log.e(TAG, "onCreateView: data: " + data);
         });
 
         /* Effect Recycler view */
