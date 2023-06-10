@@ -38,6 +38,7 @@ public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
     private ImageView iconStatus, batteryIcon;
     private TextView textStatus, textBatteryLevel;
+    private int batteryLevel;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -72,6 +73,8 @@ public class HomeFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.e(TAG, "onCreate: ");
+
+        batteryLevel = 0;
 
         EffectManager.getInstance().init(getContext());
     }
@@ -189,17 +192,18 @@ public class HomeFragment extends Fragment {
     }
 
     private void setBatteryLevel(int level) {
-        if (level < 0) {
-            String text = "--%";
+        if (batteryLevel != level) {
+            batteryLevel = level;
+            if (level < 0) {
+                String text = "--%";
+                textBatteryLevel.setText(text);
+                batteryIcon.setImageLevel(0);
+                return;
+            }
+            level = Math.min(100, level);
+            String text = level + "%";
             textBatteryLevel.setText(text);
-            batteryIcon.setImageLevel(0);
-            return;
+            batteryIcon.setImageLevel((int) Math.round(level / 20.0));
         }
-        if (level > 100) {
-            level = 100;
-        }
-        String text = level + "%";
-        textBatteryLevel.setText(text);
-        batteryIcon.setImageLevel((int) Math.round(level / 20.0));
     }
 }
