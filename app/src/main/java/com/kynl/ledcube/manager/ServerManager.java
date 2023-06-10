@@ -20,6 +20,7 @@ import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
+import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_DATA;
 
 public class ServerManager {
     private final String TAG = "ServerManager";
@@ -138,6 +139,10 @@ public class ServerManager {
         sendRequestToServer(new ServerMessage(apiKey, EVENT_REQUEST_PAIR_DEVICE, ""));
     }
 
+    public void sendData(String data) {
+        sendRequestToServer(new ServerMessage(apiKey, EVENT_REQUEST_SEND_DATA, data));
+    }
+
     public void setOnServerStatusChangedListener(OnServerStatusChangedListener onServerStatusChangedListener) {
         this.onServerStatusChangedListener = onServerStatusChangedListener;
     }
@@ -166,15 +171,15 @@ public class ServerManager {
                     Log.i(TAG, "onResponse: " + response);
                     ServerMessage message = new ServerMessage(response);
                     if (message.isValidResponseMessage()) {
-                        getResponseFromServer(false, "", message);
+                        handleResponseFromServer(false, "", message);
                     } else {
-                        getResponseFromServer(true, "Invalid response data.", new ServerMessage());
+                        handleResponseFromServer(true, "Invalid response data.", new ServerMessage());
                     }
                 },
                 error -> {
 //                    Log.e(TAG, "onErrorResponse: " + error.getMessage());
                     String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
-                    getResponseFromServer(true, errorMessage, new ServerMessage());
+                    handleResponseFromServer(true, errorMessage, new ServerMessage());
                 });
 
         connectionState = sentData.getType() == EVENT_REQUEST_PAIR_DEVICE ? ConnectionState.CONNECTION_STATE_PENDING_PAIR :
@@ -183,29 +188,30 @@ public class ServerManager {
         requestQueue.add(stringRequest);
     }
 
-    private void getResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
+    private void handleResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
         if (isError) {
-            Log.e(TAG, "getResponseFromServer: get error: " + errorMessage);
+            Log.e(TAG, "handleResponseFromServer: get error: " + errorMessage);
             serverState = ServerState.SERVER_STATE_DISCONNECTED;
         } else {
-            Log.i(TAG, "getResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
+            Log.i(TAG, "handleResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
             switch (receivedData.getType()) {
                 case EVENT_RESPONSE_CHECK_CONNECTION: {
                     serverState = receivedData.getData().equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED : ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
-                        Log.i(TAG, "getResponseFromServer: The device has been paired.");
+                        Log.i(TAG, "handleResponseFromServer: The device has been paired.");
                     } else {
-                        Log.i(TAG, "getResponseFromServer: The connection is successful, but the device is not paired.");
+                        Log.i(TAG, "handleResponseFromServer: The connection is successful, but the device is not paired.");
                     }
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_PAIRED: {
                     serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                    Log.i(TAG, "getResponseFromServer: The device has been paired.");
+                    Log.i(TAG, "handleResponseFromServer: The device has been paired.");
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_IGNORED: {
                     serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                    Log.i(TAG, "handleResponseFromServer: Request is ignored by server");
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL: {
@@ -213,16 +219,21 @@ public class ServerManager {
                         apiKey = Integer.parseInt(receivedData.getData());
                         serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
                         saveApiKey();
-                        Log.i(TAG, "getResponseFromServer: Paired -> apiKey = " + apiKey);
+                        Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
                     } catch (NumberFormatException e) {
                         serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                        Log.e(TAG, "getResponseFromServer: Invalid apiKey string: " + receivedData.getData());
+                        Log.e(TAG, "handleResponseFromServer: Invalid apiKey string: " + receivedData.getData());
                     }
+                    break;
+                }
+                case EVENT_RESPONSE_GET_DATA_SUCCESSFUL: {
+                    serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
+//                    Log.i(TAG, "handleResponseFromServer: Server got data successfully");
                     break;
                 }
                 default: {
                     serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                    Log.e(TAG, "getResponseFromServer: Unhandled event type: " + receivedData.getType());
+                    Log.e(TAG, "handleResponseFromServer: Unhandled event type: " + receivedData.getType());
                     break;
                 }
             }

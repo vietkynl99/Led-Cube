@@ -1,6 +1,8 @@
 package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
 
 import android.content.BroadcastReceiver;
@@ -92,7 +94,7 @@ public class HomeFragment extends Fragment {
             EffectManager.getInstance().setOptionValue(effectType, optionType, value);
             // TODO: send data to server
             String data = EffectManager.getInstance().getEffectDataAsJson(effectType);
-            Log.e(TAG, "onCreateView: data: " + data);
+            sendBroadcastSendData(data);
         });
 
         /* Effect Recycler view */
@@ -155,6 +157,23 @@ public class HomeFragment extends Fragment {
         } else {
             Log.e(TAG, "unRegisterBroadcast: Context is null");
         }
+    }
+
+    private void sendBroadcastMessage(Intent intent) {
+        Context context = getContext();
+        if (context != null) {
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        } else {
+            Log.e(TAG, "sendBroadcastMessage: Context is null");
+        }
+    }
+
+    private void sendBroadcastSendData(String data) {
+        Log.e(TAG, "sendBroadcastSendData: " + data);
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_REQUEST_SEND_DATA);
+        intent.putExtra("data", data);
+        sendBroadcastMessage(intent);
     }
 
     private void updateStatus(boolean connected) {

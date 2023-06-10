@@ -5,6 +5,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CONNECT_DEVI
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
@@ -81,11 +82,16 @@ public class NetworkService extends Service {
                         }
                         break;
                     }
+                    case BROADCAST_REQUEST_SEND_DATA: {
+                        String data = intent.getStringExtra("data");
+                        if (!data.isEmpty()) {
+                            requestSendData(data);
+                        }
+                    }
                     case BROADCAST_REQUEST_UPDATE_STATUS: {
                         sendBroadcastUpdateStatus();
                         break;
                     }
-
                     case BROADCAST_REQUEST_PAUSE_NETWORK_SCAN: {
                         if (mHandler != null && mRunnable != null) {
                             mHandler.removeCallbacks(mRunnable);
@@ -147,6 +153,15 @@ public class NetworkService extends Service {
                             Log.i(TAG, "Server status changed: Can not pair to " + ServerManager.getInstance().getIpAddress() + " " + ServerManager.getInstance().getMacAddress());
                         } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                             Log.i(TAG, "Server status changed: Pair successfully!");
+                        }
+                        setNetworkServiceState(NetworkServiceState.STATE_NONE);
+                        break;
+                    }
+                    case STATE_SEND_DATA: {
+                        if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
+                            Log.d(TAG, "Server status changed: Send data successfully");
+                        } else {
+                            Log.e(TAG, "Server status changed: Send data failed");
                         }
                         setNetworkServiceState(NetworkServiceState.STATE_NONE);
                         break;
@@ -313,6 +328,24 @@ public class NetworkService extends Service {
 
     private boolean isBusy() {
         return networkServiceState != NetworkServiceState.STATE_NONE;
+    }
+
+    private void requestSendData(String data) {
+        if (!ServerManager.getInstance().hasSavedDevice()) {
+            Log.e(TAG, "requestSendData: No saved device");
+            return;
+        }
+        if (isBusy()) {
+            Log.e(TAG, "requestSendData: Network Service is busy. Please try again. State:" + networkServiceState);
+            return;
+        }
+        Log.d(TAG, "requestSendData: " + data);
+        String ip = ServerManager.getInstance().getSavedIpAddress();
+        String mac = ServerManager.getInstance().getMacAddress();
+        setNetworkServiceState(NetworkServiceState.STATE_SEND_DATA);
+        ServerManager.getInstance().setIpAddress(ip);
+        ServerManager.getInstance().setMacAddress(mac);
+        ServerManager.getInstance().sendData(data);
     }
 
     private void requestPairDevice(String ipAddress, String macAddress) {

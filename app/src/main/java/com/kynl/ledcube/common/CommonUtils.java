@@ -17,6 +17,7 @@ public class CommonUtils {
     public static final String BROADCAST_REQUEST_PAIR_DEVICE = "BROADCAST_REQUEST_PAIR_DEVICE";
     public static final String BROADCAST_REQUEST_UPDATE_STATUS = "BROADCAST_REQUEST_UPDATE_STATUS";
     public static final String BROADCAST_REQUEST_PAUSE_NETWORK_SCAN = "BROADCAST_REQUEST_PAUSE_NETWORK_SCAN";
+    public static final String BROADCAST_REQUEST_SEND_DATA = "BROADCAST_REQUEST_SEND_DATA";
 
     // Server device name
     public static final String SERVER_DEVICE_NAME = "ledCube";
@@ -27,7 +28,8 @@ public class CommonUtils {
         STATE_NONE,
         STATE_TRY_TO_CONNECT_DEVICE,
         STATE_FIND_SUBNET_DEVICES,
-        STATE_PAIR_DEVICE
+        STATE_PAIR_DEVICE,
+        STATE_SEND_DATA
     }
 
     // Server Manager

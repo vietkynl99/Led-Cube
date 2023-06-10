@@ -217,8 +217,6 @@ public class SearchFragment extends Fragment {
             savedIpAddress = prefs.getString("savedIpAddress", "");
             savedMacAddress = prefs.getString("savedMacAddress", "");
         }
-
-        Log.d(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
 
@@ -231,8 +229,6 @@ public class SearchFragment extends Fragment {
         SharedPreferences prefs = getContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         lastScanTime = prefs.getString("lastScanTime", "");
         lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
-
-        Log.i(TAG, "readLastScanInformation: lastScanTime[" + lastScanTime + "]");
     }
 
 
