@@ -22,6 +22,8 @@ import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_DATA;
 
+import org.json.JSONObject;
+
 public class ServerManager {
     private final String TAG = "ServerManager";
     private String ipAddress, macAddress;
@@ -173,7 +175,7 @@ public class ServerManager {
                     if (message.isValidResponseMessage()) {
                         handleResponseFromServer(false, "", message);
                     } else {
-                        handleResponseFromServer(true, "Invalid response data.", new ServerMessage());
+                        handleResponseFromServer(true, "Invalid response data", new ServerMessage());
                     }
                 },
                 error -> {
@@ -195,12 +197,36 @@ public class ServerManager {
         } else {
             Log.i(TAG, "handleResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
             switch (receivedData.getType()) {
+                // State in data
                 case EVENT_RESPONSE_CHECK_CONNECTION: {
-                    serverState = receivedData.getData().equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED : ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                    try {
+                        JSONObject jsonObject = new JSONObject(receivedData.getData());
+                        String pair = jsonObject.getString("pair");
+                        serverState = pair.equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED :
+                                ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                    } catch (Exception ignored) {
+                        serverState = ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                    }
+
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                         Log.i(TAG, "handleResponseFromServer: The device has been paired.");
                     } else {
                         Log.i(TAG, "handleResponseFromServer: The connection is successful, but the device is not paired.");
+                    }
+                    break;
+                }
+                // State is connected
+                case EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL: {
+                    try {
+                        JSONObject jsonObject = new JSONObject(receivedData.getData());
+                        String apiKeyStr = jsonObject.getString("apiKey");
+                        apiKey = Integer.parseInt(apiKeyStr);
+                        serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
+                        saveApiKey();
+                        Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
+                    } catch (Exception e) {
+                        serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                        Log.e(TAG, "handleResponseFromServer: Invalid apiKey string: " + receivedData.getData());
                     }
                     break;
                 }
@@ -209,26 +235,19 @@ public class ServerManager {
                     Log.i(TAG, "handleResponseFromServer: The device has been paired.");
                     break;
                 }
+                case EVENT_RESPONSE_GET_DATA_SUCCESSFUL: {
+                    serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
+                    break;
+                }
+                // State is disconnected
+                case EVENT_RESPONSE_INVALID_KEY: {
+                    serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                    Log.i(TAG, "handleResponseFromServer: Key is invalid");
+                    break;
+                }
                 case EVENT_RESPONSE_PAIR_DEVICE_IGNORED: {
                     serverState = ServerState.SERVER_STATE_DISCONNECTED;
                     Log.i(TAG, "handleResponseFromServer: Request is ignored by server");
-                    break;
-                }
-                case EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL: {
-                    try {
-                        apiKey = Integer.parseInt(receivedData.getData());
-                        serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                        saveApiKey();
-                        Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
-                    } catch (NumberFormatException e) {
-                        serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                        Log.e(TAG, "handleResponseFromServer: Invalid apiKey string: " + receivedData.getData());
-                    }
-                    break;
-                }
-                case EVENT_RESPONSE_GET_DATA_SUCCESSFUL: {
-                    serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-//                    Log.i(TAG, "handleResponseFromServer: Server got data successfully");
                     break;
                 }
                 default: {
