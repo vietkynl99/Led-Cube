@@ -7,7 +7,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class SharedPreferencesManager {
-    private final String TAG = "SharedPreferencesManager";
+    private static final String TAG = "SharedPreferencesManager";
     private static SharedPreferencesManager instance;
     private final Context context;
     // Settings
@@ -22,6 +22,10 @@ public class SharedPreferencesManager {
 
     public static synchronized SharedPreferencesManager getInstance(Context context) {
         if (instance == null) {
+            if (context == null) {
+                Log.e(TAG, "getInstance: Context is null");
+                return null;
+            }
             instance = new SharedPreferencesManager(context);
         }
         return instance;

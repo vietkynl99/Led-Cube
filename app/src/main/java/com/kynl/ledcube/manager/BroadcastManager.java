@@ -31,7 +31,7 @@ import com.kynl.ledcube.model.ServerData;
 
 
 public class BroadcastManager {
-    private final String TAG = "BroadcastManager";
+    private static final String TAG = "BroadcastManager";
     private static BroadcastManager instance;
     private final Context context;
 
@@ -41,6 +41,10 @@ public class BroadcastManager {
 
     public static synchronized BroadcastManager getInstance(Context context) {
         if (instance == null) {
+            if (context == null) {
+                Log.e(TAG, "getInstance: Context is null");
+                return null;
+            }
             instance = new BroadcastManager(context);
         }
         return instance;
