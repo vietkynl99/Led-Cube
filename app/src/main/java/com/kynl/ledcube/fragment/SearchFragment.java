@@ -53,7 +53,7 @@ public class SearchFragment extends Fragment {
     private DeviceListAdapter deviceListAdapter;
     private ImageButton refreshBtn;
     private TextView informationText;
-    private ProgressBar progressBar;
+    private ProgressBar progressBar, circleProgressBar;
 
     // Debounce
     private boolean isDebouncing = false;
@@ -79,7 +79,7 @@ public class SearchFragment extends Fragment {
                         if (activity != null) {
                             activity.runOnUiThread(() -> {
                                 updateLastScanList();
-                                setRefreshButtonEnable(true);
+                                setRefreshEnable(true);
                             });
                         }
                         break;
@@ -102,13 +102,13 @@ public class SearchFragment extends Fragment {
                     case BROADCAST_SERVICE_STATE_CHANGED: {
                         NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("networkServiceState");
                         if (networkServiceState == NetworkServiceState.STATE_NONE) {
-                            setRefreshButtonEnable(true);
+                            setRefreshEnable(true);
                             deviceListAdapter.resetConnectingDevice();
                             if (progressBar != null) {
                                 progressBar.setProgress(0);
                             }
                         } else {
-                            setRefreshButtonEnable(false);
+                            setRefreshEnable(false);
                         }
                         break;
                     }
@@ -152,6 +152,7 @@ public class SearchFragment extends Fragment {
         refreshBtn = view.findViewById(R.id.refreshBtn);
         informationText = view.findViewById(R.id.informationText);
         progressBar = view.findViewById(R.id.progressBar);
+        circleProgressBar = view.findViewById(R.id.circleProgressBar);
 
         /* Recycler view */
         deviceListAdapter = new DeviceListAdapter();
@@ -237,13 +238,14 @@ public class SearchFragment extends Fragment {
 
     private void refreshDeviceList() {
         Log.d(TAG, "refreshDeviceList: ");
-        setRefreshButtonEnable(false);
+        setRefreshEnable(false);
         BroadcastManager.getInstance(getContext()).sendRequestFindSubnetDevice();
     }
 
-    private void setRefreshButtonEnable(boolean enable) {
-        if (refreshBtn != null) {
-            refreshBtn.setEnabled(enable);
+    private void setRefreshEnable(boolean enable) {
+        if (refreshBtn != null && circleProgressBar != null) {
+            refreshBtn.setVisibility(enable ? View.VISIBLE : View.INVISIBLE);
+            circleProgressBar.setVisibility(enable ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
