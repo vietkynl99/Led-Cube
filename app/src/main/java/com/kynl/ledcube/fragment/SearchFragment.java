@@ -149,10 +149,14 @@ public class SearchFragment extends Fragment {
 
         /* Elements */
         RecyclerView deviceListRecyclerView = view.findViewById(R.id.deviceListRecyclerView);
+        ImageButton backBtn = view.findViewById(R.id.searchBackBtn);
         refreshBtn = view.findViewById(R.id.refreshBtn);
         informationText = view.findViewById(R.id.informationText);
         progressBar = view.findViewById(R.id.progressBar);
         circleProgressBar = view.findViewById(R.id.circleProgressBar);
+
+        /* Back button */
+        backBtn.setOnClickListener(v -> BroadcastManager.getInstance(getContext()).sendRequestChangeToHomeScreen());
 
         /* Recycler view */
         deviceListAdapter = new DeviceListAdapter();

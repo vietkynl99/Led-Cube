@@ -8,8 +8,10 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import com.kynl.ledcube.R;
+import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.manager.SharedPreferencesManager;
 
 
@@ -31,9 +33,14 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
         /* Elements */
+        ImageButton backBtn = view.findViewById(R.id.settingBackBtn);
         SwitchCompat switchAutoDetect = view.findViewById(R.id.switchAutoDetect);
         SwitchCompat switchSyncBrightness = view.findViewById(R.id.switchSyncBrightness);
 
+        /* Back button */
+        backBtn.setOnClickListener(v -> BroadcastManager.getInstance(getContext()).sendRequestChangeToHomeScreen());
+
+        /* Settings switch */
         switchAutoDetect.setChecked(SharedPreferencesManager.getInstance(getContext()).isAutoDetect());
         switchSyncBrightness.setChecked(SharedPreferencesManager.getInstance(getContext()).isSyncBrightness());
 

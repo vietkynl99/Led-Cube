@@ -1,15 +1,17 @@
 package com.kynl.ledcube;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -17,11 +19,30 @@ import com.etebarian.meowbottomnavigation.MeowBottomNavigation;
 import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
 import com.kynl.ledcube.fragment.SettingsFragment;
+import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.service.NetworkService;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
     private Fragment homeFragment, searchFragment, settingsFragment;
+
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String event = intent.getStringExtra("event");
+//            Log.i(TAG, "onReceive: Get board cast event: " + event);
+            if (event != null) {
+                switch (event) {
+                    case BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN: {
+                        changeFragment(homeFragment);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
 
         /* Bottom navigation */
         initBottomNavigation();
+
+        /* Broadcast */
+        registerBroadcast();
     }
 
     @Override
@@ -51,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        sendBroadcastEvent(BROADCAST_REQUEST_PAUSE_NETWORK_SCAN);
+        BroadcastManager.getInstance(getApplicationContext()).sendRequestPauseNetworkScan();
     }
 
     @Override
@@ -59,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         Log.e(TAG, "onDestroy: ");
+        /* Broadcast */
+        unRegisterBroadcast();
         // Stop service
         Intent intent = new Intent(this, NetworkService.class);
         stopService(intent);
@@ -138,20 +164,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    private void sendBroadcastMessage(Intent intent) {
+    private void registerBroadcast() {
         Context context = getApplicationContext();
         if (context != null) {
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(mBroadcastReceiver,
+                    new IntentFilter(BROADCAST_ACTION));
         } else {
-            Log.e(TAG, "sendBroadcastMessage: Context is null");
+            Log.e(TAG, "registerBroadcast: Context is null");
         }
     }
 
-    private void sendBroadcastEvent(String event) {
-        Log.e(TAG, "sendBroadcastRequestFindSubnetDevice: ");
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", event);
-        sendBroadcastMessage(intent);
+    private void unRegisterBroadcast() {
+        Context context = getApplicationContext();
+        if (context != null) {
+            try {
+                context.unregisterReceiver(mBroadcastReceiver);
+            } catch (Exception ignored) {
+
+            }
+        } else {
+            Log.e(TAG, "unRegisterBroadcast: Context is null");
+        }
     }
 }

@@ -1,8 +1,10 @@
 package com.kynl.ledcube.manager;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
@@ -43,7 +45,7 @@ public class BroadcastManager {
         }
         return instance;
     }
-    
+
     /* Common */
     private void sendBroadcast(Intent intent) {
         if (context != null) {
@@ -99,11 +101,17 @@ public class BroadcastManager {
         intent.putExtra("networkServiceState", networkServiceState);
         sendBroadcast(intent);
     }
+
     public void sendUpdateServerData(ServerData serverData) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_UPDATE_SERVER_DATA);
         intent.putExtra("batteryLevel", serverData.getBatteryLevel());
         sendBroadcast(intent);
+    }
+
+    /* From MainActivity to NetworkService */
+    public void sendRequestPauseNetworkScan() {
+        sendEvent(BROADCAST_REQUEST_PAUSE_NETWORK_SCAN);
     }
 
     /* From SearchFragment to NetworkService */
@@ -125,7 +133,7 @@ public class BroadcastManager {
         Log.e(TAG, "sendBroadcastRequestUpdateStatus: ");
         sendEvent(BROADCAST_REQUEST_UPDATE_STATUS);
     }
-    
+
     /* From HomeFragment to NetworkService */
     public void sendRequestSendData(String data) {
         Log.e(TAG, "sendBroadcastSendData: " + data);
@@ -133,5 +141,10 @@ public class BroadcastManager {
         intent.putExtra("event", BROADCAST_REQUEST_SEND_DATA);
         intent.putExtra("data", data);
         sendBroadcast(intent);
+    }
+
+    /* From Search and Settings */
+    public void sendRequestChangeToHomeScreen() {
+        sendEvent(BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN);
     }
 }
