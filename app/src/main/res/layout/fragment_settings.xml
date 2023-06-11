@@ -97,19 +97,18 @@
         android:textAlignment="center"
         android:textColor="@color/white" />
 
-
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/bg_list"
+        android:layout_marginBottom="0dp"
+        android:background="@drawable/bg_option_list"
         android:paddingStart="20dp"
-        android:paddingTop="5dp"
+        android:paddingTop="10dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="5dp">
+        android:paddingBottom="70dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -131,7 +130,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="@string/setting_auto_detect"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_color"
                     android:textSize="12sp" />
 
                 <androidx.appcompat.widget.SwitchCompat
@@ -164,7 +163,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="@string/setting_sync_brightness"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_color"
                     android:textSize="12sp" />
 
                 <androidx.appcompat.widget.SwitchCompat
@@ -197,7 +196,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="@string/setting_restore_default_settings"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_color"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
