@@ -40,6 +40,7 @@ dependencies {
     implementation 'com.etebarian:meow-bottom-navigation-java:1.2.0'
     implementation 'com.larswerkman:HoloColorPicker:1.5'
     implementation 'com.github.cachapa:ExpandableLayout:2.9.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
 
     testImplementation 'junit:junit:'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

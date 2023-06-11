@@ -24,6 +24,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.google.gson.Gson;
 import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.manager.ServerManager;
+import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
@@ -46,7 +47,6 @@ public class NetworkService extends Service {
     private String lastScanTime, lastScanDevicesList;
     private NetworkServiceState networkServiceState;
     private int retryCount;
-    private boolean autoDetect;
     private long lastFreeTime;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -106,7 +106,6 @@ public class NetworkService extends Service {
         lastScanDevicesList = "";
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
-        autoDetect = true;
         lastFreeTime = System.currentTimeMillis();
 
         /* ServerManager */
@@ -189,7 +188,7 @@ public class NetworkService extends Service {
                 saveLastScanInformation();
                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
                 BroadcastManager.getInstance(getApplicationContext()).sendFinishFindSubnetDevices();
-                if (autoDetect) {
+                if (SharedPreferencesManager.getInstance(getApplicationContext()).isAutoDetect()) {
                     requestAutoDetectDeviceInSubnetList(devicesFound);
                 }
             }

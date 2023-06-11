@@ -32,7 +32,9 @@ import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 import com.kynl.ledcube.common.CommonUtils.ConnectionState;
+import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.EffectItem;
+import com.kynl.ledcube.model.OptionItem;
 
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
@@ -102,6 +104,10 @@ public class HomeFragment extends Fragment {
         optionListAdapter.setOnOptionValueChangeListener((effectType, optionType, value) -> {
             Log.d(TAG, "Option data changed: " + effectType + " " + optionType + " " + value);
             EffectManager.getInstance().setOptionValue(effectType, optionType, value);
+            if (optionType == OptionItem.OptionType.BRIGHTNESS &&
+                    SharedPreferencesManager.getInstance(getContext()).isSyncBrightness()) {
+                EffectManager.getInstance().synchronizeAllEffects(optionType, value);
+            }
             // Send data to server
             String data = EffectManager.getInstance().getEffectDataAsJson(effectType);
             BroadcastManager.getInstance(getContext()).sendRequestSendData(data);

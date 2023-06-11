@@ -112,18 +112,24 @@ public class EffectManager {
         }
         // find optionType position
         List<OptionItem> optionItemList = effectItemList.get(effectTypePosition).getOptionItemList();
-        int optionTypePosition = -1;
-        for (int i = 0; i < optionItemList.size(); i++) {
-            if (optionItemList.get(i).getType() == optionType) {
-                optionTypePosition = i;
-            }
-        }
+        int optionTypePosition = findOptionTypePosition(optionItemList, optionType);
         if (optionTypePosition < 0) {
             Log.e(TAG, "setOptionValue: Can not find position of option " + optionType);
             return;
         }
         // set value
         optionItemList.get(optionTypePosition).setValue(value);
+        saveEffectList();
+    }
+
+    public void synchronizeAllEffects(OptionItem.OptionType optionType, int value) {
+        for (int i = 0; i < effectItemList.size(); i++) {
+            List<OptionItem> optionItemList = effectItemList.get(i).getOptionItemList();
+            int position = findOptionTypePosition(optionItemList, optionType);
+            if (position >= 0) {
+                optionItemList.get(position).setValue(value);
+            }
+        }
         saveEffectList();
     }
 
@@ -151,6 +157,15 @@ public class EffectManager {
     private int findEffectTypePosition(EffectItem.EffectType type) {
         for (int i = 0; i < effectItemList.size(); i++) {
             if (effectItemList.get(i).getType() == type) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int findOptionTypePosition(List<OptionItem> optionItemList, OptionItem.OptionType optionType) {
+        for (int i = 0; i < optionItemList.size(); i++) {
+            if (optionItemList.get(i).getType() == optionType) {
                 return i;
             }
         }
