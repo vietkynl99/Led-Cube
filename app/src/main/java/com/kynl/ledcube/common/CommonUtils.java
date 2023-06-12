@@ -39,12 +39,5 @@ public class CommonUtils {
         SERVER_STATE_CONNECTED_BUT_NOT_PAIRED,
         SERVER_STATE_CONNECTED_AND_PAIRED
     }
-
-    public enum ConnectionState {
-        CONNECTION_STATE_NONE,
-        CONNECTION_STATE_PENDING_PAIR,
-        CONNECTION_STATE_PENDING_REQUEST
-    }
-
 }
 

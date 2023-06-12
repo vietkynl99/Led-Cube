@@ -12,11 +12,10 @@ import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerData;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
-import com.kynl.ledcube.myinterface.OnServerStatusChangedListener;
+import com.kynl.ledcube.myinterface.OnServerStateChangedListener;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
 import com.kynl.ledcube.common.CommonUtils.ServerState;
-import com.kynl.ledcube.common.CommonUtils.ConnectionState;
 
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
@@ -34,10 +33,10 @@ public class ServerManager {
     private Context context;
     private RequestQueue requestQueue;
     private ServerState serverState;
-    private ConnectionState connectionState;
-    private OnServerStatusChangedListener onServerStatusChangedListener;
+    private boolean isRequesting;
+    private OnServerStateChangedListener onServerStateChangedListener;
     private OnServerDataChangeListener onServerDataChangeListener;
-    SubnetDevices subnetDevices;
+    private SubnetDevices subnetDevices;
     private SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener;
     private boolean isFindingSubnetDevices;
     private String savedIpAddress, savedMacAddress;
@@ -60,8 +59,8 @@ public class ServerManager {
         }
         readApiKey();
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
-        connectionState = ConnectionState.CONNECTION_STATE_NONE;
-        onServerStatusChangedListener = null;
+        isRequesting = false;
+        onServerStateChangedListener = null;
         ipAddress = "";
         macAddress = "";
         subnetDevices = null;
@@ -72,12 +71,8 @@ public class ServerManager {
         readSavedDeviceInformation();
     }
 
-    public ServerState getServerState() {
-        return serverState;
-    }
-
-    public ConnectionState getConnectionState() {
-        return connectionState;
+    public boolean isBusy() {
+        return isRequesting;
     }
 
     public void setIpAddress(String ipAddress) {
@@ -148,8 +143,8 @@ public class ServerManager {
         sendRequestToServer(new ServerMessage(apiKey, EVENT_REQUEST_SEND_DATA, data));
     }
 
-    public void setOnServerStatusChangedListener(OnServerStatusChangedListener onServerStatusChangedListener) {
-        this.onServerStatusChangedListener = onServerStatusChangedListener;
+    public void setOnServerStatusChangedListener(OnServerStateChangedListener onServerStateChangedListener) {
+        this.onServerStateChangedListener = onServerStateChangedListener;
     }
 
     public void setOnServerDataChangeListener(OnServerDataChangeListener onServerDataChangeListener) {
@@ -166,6 +161,11 @@ public class ServerManager {
             Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
             return;
         }
+        if (isRequesting) {
+            Log.e(TAG, "sendRequestToServer: Server is busy. serverState: " + serverState);
+            return;
+        }
+        isRequesting = true;
         String serverAddress = HTTP_FORMAT + ipAddress;
         String url = Uri.parse(serverAddress)
                 .buildUpon()
@@ -191,8 +191,6 @@ public class ServerManager {
                     handleResponseFromServer(true, errorMessage, new ServerMessage());
                 });
 
-        connectionState = sentData.getType() == EVENT_REQUEST_PAIR_DEVICE ? ConnectionState.CONNECTION_STATE_PENDING_PAIR :
-                ConnectionState.CONNECTION_STATE_PENDING_REQUEST;
         notifyServerStatusChanged();
         requestQueue.add(stringRequest);
     }
@@ -277,7 +275,7 @@ public class ServerManager {
                 }
             }
         }
-        connectionState = ConnectionState.CONNECTION_STATE_NONE;
+        isRequesting = false;
 
         if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
             saveDevice(ipAddress, macAddress);
@@ -287,8 +285,8 @@ public class ServerManager {
     }
 
     private void notifyServerStatusChanged() {
-        if (onServerStatusChangedListener != null) {
-            onServerStatusChangedListener.onServerStateChanged(serverState, connectionState);
+        if (onServerStateChangedListener != null) {
+            onServerStateChangedListener.onServerStateChanged(serverState);
         }
     }
 

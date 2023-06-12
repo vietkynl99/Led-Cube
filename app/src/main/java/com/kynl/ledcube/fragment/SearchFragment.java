@@ -42,7 +42,6 @@ import java.util.ArrayList;
 
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
-import com.kynl.ledcube.common.CommonUtils.ConnectionState;
 
 public class SearchFragment extends Fragment {
     private final String TAG = "SearchFragment";

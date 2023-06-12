@@ -26,7 +26,6 @@ import com.kynl.ledcube.model.Device;
 
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
-import com.kynl.ledcube.common.CommonUtils.ConnectionState;
 import com.kynl.ledcube.model.ServerData;
 
 
@@ -64,11 +63,10 @@ public class BroadcastManager {
     }
 
     /* Send from NetworkService to Activity/Fragment */
-    public void sendServerStatusChanged(CommonUtils.ServerState serverState, CommonUtils.ConnectionState connectionState) {
+    public void sendServerStatusChanged(CommonUtils.ServerState serverState) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_SERVER_STATUS_CHANGED);
         intent.putExtra("serverState", serverState);
-        intent.putExtra("connectionState", connectionState);
         sendBroadcast(intent);
     }
 

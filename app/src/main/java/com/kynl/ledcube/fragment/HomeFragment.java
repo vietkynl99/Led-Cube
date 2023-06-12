@@ -31,7 +31,6 @@ import com.kynl.ledcube.manager.ServerManager;
 
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
-import com.kynl.ledcube.common.CommonUtils.ConnectionState;
 import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
