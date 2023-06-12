@@ -2,7 +2,7 @@ package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPONSE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -83,7 +84,7 @@ public class SearchFragment extends Fragment {
                         }
                         break;
                     }
-                    case BROADCAST_SERVICE_SERVER_STATUS_CHANGED: {
+                    case BROADCAST_SERVICE_SERVER_RESPONSE: {
                         ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
                         if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
                             deviceListAdapter.resetConnectingDevice();
@@ -95,6 +96,11 @@ public class SearchFragment extends Fragment {
                             deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
                         } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                             deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_AND_PAIRED);
+                        }
+                        // Show message
+                        String message = intent.getStringExtra("message");
+                        if (!message.isEmpty() && isVisible()) {
+                            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                         }
                         break;
                     }

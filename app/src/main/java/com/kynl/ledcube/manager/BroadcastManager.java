@@ -9,7 +9,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPONSE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
@@ -21,7 +21,6 @@ import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.kynl.ledcube.common.CommonUtils;
 import com.kynl.ledcube.model.Device;
 
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
@@ -63,10 +62,11 @@ public class BroadcastManager {
     }
 
     /* Send from NetworkService to Activity/Fragment */
-    public void sendServerStatusChanged(CommonUtils.ServerState serverState) {
+    public void sendServerResponse(ServerState serverState, String message) {
         Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("event", BROADCAST_SERVICE_SERVER_STATUS_CHANGED);
+        intent.putExtra("event", BROADCAST_SERVICE_SERVER_RESPONSE);
         intent.putExtra("serverState", serverState);
+        intent.putExtra("message", message);
         sendBroadcast(intent);
     }
 

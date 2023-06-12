@@ -1,7 +1,7 @@
 package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_STATUS_CHANGED;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPONSE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
 
 import android.content.BroadcastReceiver;
@@ -48,7 +48,7 @@ public class HomeFragment extends Fragment {
 //            Log.i(TAG, "onReceive: Get board cast event: " + event);
             if (event != null) {
                 switch (event) {
-                    case BROADCAST_SERVICE_SERVER_STATUS_CHANGED: {
+                    case BROADCAST_SERVICE_SERVER_RESPONSE: {
                         ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
                         updateStatus(serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
                         break;

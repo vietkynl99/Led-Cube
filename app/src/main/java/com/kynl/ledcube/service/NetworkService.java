@@ -110,8 +110,8 @@ public class NetworkService extends Service {
         /* ServerManager */
         ServerManager.getInstance().init(getApplicationContext());
 
-        /* Server status changed */
-        ServerManager.getInstance().setOnServerStatusChangedListener(serverState -> {
+        /* Server response */
+        ServerManager.getInstance().setOnServerResponseListener((serverState, message) -> {
             Log.i(TAG, ">>> Server status changed: serverState[" + serverState + "]");
             switch (networkServiceState) {
                 case STATE_TRY_TO_CONNECT_DEVICE: {
@@ -154,7 +154,7 @@ public class NetworkService extends Service {
                     break;
                 }
             }
-            BroadcastManager.getInstance(getApplicationContext()).sendServerStatusChanged(serverState);
+            BroadcastManager.getInstance(getApplicationContext()).sendServerResponse(serverState, message);
         });
 
         /* Server data changed */

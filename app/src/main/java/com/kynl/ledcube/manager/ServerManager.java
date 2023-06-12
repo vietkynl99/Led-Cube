@@ -12,7 +12,7 @@ import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.ServerData;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
-import com.kynl.ledcube.myinterface.OnServerStateChangedListener;
+import com.kynl.ledcube.myinterface.OnServerResponseListener;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
 import com.kynl.ledcube.common.CommonUtils.ServerState;
@@ -34,7 +34,7 @@ public class ServerManager {
     private RequestQueue requestQueue;
     private ServerState serverState;
     private boolean isRequesting;
-    private OnServerStateChangedListener onServerStateChangedListener;
+    private OnServerResponseListener onServerResponseListener;
     private OnServerDataChangeListener onServerDataChangeListener;
     private SubnetDevices subnetDevices;
     private SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener;
@@ -60,7 +60,7 @@ public class ServerManager {
         readApiKey();
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
         isRequesting = false;
-        onServerStateChangedListener = null;
+        onServerResponseListener = null;
         ipAddress = "";
         macAddress = "";
         subnetDevices = null;
@@ -143,8 +143,8 @@ public class ServerManager {
         sendRequestToServer(new ServerMessage(apiKey, EVENT_REQUEST_SEND_DATA, data));
     }
 
-    public void setOnServerStatusChangedListener(OnServerStateChangedListener onServerStateChangedListener) {
-        this.onServerStateChangedListener = onServerStateChangedListener;
+    public void setOnServerResponseListener(OnServerResponseListener onServerResponseListener) {
+        this.onServerResponseListener = onServerResponseListener;
     }
 
     public void setOnServerDataChangeListener(OnServerDataChangeListener onServerDataChangeListener) {
@@ -186,17 +186,17 @@ public class ServerManager {
                     }
                 },
                 error -> {
-//                    Log.e(TAG, "onErrorResponse: " + error.getMessage());
                     String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
                     handleResponseFromServer(true, errorMessage, new ServerMessage());
                 });
 
-        notifyServerStatusChanged();
         requestQueue.add(stringRequest);
     }
 
     private void handleResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
+        String message = "";
         if (isError) {
+            message = errorMessage;
             Log.e(TAG, "handleResponseFromServer: get error: " + errorMessage);
             serverState = ServerState.SERVER_STATE_DISCONNECTED;
         } else {
@@ -214,10 +214,11 @@ public class ServerManager {
                     }
 
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
-                        Log.i(TAG, "handleResponseFromServer: The device has been paired.");
+                        message = "The device has been paired";
                     } else {
-                        Log.i(TAG, "handleResponseFromServer: The connection is successful, but the device is not paired.");
+                        message = "The connection is successful, but the device is not paired";
                     }
+                    Log.i(TAG, "handleResponseFromServer: " + message);
                     break;
                 }
                 // State is connected
@@ -228,16 +229,19 @@ public class ServerManager {
                         apiKey = Integer.parseInt(apiKeyStr);
                         serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
                         saveApiKey();
+                        message = "Paired successfully";
                         Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
                     } catch (Exception e) {
                         serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                        message = "Error while pairing";
                         Log.e(TAG, "handleResponseFromServer: Invalid string: " + receivedData.getData());
                     }
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_PAIRED: {
                     serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                    Log.i(TAG, "handleResponseFromServer: The device has been paired.");
+                    message = "The device has been paired";
+                    Log.i(TAG, "handleResponseFromServer: " + message);
                     break;
                 }
                 case EVENT_RESPONSE_GET_DATA_SUCCESSFUL: {
@@ -265,7 +269,8 @@ public class ServerManager {
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_IGNORED: {
                     serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                    Log.i(TAG, "handleResponseFromServer: Request is ignored by server");
+                    message = "Request is ignored by server";
+                    Log.i(TAG, "handleResponseFromServer: " + message);
                     break;
                 }
                 default: {
@@ -281,12 +286,12 @@ public class ServerManager {
             saveDevice(ipAddress, macAddress);
         }
 
-        notifyServerStatusChanged();
+        notifyServerResponse(serverState, message);
     }
 
-    private void notifyServerStatusChanged() {
-        if (onServerStateChangedListener != null) {
-            onServerStateChangedListener.onServerStateChanged(serverState);
+    private void notifyServerResponse(ServerState serverState, String message) {
+        if (onServerResponseListener != null) {
+            onServerResponseListener.onServerResponse(serverState, message);
         }
     }
 
