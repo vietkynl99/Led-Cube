@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        BroadcastManager.getInstance(getApplicationContext()).sendRequestPauseNetworkScan();
+        BroadcastManager.getInstance().sendRequestPauseNetworkScan();
     }
 
     @Override

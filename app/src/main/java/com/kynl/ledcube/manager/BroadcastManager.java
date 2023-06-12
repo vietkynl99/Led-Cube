@@ -31,28 +31,30 @@ import com.kynl.ledcube.model.ServerData;
 public class BroadcastManager {
     private static final String TAG = "BroadcastManager";
     private static BroadcastManager instance;
-    private final Context context;
+    private Context context;
 
-    private BroadcastManager(Context context) {
-        this.context = context.getApplicationContext();
+    private BroadcastManager() {
     }
 
-    public static synchronized BroadcastManager getInstance(Context context) {
+    public static synchronized BroadcastManager getInstance() {
         if (instance == null) {
-            if (context == null) {
-                Log.e(TAG, "getInstance: Context is null");
-                return null;
-            }
-            instance = new BroadcastManager(context);
+            instance = new BroadcastManager();
         }
         return instance;
     }
 
+    public void init(Context context) {
+        Log.i(TAG, "init: ");
+        this.context = context.getApplicationContext();
+    }
+
     /* Common */
     private void sendBroadcast(Intent intent) {
-        if (context != null) {
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        if (context == null) {
+            Log.e(TAG, "sendBroadcast: Context is null");
+            return;
         }
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     private void sendEvent(String event) {

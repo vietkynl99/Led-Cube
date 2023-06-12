@@ -9,7 +9,7 @@ import android.util.Log;
 public class SharedPreferencesManager {
     private static final String TAG = "SharedPreferencesManager";
     private static SharedPreferencesManager instance;
-    private final Context context;
+    private Context context;
     // Search
     private String lastScanTime = "";
     private String lastScanDevicesList = "";
@@ -19,24 +19,20 @@ public class SharedPreferencesManager {
     private boolean autoDetect = autoDetectDefault;
     private boolean syncBrightness = syncBrightnessDefault;
 
-    private SharedPreferencesManager(Context context) {
-        this.context = context.getApplicationContext();
-        readAllSavedData();
+    private SharedPreferencesManager() {
     }
 
-    public static synchronized SharedPreferencesManager getInstance(Context context) {
+    public static synchronized SharedPreferencesManager getInstance() {
         if (instance == null) {
-            if (context == null) {
-                Log.e(TAG, "getInstance: Context is null");
-                return null;
-            }
-            instance = new SharedPreferencesManager(context);
+            instance = new SharedPreferencesManager();
         }
         return instance;
     }
 
-    private void readAllSavedData() {
-        Log.i(TAG, "readAllSavedData: ");
+    public void init(Context context) {
+        Log.i(TAG, "init: ");
+
+        this.context = context.getApplicationContext();
         readOldSettings();
         readLastScanInformation();
     }

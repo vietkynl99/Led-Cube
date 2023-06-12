@@ -72,7 +72,7 @@ public class NetworkService extends Service {
                         break;
                     }
                     case BROADCAST_REQUEST_UPDATE_STATUS: {
-                        BroadcastManager.getInstance(getApplicationContext()).sendUpdateStatus(networkServiceState);
+                        BroadcastManager.getInstance().sendUpdateStatus(networkServiceState);
                         break;
                     }
                     case BROADCAST_REQUEST_PAUSE_NETWORK_SCAN: {
@@ -101,9 +101,6 @@ public class NetworkService extends Service {
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
         lastFreeTime = System.currentTimeMillis();
-
-        /* ServerManager */
-        ServerManager.getInstance().init(getApplicationContext());
 
         /* Server response */
         ServerManager.getInstance().setOnServerResponseListener((serverState, message) -> {
@@ -149,13 +146,13 @@ public class NetworkService extends Service {
                     break;
                 }
             }
-            BroadcastManager.getInstance(getApplicationContext()).sendServerResponse(serverState, message);
+            BroadcastManager.getInstance().sendServerResponse(serverState, message);
         });
 
         /* Server data changed */
         ServerManager.getInstance().setOnServerDataChangeListener(serverData -> {
             Log.d(TAG, "ServerDataChanged: " + serverData);
-            BroadcastManager.getInstance(getApplicationContext()).sendUpdateServerData(serverData);
+            BroadcastManager.getInstance().sendUpdateServerData(serverData);
         });
 
         /* Found subnet devices */
@@ -163,12 +160,12 @@ public class NetworkService extends Service {
             @Override
             public void onDeviceFound(Device device) {
                 Log.d(TAG, "onDeviceFound: " + device);
-                BroadcastManager.getInstance(getApplicationContext()).sendAddSubnetDevice(device);
+                BroadcastManager.getInstance().sendAddSubnetDevice(device);
             }
 
             public void onProcessed(int processed, int total) {
                 int percent = 100 * processed / total;
-                BroadcastManager.getInstance(getApplicationContext()).sendUpdateSubnetProgress(percent);
+                BroadcastManager.getInstance().sendUpdateSubnetProgress(percent);
             }
 
             @Override
@@ -176,11 +173,11 @@ public class NetworkService extends Service {
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 String lastScanTime = getCurrentTimeString();
                 String lastScanDevicesList = convertDevicesListToString(devicesFound);
-                SharedPreferencesManager.getInstance(getApplicationContext()).setLastScanTime(lastScanTime);
-                SharedPreferencesManager.getInstance(getApplicationContext()).setLastScanDevicesList(lastScanDevicesList);
+                SharedPreferencesManager.getInstance().setLastScanTime(lastScanTime);
+                SharedPreferencesManager.getInstance().setLastScanDevicesList(lastScanDevicesList);
                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
-                BroadcastManager.getInstance(getApplicationContext()).sendFinishFindSubnetDevices();
-                if (SharedPreferencesManager.getInstance(getApplicationContext()).isAutoDetect()) {
+                BroadcastManager.getInstance().sendFinishFindSubnetDevices();
+                if (SharedPreferencesManager.getInstance().isAutoDetect()) {
                     requestAutoDetectDeviceInSubnetList(devicesFound);
                 }
             }
@@ -258,7 +255,7 @@ public class NetworkService extends Service {
         if (this.networkServiceState != networkServiceState) {
             this.networkServiceState = networkServiceState;
             Log.i(TAG, ">>> Service state changed: " + networkServiceState);
-            BroadcastManager.getInstance(getApplicationContext()).sendNetWorkServiceStateChanged(networkServiceState);
+            BroadcastManager.getInstance().sendNetWorkServiceStateChanged(networkServiceState);
         }
     }
 

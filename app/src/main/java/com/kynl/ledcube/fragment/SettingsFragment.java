@@ -38,17 +38,17 @@ public class SettingsFragment extends Fragment {
         SwitchCompat switchSyncBrightness = view.findViewById(R.id.switchSyncBrightness);
 
         /* Back button */
-        backBtn.setOnClickListener(v -> BroadcastManager.getInstance(getContext()).sendRequestChangeToHomeScreen());
+        backBtn.setOnClickListener(v -> BroadcastManager.getInstance().sendRequestChangeToHomeScreen());
 
         /* Settings switch */
-        switchAutoDetect.setChecked(SharedPreferencesManager.getInstance(getContext()).isAutoDetect());
-        switchSyncBrightness.setChecked(SharedPreferencesManager.getInstance(getContext()).isSyncBrightness());
+        switchAutoDetect.setChecked(SharedPreferencesManager.getInstance().isAutoDetect());
+        switchSyncBrightness.setChecked(SharedPreferencesManager.getInstance().isSyncBrightness());
 
         switchAutoDetect.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferencesManager.getInstance(getContext()).setAutoDetect(isChecked);
+            SharedPreferencesManager.getInstance().setAutoDetect(isChecked);
         });
         switchSyncBrightness.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferencesManager.getInstance(getContext()).setSyncBrightness(isChecked);
+            SharedPreferencesManager.getInstance().setSyncBrightness(isChecked);
         });
 
         return view;

@@ -76,8 +76,6 @@ public class HomeFragment extends Fragment {
         Log.e(TAG, "onCreate: ");
 
         batteryLevel = 0;
-
-        EffectManager.getInstance().init(getContext());
     }
 
     @Override
@@ -104,12 +102,12 @@ public class HomeFragment extends Fragment {
             Log.d(TAG, "Option data changed: " + effectType + " " + optionType + " " + value);
             EffectManager.getInstance().setOptionValue(effectType, optionType, value);
             if (optionType == OptionItem.OptionType.BRIGHTNESS &&
-                    SharedPreferencesManager.getInstance(getContext()).isSyncBrightness()) {
+                    SharedPreferencesManager.getInstance().isSyncBrightness()) {
                 EffectManager.getInstance().synchronizeAllEffects(optionType, value);
             }
             // Send data to server
             String data = EffectManager.getInstance().getEffectDataAsJson(effectType);
-            BroadcastManager.getInstance(getContext()).sendRequestSendData(data);
+            BroadcastManager.getInstance().sendRequestSendData(data);
         });
 
         /* Effect Recycler view */
@@ -126,7 +124,7 @@ public class HomeFragment extends Fragment {
                 optionListAdapter.select(type);
                 // Send data to server
                 String data = EffectManager.getInstance().getEffectDataAsJson(type);
-                BroadcastManager.getInstance(getContext()).sendRequestSendData(data);
+                BroadcastManager.getInstance().sendRequestSendData(data);
             }
         });
 

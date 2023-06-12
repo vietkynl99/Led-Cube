@@ -153,7 +153,7 @@ public class SearchFragment extends Fragment {
         circleProgressBar = view.findViewById(R.id.circleProgressBar);
 
         /* Back button */
-        backBtn.setOnClickListener(v -> BroadcastManager.getInstance(getContext()).sendRequestChangeToHomeScreen());
+        backBtn.setOnClickListener(v -> BroadcastManager.getInstance().sendRequestChangeToHomeScreen());
 
         /* Recycler view */
         deviceListAdapter = new DeviceListAdapter();
@@ -167,7 +167,7 @@ public class SearchFragment extends Fragment {
                 setRefreshEnable(false);
                 handler.postDelayed(() -> {
                     isDebouncing = false;
-                    BroadcastManager.getInstance(getContext()).sendRequestPairDevice(ip, mac);
+                    BroadcastManager.getInstance().sendRequestPairDevice(ip, mac);
                 }, 1000);
             }
         });
@@ -184,7 +184,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        BroadcastManager.getInstance(getContext()).sendRequestUpdateStatus();
+        BroadcastManager.getInstance().sendRequestUpdateStatus();
     }
 
     @Override
@@ -199,8 +199,8 @@ public class SearchFragment extends Fragment {
     }
 
     private void updateLastScanList() {
-        String lastScanTime = SharedPreferencesManager.getInstance(getContext()).getLastScanTime();
-        String lastScanDevicesList = SharedPreferencesManager.getInstance(getContext()).getLastScanDevicesList();
+        String lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
+        String lastScanDevicesList = SharedPreferencesManager.getInstance().getLastScanDevicesList();
         if (!lastScanDevicesList.isEmpty() && !lastScanTime.isEmpty()) {
             ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
             setInformationText("Last scan: " + lastScanTime);
@@ -219,7 +219,7 @@ public class SearchFragment extends Fragment {
     private void refreshDeviceList() {
         Log.d(TAG, "refreshDeviceList: ");
         setRefreshEnable(false);
-        BroadcastManager.getInstance(getContext()).sendRequestFindSubnetDevice();
+        BroadcastManager.getInstance().sendRequestFindSubnetDevice();
     }
 
     private void setRefreshEnable(boolean enable) {
