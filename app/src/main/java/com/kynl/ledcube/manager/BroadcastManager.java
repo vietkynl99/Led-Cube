@@ -15,8 +15,10 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVE
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -49,6 +51,25 @@ public class BroadcastManager {
     }
 
     /* Common */
+    public void registerBroadcast(BroadcastReceiver broadcastReceiver) {
+        if (context == null) {
+            Log.e(TAG, "registerBroadcast: Context is null");
+            return;
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, new IntentFilter(BROADCAST_ACTION));
+    }
+
+    public void unRegisterBroadcast(BroadcastReceiver broadcastReceiver) {
+        if (context == null) {
+            Log.e(TAG, "unRegisterBroadcast: Context is null");
+            return;
+        }
+        try {
+            context.unregisterReceiver(broadcastReceiver);
+        } catch (Exception ignored) {
+        }
+    }
+
     private void sendBroadcast(Intent intent) {
         if (context == null) {
             Log.e(TAG, "sendBroadcast: Context is null");

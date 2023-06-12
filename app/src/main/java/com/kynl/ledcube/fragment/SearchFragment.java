@@ -176,7 +176,7 @@ public class SearchFragment extends Fragment {
         refreshBtn.setOnClickListener(v -> refreshDeviceList());
 
         updateLastScanList();
-        registerBroadcast();
+        BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
         return view;
     }
@@ -195,7 +195,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unRegisterBroadcast();
+        BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
     }
 
     private void updateLastScanList() {
@@ -232,29 +232,6 @@ public class SearchFragment extends Fragment {
     private void setInformationText(String text) {
         if (informationText != null) {
             informationText.setText(text);
-        }
-    }
-
-    private void registerBroadcast() {
-        Context context = getContext();
-        if (context != null) {
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
-                    new IntentFilter(BROADCAST_ACTION));
-        } else {
-            Log.e(TAG, "registerBroadcast: Context is null");
-        }
-    }
-
-    private void unRegisterBroadcast() {
-        Context context = getContext();
-        if (context != null) {
-            try {
-                context.unregisterReceiver(mBroadcastReceiver);
-            } catch (Exception ignored) {
-
-            }
-        } else {
-            Log.e(TAG, "unRegisterBroadcast: Context is null");
         }
     }
 }

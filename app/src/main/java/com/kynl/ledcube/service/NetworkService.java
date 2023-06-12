@@ -184,7 +184,7 @@ public class NetworkService extends Service {
         });
 
         /* Broadcast */
-        registerBroadcast();
+        BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
         /* Runnable */
         mHandler = new Handler();
@@ -220,7 +220,7 @@ public class NetworkService extends Service {
         Log.e(TAG, "onDestroy: ");
         super.onDestroy();
         mHandler.removeCallbacks(mRunnable);
-        unRegisterBroadcast();
+        BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
     }
 
     @Nullable
@@ -231,20 +231,6 @@ public class NetworkService extends Service {
 
     private String convertDevicesListToString(ArrayList<Device> devices) {
         return gson.toJson(devices);
-    }
-
-
-    private void registerBroadcast() {
-        // Register broadcast
-        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(mBroadcastReceiver,
-                new IntentFilter(BROADCAST_ACTION));
-    }
-
-    private void unRegisterBroadcast() {
-        try {
-            getApplicationContext().unregisterReceiver(mBroadcastReceiver);
-        } catch (Exception ignored) {
-        }
     }
 
     private void setNetworkServiceState(NetworkServiceState networkServiceState) {

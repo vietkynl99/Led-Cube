@@ -129,7 +129,7 @@ public class HomeFragment extends Fragment {
         });
 
 
-        registerBroadcast();
+        BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
         setBatteryLevel(-1);
 
@@ -152,30 +152,7 @@ public class HomeFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         Log.e(TAG, "onDestroy: ");
-        unRegisterBroadcast();
-    }
-
-    private void registerBroadcast() {
-        Context context = getContext();
-        if (context != null) {
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
-                    new IntentFilter(BROADCAST_ACTION));
-        } else {
-            Log.e(TAG, "registerBroadcast: Context is null");
-        }
-    }
-
-    private void unRegisterBroadcast() {
-        Context context = getContext();
-        if (context != null) {
-            try {
-                context.unregisterReceiver(mBroadcastReceiver);
-            } catch (Exception ignored) {
-
-            }
-        } else {
-            Log.e(TAG, "unRegisterBroadcast: Context is null");
-        }
+        BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
     }
 
     private void updateStatus(boolean connected) {

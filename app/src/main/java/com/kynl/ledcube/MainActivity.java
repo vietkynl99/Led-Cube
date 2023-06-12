@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         initBottomNavigation();
 
         /* Broadcast */
-        registerBroadcast();
+        BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.e(TAG, "onDestroy: ");
         /* Broadcast */
-        unRegisterBroadcast();
+        BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
         // Stop service
         Intent intent = new Intent(this, NetworkService.class);
         stopService(intent);
@@ -169,29 +169,6 @@ public class MainActivity extends AppCompatActivity {
             fragmentTransaction.show(fragment);
             fragment.onResume();
             fragmentTransaction.commit();
-        }
-    }
-
-    private void registerBroadcast() {
-        Context context = getApplicationContext();
-        if (context != null) {
-            LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(mBroadcastReceiver,
-                    new IntentFilter(BROADCAST_ACTION));
-        } else {
-            Log.e(TAG, "registerBroadcast: Context is null");
-        }
-    }
-
-    private void unRegisterBroadcast() {
-        Context context = getApplicationContext();
-        if (context != null) {
-            try {
-                context.unregisterReceiver(mBroadcastReceiver);
-            } catch (Exception ignored) {
-
-            }
-        } else {
-            Log.e(TAG, "unRegisterBroadcast: Context is null");
         }
     }
 }
