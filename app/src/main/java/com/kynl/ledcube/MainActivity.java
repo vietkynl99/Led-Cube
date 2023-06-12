@@ -72,8 +72,12 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         // Start service
-        Intent intent = new Intent(this, NetworkService.class);
-        startService(intent);
+        try {
+            Intent intent = new Intent(this, NetworkService.class);
+            startService(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "onResume: Can not start service !!! " + e.getMessage());
+        }
     }
 
     @Override
