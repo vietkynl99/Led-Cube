@@ -36,6 +36,7 @@ import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.DeviceListAdapter;
 import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.manager.ServerManager;
+import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.Device;
 
 import java.lang.reflect.Type;
@@ -46,8 +47,6 @@ import com.kynl.ledcube.common.CommonUtils.ServerState;
 
 public class SearchFragment extends Fragment {
     private final String TAG = "SearchFragment";
-    private String savedIpAddress, savedMacAddress;
-    private String lastScanTime, lastScanDevicesList;
     private final Gson gson = new Gson();
     private final Handler handler = new Handler();
     private DeviceListAdapter deviceListAdapter;
@@ -89,8 +88,7 @@ public class SearchFragment extends Fragment {
                         if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
                             deviceListAdapter.resetConnectingDevice();
                         } else {
-                            readSavedDeviceInformation();
-                            deviceListAdapter.setConnectedDeviceMac(savedMacAddress);
+                            deviceListAdapter.setConnectedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
                         }
                         if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
                             deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
@@ -138,12 +136,6 @@ public class SearchFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        savedIpAddress = "";
-        savedMacAddress = "";
-        lastScanTime = "";
-        lastScanDevicesList = "";
-        readSavedDeviceInformation();
     }
 
     @Override
@@ -207,37 +199,15 @@ public class SearchFragment extends Fragment {
     }
 
     private void updateLastScanList() {
-        readLastScanInformation();
+        String lastScanTime = SharedPreferencesManager.getInstance(getContext()).getLastScanTime();
+        String lastScanDevicesList = SharedPreferencesManager.getInstance(getContext()).getLastScanDevicesList();
         if (!lastScanDevicesList.isEmpty() && !lastScanTime.isEmpty()) {
             ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
             setInformationText("Last scan: " + lastScanTime);
             deviceListAdapter.syncList(devicesList);
-            readSavedDeviceInformation();
-            deviceListAdapter.setConnectedDeviceMac(savedMacAddress);
+            deviceListAdapter.setConnectedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
         }
     }
-
-    private void readSavedDeviceInformation() {
-        Context context = getContext();
-        if (context != null) {
-            SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-            savedIpAddress = prefs.getString("savedIpAddress", "");
-            savedMacAddress = prefs.getString("savedMacAddress", "");
-        }
-    }
-
-
-    private void readLastScanInformation() {
-        Context context = getContext();
-        if (context == null) {
-            Log.e(TAG, "readLastScanInformation: Context is null");
-            return;
-        }
-        SharedPreferences prefs = getContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        lastScanTime = prefs.getString("lastScanTime", "");
-        lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
-    }
-
 
     private ArrayList<Device> convertStringToDevicesList(String jsonString) {
         Type type = new TypeToken<ArrayList<Device>>() {

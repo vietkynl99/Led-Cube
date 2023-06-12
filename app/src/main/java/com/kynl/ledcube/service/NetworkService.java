@@ -6,14 +6,12 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
-import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -43,7 +41,6 @@ public class NetworkService extends Service {
     private Runnable mRunnable;
     private final Gson gson = new Gson();
     private final int retryMax = 1;
-    private String lastScanTime, lastScanDevicesList;
     private NetworkServiceState networkServiceState;
     private int retryCount;
     private long lastFreeTime;
@@ -101,8 +98,6 @@ public class NetworkService extends Service {
 
         Log.i(TAG, "onCreate: create service");
 
-        lastScanTime = "";
-        lastScanDevicesList = "";
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
         lastFreeTime = System.currentTimeMillis();
@@ -179,9 +174,10 @@ public class NetworkService extends Service {
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
-                lastScanTime = getCurrentTimeString();
-                lastScanDevicesList = convertDevicesListToString(devicesFound);
-                saveLastScanInformation();
+                String lastScanTime = getCurrentTimeString();
+                String lastScanDevicesList = convertDevicesListToString(devicesFound);
+                SharedPreferencesManager.getInstance(getApplicationContext()).setLastScanTime(lastScanTime);
+                SharedPreferencesManager.getInstance(getApplicationContext()).setLastScanDevicesList(lastScanDevicesList);
                 setNetworkServiceState(NetworkServiceState.STATE_NONE);
                 BroadcastManager.getInstance(getApplicationContext()).sendFinishFindSubnetDevices();
                 if (SharedPreferencesManager.getInstance(getApplicationContext()).isAutoDetect()) {
@@ -370,23 +366,5 @@ public class NetworkService extends Service {
         Date now = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM", Locale.US);
         return formatter.format(now);
-    }
-
-    private void saveLastScanInformation() {
-        if (lastScanTime.isEmpty()) {
-            Log.e(TAG, "saveLastScanInformation: Cannot save due to empty lastScanTime");
-            return;
-        }
-        if (lastScanDevicesList.isEmpty()) {
-            Log.e(TAG, "saveLastScanInformation: Cannot save due to empty lastScanDevicesList");
-            return;
-        }
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("lastScanTime", lastScanTime);
-        editor.putString("lastScanDevicesList", lastScanDevicesList);
-        editor.apply();
-
-        Log.i(TAG, "saveLastScanInformation: lastScanTime[" + lastScanTime + "]");
     }
 }
