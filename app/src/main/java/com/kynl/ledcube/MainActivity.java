@@ -24,6 +24,7 @@ import com.kynl.ledcube.service.NetworkService;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
+    private MeowBottomNavigation bottomNavigation;
     private Fragment homeFragment, searchFragment, settingsFragment;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -34,7 +35,10 @@ public class MainActivity extends AppCompatActivity {
             if (event != null) {
                 switch (event) {
                     case BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN: {
-                        changeFragment(homeFragment);
+                        if (bottomNavigation != null) {
+                            bottomNavigation.show(1, true);
+                            changeFragment(homeFragment);
+                        }
                         break;
                     }
                     default:
@@ -91,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initBottomNavigation() {
-        MeowBottomNavigation bottomNavigation = findViewById(R.id.meowBottomNavigation);
+        bottomNavigation = findViewById(R.id.meowBottomNavigation);
 
         bottomNavigation.add(new MeowBottomNavigation.Model(1, R.drawable.home_w_48));
         bottomNavigation.add(new MeowBottomNavigation.Model(2, R.drawable.search_w_50));
