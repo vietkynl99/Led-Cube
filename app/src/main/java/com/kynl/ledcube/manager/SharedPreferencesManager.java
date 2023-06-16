@@ -120,4 +120,25 @@ public class SharedPreferencesManager {
         autoDetect = prefs.getBoolean("autoDetect", autoDetectDefault);
         syncBrightness = prefs.getBoolean("syncBrightness", syncBrightnessDefault);
     }
+
+    /* ServerManager */
+    public void saveSynced(boolean synced) {
+        if (context == null) {
+            Log.e(TAG, "saveSynced: Context is null");
+            return;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("synced", synced);
+        editor.apply();
+    }
+
+    public boolean readOldSynced() {
+        if (context == null) {
+            Log.e(TAG, "readOldSynced: Context is null");
+            return false;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return prefs.getBoolean("synced", false);
+    }
 }

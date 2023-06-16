@@ -1,6 +1,5 @@
 package com.kynl.ledcube.service;
 
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
@@ -11,16 +10,15 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.kynl.ledcube.manager.BroadcastManager;
+import com.kynl.ledcube.manager.EffectManager;
 import com.kynl.ledcube.manager.ServerManager;
 import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.Device;
@@ -68,6 +66,7 @@ public class NetworkService extends Service {
                         String data = intent.getStringExtra("data");
                         if (!data.isEmpty()) {
                             requestSendData(data);
+                            ServerManager.getInstance().setSynced(false);
                         }
                         break;
                     }
@@ -138,6 +137,7 @@ public class NetworkService extends Service {
                     } else {
                         Log.e(TAG, "Server status changed: Send data failed");
                     }
+                    ServerManager.getInstance().setSynced(serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
                     setNetworkServiceState(NetworkServiceState.STATE_NONE);
                     break;
                 }
@@ -193,7 +193,11 @@ public class NetworkService extends Service {
             if (!ServerManager.getInstance().isBusy()) {
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastFreeTime > networkScanTime * 500) {
-                    requestConnectToSavedDevice();
+                    if (ServerManager.getInstance().isSynced()) {
+                        requestConnectToSavedDevice();
+                    } else {
+                        requestSyncLastData();
+                    }
                 }
             }
             mHandler.postDelayed(mRunnable, networkScanTime * 1000);
@@ -244,6 +248,21 @@ public class NetworkService extends Service {
             BroadcastManager.getInstance().sendNetWorkServiceStateChanged(networkServiceState);
         }
     }
+
+    private void requestSyncLastData() {
+        if (!ServerManager.getInstance().hasSavedDevice()) {
+            Log.e(TAG, "requestSyncLastData: No saved device");
+            return;
+        }
+        if (ServerManager.getInstance().isBusy()) {
+            Log.e(TAG, "requestSyncLastData: Network Service is busy. Please try again. State:" + networkServiceState);
+            return;
+        }
+        Log.d(TAG, "requestSyncLastData: ");
+        String data = EffectManager.getInstance().getCurrentEffectDataAsJson();
+        requestSendData(data);
+    }
+
 
     private void requestSendData(String data) {
         if (!ServerManager.getInstance().hasSavedDevice()) {

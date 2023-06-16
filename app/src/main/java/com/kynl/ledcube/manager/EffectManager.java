@@ -154,6 +154,11 @@ public class EffectManager {
         }
     }
 
+    public String getCurrentEffectDataAsJson() {
+        EffectItem.EffectType effectType = getCurrentEffectType();
+        return getEffectDataAsJson(effectType);
+    }
+
     private int findEffectTypePosition(EffectItem.EffectType type) {
         for (int i = 0; i < effectItemList.size(); i++) {
             if (effectItemList.get(i).getType() == type) {

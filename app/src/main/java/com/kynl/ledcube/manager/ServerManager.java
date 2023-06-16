@@ -40,6 +40,7 @@ public class ServerManager {
     private SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener;
     private boolean isFindingSubnetDevices;
     private String savedIpAddress, savedMacAddress;
+    private boolean synced;
 
     private ServerManager() {
     }
@@ -67,8 +68,20 @@ public class ServerManager {
         isFindingSubnetDevices = false;
         savedIpAddress = "";
         savedMacAddress = "";
+        synced = SharedPreferencesManager.getInstance().readOldSynced();
 
         readSavedDeviceInformation();
+    }
+
+    public boolean isSynced() {
+        return synced;
+    }
+
+    public void setSynced(boolean synced) {
+        if (this.synced != synced) {
+            this.synced = synced;
+            SharedPreferencesManager.getInstance().saveSynced(synced);
+        }
     }
 
     public boolean isBusy() {
