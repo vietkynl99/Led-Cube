@@ -73,7 +73,7 @@
         android:layout_marginBottom="0dp"
         android:gravity="center_horizontal"
         android:text="@string/sample_username"
-        android:textColor="@color/white"
+        android:textColor="@color/text_smoke_color"
         android:textSize="20sp"
         android:textStyle="bold" />
 
@@ -96,7 +96,7 @@
         android:padding="10dp"
         android:text="@string/setting_edit_profile"
         android:textAlignment="center"
-        android:textColor="@color/white" />
+        android:textColor="@color/text_smoke_color" />
 
     <ScrollView
         android:layout_width="match_parent"

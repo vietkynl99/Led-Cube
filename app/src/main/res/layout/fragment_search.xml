@@ -69,7 +69,7 @@
             android:layout_marginEnd="15dp"
             android:layout_weight="1"
             android:text="@string/demo_last_scan"
-            android:textColor="@color/white" />
+            android:textColor="@color/text_smoke_color" />
 
         <FrameLayout
             android:layout_width="48dp"
@@ -96,7 +96,8 @@
                 android:padding="9dp"
                 android:scaleType="fitCenter"
                 android:visibility="visible"
-                app:srcCompat="@drawable/refresh_48" />
+                app:srcCompat="@drawable/refresh_48"
+                app:tint="@color/text_smoke_color" />
         </FrameLayout>
 
     </LinearLayout>
@@ -112,7 +113,10 @@
         android:id="@+id/deviceListRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="70dp"
         tools:itemCount="7"
         tools:listitem="@layout/recycler_view_item" />
 

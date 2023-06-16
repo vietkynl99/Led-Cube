@@ -7,8 +7,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="5dp"
     android:layout_marginBottom="5dp"
-    android:background="@drawable/rounded_rectangle_15"
-    android:backgroundTint="#865E575E"
+    android:background="@drawable/bg_list"
     android:paddingStart="15dp"
     android:paddingTop="5dp"
     android:paddingEnd="10dp"
@@ -20,7 +19,8 @@
         android:layout_margin="7dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/contentDescription"
-        app:srcCompat="@drawable/iot_device_64" />
+        app:srcCompat="@drawable/iot_device_64"
+        app:tint="@color/text_smoke_color" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -44,7 +44,7 @@
                 android:layout_gravity="center"
                 android:foregroundGravity="center"
                 android:text="@string/demo_IP"
-                android:textColor="@color/white"
+                android:textColor="@color/text_smoke_color"
                 android:textSize="16sp" />
 
             <ImageView
@@ -64,7 +64,7 @@
             android:layout_marginStart="2dp"
             android:layout_marginEnd="10dp"
             android:text="@string/demo_MAC"
-            android:textColor="@color/text_smoke_color"
+            android:textColor="@color/text_color"
             android:textSize="12sp" />
 
         <TextView
@@ -74,7 +74,7 @@
             android:layout_marginStart="2dp"
             android:layout_marginEnd="10dp"
             android:text="@string/connecting"
-            android:textColor="@color/text_smoke_color"
+            android:textColor="@color/text_color"
             android:textSize="12sp" />
 
     </LinearLayout>
@@ -85,9 +85,9 @@
         android:layout_height="20dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="2dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="18dp"
         android:text="@string/demo_ping"
-        android:textColor="@color/text_smoke_color"
+        android:textColor="@color/text_color"
         android:textSize="12sp" />
 
 </LinearLayout>
