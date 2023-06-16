@@ -42,8 +42,16 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
 
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
-        holder.bind(optionItemList.get(position));
-        holder.option_item_main_view.setOnClickListener(v -> holder.expandable_layout.toggle());
+        holder.bind(position, optionItemList.get(position));
+        holder.option_item_main_view.setOnClickListener(v -> {
+            if (holder.expandable_layout.isExpanded()) {
+                holder.expandable_layout.collapse();
+                holder.option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_right_48);
+            } else {
+                holder.expandable_layout.expand();
+                holder.option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_down_48);
+            }
+        });
         holder.option_seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -90,27 +98,32 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
         private final ViewGroup option_item_main_view;
-        private final ImageView icon;
+        private final ImageView icon, option_arrow;
         private final TextView option_item_text, option_value_text;
         private final ExpandableLayout expandable_layout;
         private final SeekBar option_seek_bar;
+        private final View split_item;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
             option_item_main_view = itemView.findViewById(R.id.option_item_main_view);
             expandable_layout = itemView.findViewById(R.id.expandable_layout);
             icon = itemView.findViewById(R.id.option_item_icon);
+            option_arrow = itemView.findViewById(R.id.option_arrow);
             option_item_text = itemView.findViewById(R.id.option_item_text);
             option_value_text = itemView.findViewById(R.id.option_value_text);
             option_seek_bar = itemView.findViewById(R.id.option_seek_bar);
+            split_item = itemView.findViewById(R.id.split_item);
         }
 
-        public void bind(OptionItem item) {
+        public void bind(int position, OptionItem item) {
             icon.setImageResource(item.getIconId());
             option_item_text.setText(item.getText());
             option_value_text.setText(String.valueOf(item.getValue()));
             option_seek_bar.setProgress(item.getValue());
+            option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_right_48);
             expandable_layout.collapse(false);
+            split_item.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 }

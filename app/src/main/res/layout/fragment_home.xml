@@ -128,7 +128,7 @@
             android:layout_marginTop="30dp"
             android:background="@drawable/bg_option_list"
             android:paddingStart="20dp"
-            android:paddingTop="15dp"
+            android:paddingTop="0dp"
             android:paddingEnd="20dp"
             android:paddingBottom="70dp">
 
