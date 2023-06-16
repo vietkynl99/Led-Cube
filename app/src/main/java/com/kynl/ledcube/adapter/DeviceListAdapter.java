@@ -23,14 +23,18 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     private final String TAG = "DeviceListAdapter";
     private final ReentrantLock lock = new ReentrantLock();
     private List<Device> deviceList;
-    private String connectedDeviceMac;
-    private Device.DeviceState connectedDeviceState;
+    private String connectingDeviceMac;
+    private int connectingDevicePosition;
+    private String savedDeviceMac;
+    private int savedDevicePosition;
     private OnSubItemClickListener onSubItemClickListener;
 
     public DeviceListAdapter() {
         this.deviceList = new ArrayList<>();
-        connectedDeviceMac = "";
-        connectedDeviceState = Device.DeviceState.STATE_NONE;
+        this.connectingDeviceMac = "";
+        this.savedDeviceMac = "";
+        this.connectingDevicePosition = -1;
+        this.savedDevicePosition = -1;
     }
 
     @NonNull
@@ -43,7 +47,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         Device device = deviceList.get(position);
-        holder.bind(device, connectedDeviceMac, connectedDeviceState);
+        holder.bind(device, savedDeviceMac, connectingDeviceMac);
         holder.setOnSubItemClickListener(onSubItemClickListener);
     }
 
@@ -56,21 +60,36 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         this.onSubItemClickListener = onSubItemClickListener;
     }
 
-    public void setConnectedDeviceMac(String connectedDeviceMac) {
-        this.connectedDeviceMac = connectedDeviceMac;
-    }
-
-    public void setConnectedDeviceState(Device.DeviceState connectedDeviceState) {
-        this.connectedDeviceState = connectedDeviceState;
-    }
-
-    private boolean isExistItem(Device device) {
-        for (int i = 0; i < deviceList.size(); i++) {
-            if (deviceList.get(i).equals(device)) {
-                return true;
+    public void setConnectingDeviceMac(String connectingDeviceMac) {
+        if (!this.connectingDeviceMac.equals(connectingDeviceMac)) {
+            this.connectingDeviceMac = connectingDeviceMac;
+            if (connectingDevicePosition >= 0) {
+                notifyItemChanged(connectingDevicePosition);
+            }
+            if (!connectingDeviceMac.isEmpty()) {
+                int position = findMacDevicePosition(connectingDeviceMac);
+                if (position >= 0) {
+                    connectingDevicePosition = position;
+                    notifyItemChanged(connectingDevicePosition);
+                }
             }
         }
-        return false;
+    }
+
+    public void setSavedDeviceMac(String savedDeviceMac) {
+        if (!this.savedDeviceMac.equals(savedDeviceMac)) {
+            this.savedDeviceMac = savedDeviceMac;
+            if (savedDevicePosition >= 0) {
+                notifyItemChanged(savedDevicePosition);
+            }
+            if (!savedDeviceMac.isEmpty()) {
+                int position = findMacDevicePosition(savedDeviceMac);
+                if (position >= 0) {
+                    savedDevicePosition = position;
+                    notifyItemChanged(savedDevicePosition);
+                }
+            }
+        }
     }
 
     private int findMacDevicePosition(String mac) {
@@ -80,39 +99,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             }
         }
         return -1;
-    }
-
-    public void setConnectingDevice(String mac) {
-        // find position by MAC
-        lock.lock();
-        int position = -1;
-        for (int i = 0; i < deviceList.size(); i++) {
-            if (deviceList.get(i).getMac().equals(mac)) {
-                position = i;
-            }
-            // reset old state
-            if (deviceList.get(i).getDeviceState() == Device.DeviceState.STATE_CONNECTING &&
-                    !deviceList.get(i).getMac().equals(mac)) {
-                deviceList.get(i).setDeviceState(Device.DeviceState.STATE_NONE);
-                notifyItemChanged(i);
-            }
-        }
-        if (position >= 0) {
-            deviceList.get(position).setDeviceState(Device.DeviceState.STATE_CONNECTING);
-            notifyItemChanged(position);
-        }
-        lock.unlock();
-    }
-
-    public void resetConnectingDevice() {
-        lock.lock();
-        for (int i = 0; i < deviceList.size(); i++) {
-            if (deviceList.get(i).getDeviceState() == Device.DeviceState.STATE_CONNECTING) {
-                deviceList.get(i).setDeviceState(Device.DeviceState.STATE_NONE);
-                notifyItemChanged(i);
-            }
-        }
-        lock.unlock();
     }
 
     public void syncList(List<Device> newDeviceList) {
@@ -127,13 +113,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
+        private final ViewGroup mainItemView;
         private final TextView deviceMac, deviceIp, devicePing, deviceConnecting;
         private final ImageView deviceConnected;
         private OnSubItemClickListener onSubItemClickListener;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
-            ViewGroup mainItemView = itemView.findViewById(R.id.mainItemView);
+            mainItemView = itemView.findViewById(R.id.mainItemView);
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
             devicePing = itemView.findViewById(R.id.devicePing);
@@ -147,18 +134,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             });
         }
 
-        public void bind(Device device, String connectedDeviceMac, Device.DeviceState connectedDeviceState) {
+        public void bind(Device device, String savedDeviceMac, String connectingDeviceMac) {
             String pingText = device.getPing() + "ms";
-            Device.DeviceState state = device.getDeviceState();
-            boolean isConnectedDevice = device.getMac().equals(connectedDeviceMac);
             deviceIp.setText(device.getIp());
             deviceMac.setText(device.getMac());
             devicePing.setText(pingText);
-            deviceConnecting.setVisibility(state == Device.DeviceState.STATE_CONNECTING ? View.VISIBLE : View.GONE);
-            // Use for connected device
-            deviceConnected.setVisibility(isConnectedDevice ? View.VISIBLE : View.GONE);
-            deviceConnected.setImageResource(connectedDeviceState == Device.DeviceState.STATE_CONNECTED_AND_PAIRED ?
-                    R.drawable.checked_g_48 : R.drawable.checked_w_30);
+            deviceConnecting.setVisibility(device.getMac().equals(connectingDeviceMac) ? View.VISIBLE : View.GONE);
+            deviceConnected.setVisibility(!savedDeviceMac.isEmpty() && device.getMac().equals(savedDeviceMac) ?
+                    View.VISIBLE : View.GONE);
         }
 
         public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {

@@ -54,7 +54,8 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="0dp"
-                app:srcCompat="@drawable/checked_w_30" />
+                app:srcCompat="@drawable/link_50"
+                app:tint="@color/text_smoke_color" />
         </LinearLayout>
 
         <TextView

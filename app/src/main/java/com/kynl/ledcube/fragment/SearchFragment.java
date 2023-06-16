@@ -86,15 +86,16 @@ public class SearchFragment extends Fragment {
                     case BROADCAST_SERVICE_SERVER_RESPONSE: {
                         ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
                         if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
-                            deviceListAdapter.resetConnectingDevice();
+                            deviceListAdapter.setConnectingDeviceMac("");
                         } else {
-                            deviceListAdapter.setConnectedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
+//                            deviceListAdapter.setConnectedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
+                            deviceListAdapter.setSavedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
                         }
-                        if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
-                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
-                        } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
-                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_AND_PAIRED);
-                        }
+//                        if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
+//                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
+//                        } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
+//                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_AND_PAIRED);
+//                        }
                         // Show message
                         String message = intent.getStringExtra("message");
                         if (!message.isEmpty() && isVisible()) {
@@ -106,7 +107,7 @@ public class SearchFragment extends Fragment {
                         NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("networkServiceState");
                         if (networkServiceState == NetworkServiceState.STATE_NONE) {
                             setRefreshEnable(true);
-                            deviceListAdapter.resetConnectingDevice();
+                            deviceListAdapter.setConnectingDeviceMac("");
                             if (progressBar != null) {
                                 progressBar.setProgress(0);
                             }
@@ -118,7 +119,7 @@ public class SearchFragment extends Fragment {
                     case BROADCAST_SERVICE_UPDATE_STATUS: {
                         NetworkServiceState networkServiceState = (NetworkServiceState) intent.getSerializableExtra("networkServiceState");
                         if (networkServiceState == NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE) {
-                            deviceListAdapter.setConnectingDevice(ServerManager.getInstance().getMacAddress());
+                            deviceListAdapter.setConnectingDeviceMac(ServerManager.getInstance().getMacAddress());
                         }
                         break;
                     }
@@ -163,7 +164,7 @@ public class SearchFragment extends Fragment {
             // Debounce
             if (!isDebouncing) {
                 isDebouncing = true;
-                deviceListAdapter.setConnectingDevice(mac);
+                deviceListAdapter.setConnectingDeviceMac(mac);
                 setRefreshEnable(false);
                 handler.postDelayed(() -> {
                     isDebouncing = false;
@@ -171,6 +172,8 @@ public class SearchFragment extends Fragment {
                 }, 1000);
             }
         });
+        deviceListAdapter.setSavedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
+        deviceListAdapter.setConnectingDeviceMac("");
 
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> refreshDeviceList());
@@ -205,7 +208,7 @@ public class SearchFragment extends Fragment {
             ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
             setInformationText("Last scan: " + lastScanTime);
             deviceListAdapter.syncList(devicesList);
-            deviceListAdapter.setConnectedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
+            deviceListAdapter.setSavedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
         }
     }
 
