@@ -118,6 +118,6 @@
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="70dp"
         tools:itemCount="7"
-        tools:listitem="@layout/recycler_view_item" />
+        tools:listitem="@layout/device_view_item" />
 
 </LinearLayout>

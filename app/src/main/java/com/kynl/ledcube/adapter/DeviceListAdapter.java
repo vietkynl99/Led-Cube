@@ -16,11 +16,8 @@ import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.myinterface.OnSubItemClickListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-
-import io.netty.channel.epoll.EpollServerChannelConfig;
 
 public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.CustomViewHolder> {
     private final String TAG = "DeviceListAdapter";
@@ -39,7 +36,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     @NonNull
     @Override
     public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.device_view_item, parent, false);
         return new CustomViewHolder(view);
     }
 
