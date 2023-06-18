@@ -12,6 +12,7 @@
 #include "VLog.h"
 #include "WifiMaster.h"
 #include "ServerManager.h"
+#include "ServiceManager.h"
 
 /* Hardware pin*/
 // Press and hold for 3 seconds to reset wifi settings
@@ -28,6 +29,7 @@
 #define EEPROM_SIZE 16 // (bytes)
 
 WifiMaster wifiMaster;
+ServiceManager serviceManager;
 
 bool pair_mode = false, pair_mode_fake = false;
 
@@ -160,13 +162,11 @@ void setup()
 #endif
 	wifiMaster.setup();
 	ServerManager::setup();
+	serviceManager.init();
 }
 
 void loop()
 {
-	// Avoid delays() in loop when non-blocking and other long running code
-	wifiMaster.process();
-
 #if USE_SERIAL_DEBUG
 	debugHandler();
 #endif
@@ -174,8 +174,9 @@ void loop()
 	checkResetWifiButton();
 	checkPairButton();
 	checkPairMode();
-
-	// Handle client requests
-	ServerManager::handleClient();
 	checkWifiStatus();
+
+	wifiMaster.process();
+	serviceManager.updateRealTime();
+	ServerManager::handleClient();
 }
