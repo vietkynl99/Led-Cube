@@ -1,6 +1,17 @@
 #include <Arduino.h>
 #include "WifiMaster.h"
 
+WifiMaster *WifiMaster::instance = nullptr;
+
+WifiMaster *WifiMaster::getInstance()
+{
+    if (instance == nullptr)
+    {
+        instance = new WifiMaster();
+    }
+    return instance;
+}
+
 WifiMaster::WifiMaster()
 {
 }

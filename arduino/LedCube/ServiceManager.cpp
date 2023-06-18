@@ -1,6 +1,17 @@
 #include <Arduino.h>
 #include "ServiceManager.h"
 
+ServiceManager *ServiceManager::instance = nullptr;
+
+ServiceManager *ServiceManager::getInstance()
+{
+    if (instance == nullptr)
+    {
+        instance = new ServiceManager();
+    }
+    return instance;
+}
+
 ServiceManager::ServiceManager()
 {
 }

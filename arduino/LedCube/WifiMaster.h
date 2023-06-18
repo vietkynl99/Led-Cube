@@ -19,10 +19,14 @@
 class WifiMaster
 {
 private:
+    static WifiMaster* instance;
     WiFiManager wm;
 
-public:
+private:
     WifiMaster();
+
+public:
+    static WifiMaster* getInstance();
     void printConnectedWifiInfo();
     void init();
     void resetWifiSettings();

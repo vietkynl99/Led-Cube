@@ -10,12 +10,16 @@
 
 class ServiceManager
 {
-public:
+private:
+    static ServiceManager* instance;
     WiFiUDP ntpUDP;
     NTPClient *timeClient;
 
-public:
+private:
     ServiceManager();
+
+public:
+static ServiceManager* getInstance();
     void init();
     void updateRealTime();
 

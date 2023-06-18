@@ -23,8 +23,8 @@
 /* EEPROM */
 #define EEPROM_SIZE 16 // (bytes)
 
-WifiMaster wifiMaster;
-ServiceManager serviceManager;
+WifiMaster *wifiMaster;
+ServiceManager *serviceManager;
 
 bool pair_mode = false, pair_mode_fake = false;
 
@@ -46,7 +46,7 @@ void checkResetWifiButton()
 		if ((unsigned long long)(millis() - state_changed_time) > LONG_PRESS_TIME)
 		{
 			LOG_WIFI("Reset button pressed");
-			wifiMaster.resetWifiSettings();
+			wifiMaster->resetWifiSettings();
 		}
 	}
 }
@@ -127,7 +127,7 @@ void debugHandler()
 		// Reset wifi settings
 		if (!strcmp(FC, "RSWIFI"))
 		{
-			wifiMaster.resetWifiSettings();
+			wifiMaster->resetWifiSettings();
 		}
 		// Reset API KEY
 		else if (!strcmp(FC, "RSKEY"))
@@ -170,9 +170,13 @@ void setup()
 	initSerial();
 #endif
 	initEEPROM();
-	wifiMaster.init();
+
+	wifiMaster = WifiMaster::getInstance();
+	serviceManager = ServiceManager::getInstance();
+
+	wifiMaster->init();
 	ServerManager::init();
-	serviceManager.init();
+	serviceManager->init();
 }
 
 void loop()
@@ -186,7 +190,7 @@ void loop()
 	checkPairMode();
 	checkWifiStatus();
 
-	wifiMaster.process();
-	serviceManager.updateRealTime();
+	wifiMaster->process();
+	serviceManager->updateRealTime();
 	ServerManager::handleClient();
 }
