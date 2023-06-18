@@ -26,7 +26,7 @@ private:
 public:
     WifiMaster();
     void printConnectedWifiInfo();
-    void setup();
+    void init();
     void resetWifiSettings();
     void process();
 };

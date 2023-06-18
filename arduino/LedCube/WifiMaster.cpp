@@ -3,7 +3,6 @@
 
 WifiMaster::WifiMaster()
 {
-    LOG_SYSTEM("WifiMaster");
 }
 
 void WifiMaster::printConnectedWifiInfo()
@@ -11,7 +10,7 @@ void WifiMaster::printConnectedWifiInfo()
     LOG_WIFI("SSID: '%s' IP: '%s'", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
 }
 
-void WifiMaster::setup()
+void WifiMaster::init()
 {
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     delay(3000);

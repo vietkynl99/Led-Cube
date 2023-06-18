@@ -6,7 +6,7 @@ long ServerManager::apiKey = 0;
 bool ServerManager::isPairMode = false;
 int ServerManager::batteryLevel = 25;
 
-void ServerManager::setup()
+void ServerManager::init()
 {
 
     loadApiKeyFromEEPROM();

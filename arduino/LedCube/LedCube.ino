@@ -146,22 +146,37 @@ void debugHandler()
 		}
 	}
 }
+
+void initSerial()
+{
+	Serial.begin(115200);
+	delay(2000);
+	Serial.println();
+}
 #endif
+
+void initHardwarePin()
+{
+	pinMode(RESET_WIFI_PIN, INPUT_PULLUP);
+	pinMode(PAIR_MODE_PIN, INPUT_PULLUP);
+}
+
+void initEEPROM()
+{
+	EEPROM.begin(EEPROM_SIZE);
+}
 
 // ............................................................................................................................
 
 void setup()
 {
-	pinMode(RESET_WIFI_PIN, INPUT_PULLUP);
-	pinMode(PAIR_MODE_PIN, INPUT_PULLUP);
-	EEPROM.begin(EEPROM_SIZE);
+	initHardwarePin();
 #if USE_SERIAL_DEBUG
-	Serial.begin(115200);
-	delay(2000);
-	Serial.println();
+	initSerial();
 #endif
-	wifiMaster.setup();
-	ServerManager::setup();
+	initEEPROM();
+	wifiMaster.init();
+	ServerManager::init();
 	serviceManager.init();
 }
 

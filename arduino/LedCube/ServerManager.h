@@ -43,7 +43,7 @@ public:
     static int batteryLevel;
     static bool isPairMode;
 
-    static void setup();
+    static void init();
     static String generateJson(String key, String value);
     static void sendResponse(int type, String dataKey = "", String dataValue = "");
     static void sendInvalidResponse();
