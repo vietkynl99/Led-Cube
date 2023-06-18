@@ -2,12 +2,10 @@
 #define _WIFI_MASTER_H_
 
 #include <EEPROM.h>
-#include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiManager.h>
 #include <ESP8266WebServer.h>
-#include <UART_Debug.h>
 #include "VLog.h"
 
 // Wifimanager can run in a blocking mode or a non blocking mode

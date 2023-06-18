@@ -3,11 +3,6 @@
  * Implements RESET_WIFI_PIN button press, press for ondemand configportal, hold for 3 seconds for reset settings.
  */
 
-#include <EEPROM.h>
-#include <ArduinoJson.h>
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
 #include <UART_Debug.h>
 #include "VLog.h"
 #include "WifiMaster.h"
