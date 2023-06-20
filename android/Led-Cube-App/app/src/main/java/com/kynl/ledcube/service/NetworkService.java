@@ -26,6 +26,8 @@ import com.kynl.ledcube.nettool.SubnetDevices;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
@@ -170,6 +172,7 @@ public class NetworkService extends Service {
 
             @Override
             public void onFinished(ArrayList<Device> devicesFound) {
+                sortDevicesListByIp(devicesFound);
                 Log.i(TAG, "onFinished: Found " + devicesFound.size());
                 String lastScanTime = getCurrentTimeString();
                 String lastScanDevicesList = convertDevicesListToString(devicesFound);
@@ -231,6 +234,29 @@ public class NetworkService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void sortDevicesListByIp(ArrayList<Device> devices) {
+        Comparator<Device> comparator = (o1, o2) -> {
+            String ip1 = o1.getIp();
+            String ip2 = o2.getIp();
+            String[] ip1Parts = ip1.split("\\.");
+            String[] ip2Parts = ip2.split("\\.");
+
+            for (int i = 0; i < 4; i++) {
+                int part1 = Integer.parseInt(ip1Parts[i]);
+                int part2 = Integer.parseInt(ip2Parts[i]);
+                if (part1 < part2) {
+                    return -1;
+                } else if (part1 > part2) {
+                    return 1;
+                }
+            }
+
+            return 0;
+        };
+
+        devices.sort(comparator);
     }
 
     private String convertDevicesListToString(ArrayList<Device> devices) {
