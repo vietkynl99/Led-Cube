@@ -85,18 +85,13 @@ void ServerManager::handleRequest()
 {
     bool validResponse = true;
     bool keyIsValid = false;
-    long key = -1;
     String keyStr = ServerManager::server.arg("key");
-    int keyInt = keyStr.toInt();
-    if (keyInt > 0)
+    long key = keyStr.toInt();
+    if (key > 0 && key == ServerManager::apiKey)
     {
-        key = keyInt;
-        if (key == ServerManager::apiKey)
-        {
-            keyIsValid = true;
-        }
+        keyIsValid = true;
     }
-    if (keyStr.isEmpty() || key < 0)
+    if (keyStr.isEmpty())
     {
         validResponse = false;
     }
