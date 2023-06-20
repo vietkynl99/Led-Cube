@@ -8,6 +8,7 @@
 #include "WifiMaster.h"
 #include "ServerManager.h"
 #include "ServiceManager.h"
+#include "LedManager.h"
 
 /* Hardware pin*/
 // Press and hold for 3 seconds to reset wifi settings
@@ -25,6 +26,7 @@
 
 WifiMaster *wifiMaster;
 ServiceManager *serviceManager;
+// LedManager *ledManager;
 
 bool pair_mode = false, pair_mode_fake = false;
 
@@ -171,9 +173,11 @@ void setup()
 #endif
 	initEEPROM();
 
+	// ledManager = LedManager::getInstance();
 	wifiMaster = WifiMaster::getInstance();
 	serviceManager = ServiceManager::getInstance();
 
+	// ledManager->init();
 	wifiMaster->init();
 	ServerManager::init();
 	serviceManager->init();
