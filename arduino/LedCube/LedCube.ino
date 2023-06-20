@@ -28,7 +28,7 @@ WifiMaster *wifiMaster;
 ServiceManager *serviceManager;
 // LedManager *ledManager;
 
-bool pair_mode = false, pair_mode_fake = false;
+bool pair_mode = false, fake_pair_mode = false;
 
 // ............................................................................................................................
 void checkResetWifiButton()
@@ -76,23 +76,35 @@ void checkPairButton()
 	}
 }
 
-void fakePairMode()
+void turnOnFakePairMode()
 {
-	static unsigned long long fake_pair_time = 0;
 	// make fake pair mode within 15s
 	LOG_SERVER("Turn on fake pair mode");
-	pair_mode_fake = 1;
-	fake_pair_time = millis();
-	if ((unsigned long long)(millis() - fake_pair_time) > PAIR_MODE_TIMEOUT)
+	fake_pair_mode = 1;
+}
+
+void checkFakePairMode()
+{
+	static unsigned long long fake_pair_time = 0;
+	static bool pre_fake_pair_mode = false;
+	if (!pre_fake_pair_mode && fake_pair_mode)
 	{
-		LOG_SERVER("Turn off fake pair mode");
-		pair_mode_fake = 0;
+		fake_pair_time = millis();
 	}
+	if (fake_pair_mode)
+	{
+		if ((unsigned long long)(millis() - fake_pair_time) > PAIR_MODE_TIMEOUT)
+		{
+			LOG_SERVER("Turn off fake pair mode");
+			fake_pair_mode = 0;
+		}
+	}
+	pre_fake_pair_mode = fake_pair_mode;
 }
 
 bool isPairingMode()
 {
-	return pair_mode || pair_mode_fake;
+	return pair_mode || fake_pair_mode;
 }
 
 void checkPairMode()
@@ -139,7 +151,7 @@ void debugHandler()
 		// Fake pair mode
 		else if (!strcmp(FC, "PAIR"))
 		{
-			fakePairMode();
+			turnOnFakePairMode();
 		}
 	}
 }
@@ -191,6 +203,7 @@ void loop()
 
 	checkResetWifiButton();
 	checkPairButton();
+	checkFakePairMode();
 	checkPairMode();
 	checkWifiStatus();
 
