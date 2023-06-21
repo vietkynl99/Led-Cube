@@ -11,9 +11,9 @@ void ServerManager::init()
 
     WiFi.hostname(HOST_NAME);
     // Register callback function for http request
-    ServerManager::server.on("/", ServerManager::handleRequest);
-    // Start ServerManager::server
-    ServerManager::server.begin(80);
+    server.on("/", handleRequest);
+    // Start server
+    server.begin(80);
     LOG_SERVER("Server started");
 }
 
@@ -55,17 +55,17 @@ void ServerManager::sendResponse(int type, String dataKey, String dataValue)
     jsonDoc["data"] = data;
 
     serializeJson(jsonDoc, json);
-    ServerManager::server.send(200, "application/json", json);
+    server.send(200, "application/json", json);
 }
 
 void ServerManager::sendInvalidResponse()
 {
-    ServerManager::server.send(200, "text/plain", ".");
+    server.send(200, "text/plain", ".");
 }
 
 void ServerManager::pairDevice(long oldKey)
 {
-    if (oldKey == ServerManager::apiKey && ServerManager::apiKey >= API_KEY_MIN && ServerManager::apiKey <= API_KEY_MAX)
+    if (oldKey == apiKey && apiKey >= API_KEY_MIN && apiKey <= API_KEY_MAX)
     {
         LOG_SERVER("Device is paired!!! Ignored Request!")
         sendResponse(EVENT_RESPONSE_PAIR_DEVICE_PAIRED);
@@ -80,14 +80,14 @@ void ServerManager::pairDevice(long oldKey)
         LOG_SERVER("Pairing new device...")
         // Generate new key
         long newKey = 0;
-        while (newKey < API_KEY_MIN || newKey > API_KEY_MAX || newKey == ServerManager::apiKey)
+        while (newKey < API_KEY_MIN || newKey > API_KEY_MAX || newKey == apiKey)
         {
             newKey = random(API_KEY_MIN, API_KEY_MAX);
         }
-        ServerManager::apiKey = newKey;
+        apiKey = newKey;
         saveApiKeyToEEPROM();
-        LOG_SERVER("Paired new device, ServerManager::apiKey: %d", ServerManager::apiKey);
-        sendResponse(EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL, "apiKey", String(ServerManager::apiKey));
+        LOG_SERVER("Paired new device, apiKey: %d", apiKey);
+        sendResponse(EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL, "apiKey", String(apiKey));
     }
 }
 
@@ -95,9 +95,9 @@ void ServerManager::handleRequest()
 {
     bool validResponse = true;
     bool keyIsValid = false;
-    String keyStr = ServerManager::server.arg("key");
+    String keyStr = server.arg("key");
     long key = keyStr.toInt();
-    if (key > 0 && key == ServerManager::apiKey)
+    if (key > 0 && key == apiKey)
     {
         keyIsValid = true;
     }
@@ -107,7 +107,7 @@ void ServerManager::handleRequest()
     }
 
     int type = -1;
-    String typeStr = ServerManager::server.arg("type");
+    String typeStr = server.arg("type");
     int typeInt = typeStr.toInt();
     if (typeInt >= EVENT_NONE)
     {
@@ -118,7 +118,7 @@ void ServerManager::handleRequest()
         validResponse = false;
     }
 
-    String data = ServerManager::server.arg("data");
+    String data = server.arg("data");
 
     LOG_SERVER("Received a request: key[%d] type[%d] data[%s] -> valid[%d] keyValid[%d]", key, type, data.c_str(), validResponse, keyIsValid);
 
@@ -148,7 +148,7 @@ void ServerManager::handleRequest()
     {
     case EVENT_REQUEST_CHECK_CONNECTION:
     {
-        sendResponse(EVENT_RESPONSE_UPDATE_DATA, "batteryLevel", String(ServerManager::batteryLevel));
+        sendResponse(EVENT_RESPONSE_UPDATE_DATA, "batteryLevel", String(batteryLevel));
         break;
     }
     case EVENT_REQUEST_SEND_DATA:
@@ -168,7 +168,7 @@ void ServerManager::handleRequest()
 
 void ServerManager::handleClient()
 {
-    ServerManager::server.handleClient();
+    server.handleClient();
 }
 
 void ServerManager::process()
@@ -179,19 +179,19 @@ void ServerManager::process()
 
 void ServerManager::saveApiKeyToEEPROM()
 {
-    EEPROM.put(0, ServerManager::apiKey);
+    EEPROM.put(0, apiKey);
     EEPROM.commit();
 }
 
 void ServerManager::loadApiKeyFromEEPROM()
 {
-    EEPROM.get(0, ServerManager::apiKey);
-    LOG_SYSTEM("Read EEPROM -> API KEY: %d", ServerManager::apiKey);
+    EEPROM.get(0, apiKey);
+    LOG_SYSTEM("Read EEPROM -> API KEY: %d", apiKey);
 }
 
 void ServerManager::resetApiKey()
 {
     LOG_SERVER("Reset API Key");
-    ServerManager::apiKey = 0;
+    apiKey = 0;
     saveApiKeyToEEPROM();
 }
