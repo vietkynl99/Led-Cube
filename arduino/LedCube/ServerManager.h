@@ -7,6 +7,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include "VLog.h"
+#include "HardwareController.h"
 
 /* API KEY */
 #define API_KEY_MIN 10000000UL
@@ -41,16 +42,16 @@ public:
     static ESP8266WebServer server;
     static long apiKey;
     static int batteryLevel;
-    static bool isPairMode;
 
     static void init();
+    static void checkWifiStatus();
     static String generateJson(String key, String value);
     static void sendResponse(int type, String dataKey = "", String dataValue = "");
     static void sendInvalidResponse();
     static void pairDevice(long oldKey);
     static void handleRequest();
     static void handleClient();
-    static void setPairMode(bool pairMode);
+    static void process();
 
     static void saveApiKeyToEEPROM();
     static void loadApiKeyFromEEPROM();

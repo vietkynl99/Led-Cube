@@ -3,12 +3,10 @@
 
 ESP8266WebServer ServerManager::server;
 long ServerManager::apiKey = 0;
-bool ServerManager::isPairMode = false;
 int ServerManager::batteryLevel = 25;
 
 void ServerManager::init()
 {
-
     loadApiKeyFromEEPROM();
 
     WiFi.hostname(HOST_NAME);
@@ -18,6 +16,18 @@ void ServerManager::init()
     ServerManager::server.begin(80);
     LOG_SERVER("Server started");
 }
+
+void ServerManager::checkWifiStatus()
+{
+	static int pre_status = -1;
+	int status = WiFi.status();
+	if (status != pre_status)
+	{
+		LOG_WIFI("WiFi status changed to %d", status);
+	}
+	pre_status = status;
+}
+
 
 String ServerManager::generateJson(String key, String value)
 {
@@ -60,7 +70,7 @@ void ServerManager::pairDevice(long oldKey)
         LOG_SERVER("Device is paired!!! Ignored Request!")
         sendResponse(EVENT_RESPONSE_PAIR_DEVICE_PAIRED);
     }
-    else if (!ServerManager::isPairMode)
+    else if (!HardwareController::getInstance()->isPairingMode())
     {
         LOG_SERVER("Ignored Request!")
         sendResponse(EVENT_RESPONSE_PAIR_DEVICE_IGNORED);
@@ -161,9 +171,10 @@ void ServerManager::handleClient()
     ServerManager::server.handleClient();
 }
 
-void ServerManager::setPairMode(bool pairMode)
+void ServerManager::process()
 {
-    ServerManager::isPairMode = pairMode;
+    checkWifiStatus();
+    handleClient();
 }
 
 void ServerManager::saveApiKeyToEEPROM()
