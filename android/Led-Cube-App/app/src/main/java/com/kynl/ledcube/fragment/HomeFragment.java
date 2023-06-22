@@ -1,17 +1,15 @@
 package com.kynl.ledcube.fragment;
 
-import static com.kynl.ledcube.common.CommonUtils.BROADCAST_ACTION;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPONSE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,7 +27,6 @@ import com.kynl.ledcube.manager.BroadcastManager;
 import com.kynl.ledcube.manager.EffectManager;
 import com.kynl.ledcube.manager.ServerManager;
 
-import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.EffectItem;
@@ -37,6 +34,8 @@ import com.kynl.ledcube.model.OptionItem;
 
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
+    private OptionListAdapter optionListAdapter;
+    private EffectListAdapter effectListAdapter;
     private ImageView iconStatus, batteryIcon;
     private TextView textStatus, textBatteryLevel;
     private int batteryLevel;
@@ -58,6 +57,9 @@ public class HomeFragment extends Fragment {
                         if (batteryLevel >= 0) {
                             setBatteryLevel(batteryLevel);
                         }
+                    }
+                    case BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS: {
+                        restoreDefaultSettings();
                     }
                     default:
                         break;
@@ -93,7 +95,7 @@ public class HomeFragment extends Fragment {
         RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
 
         /* Option Recycler view */
-        OptionListAdapter optionListAdapter = new OptionListAdapter(EffectManager.getInstance().getEffectItemList());
+        optionListAdapter = new OptionListAdapter(EffectManager.getInstance().getEffectItemList());
         optionListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         optionListRecyclerView.setAdapter(optionListAdapter);
         optionListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
@@ -111,7 +113,7 @@ public class HomeFragment extends Fragment {
         });
 
         /* Effect Recycler view */
-        EffectListAdapter effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectItemList());
+        effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectItemList());
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         effectListRecyclerView.setAdapter(effectListAdapter);
         effectListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
@@ -119,15 +121,9 @@ public class HomeFragment extends Fragment {
         effectListAdapter.setOnEffectItemClickListener(type -> {
             EffectItem.EffectType preType = EffectManager.getInstance().getCurrentEffectType();
             if (type != preType) {
-                EffectManager.getInstance().setCurrentEffectType(type);
-                effectListAdapter.select(type);
-                optionListAdapter.select(type);
-                // Send data to server
-                String data = EffectManager.getInstance().getEffectDataAsJson(type);
-                BroadcastManager.getInstance().sendRequestSendData(data);
+                selectEffectType(type);
             }
         });
-
 
         BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
@@ -153,6 +149,23 @@ public class HomeFragment extends Fragment {
         super.onDestroy();
         Log.e(TAG, "onDestroy: ");
         BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
+    }
+
+    private void selectEffectType(EffectItem.EffectType type) {
+        if (effectListAdapter != null && optionListAdapter != null) {
+            EffectManager.getInstance().setCurrentEffectType(type);
+            effectListAdapter.select(type);
+            optionListAdapter.select(type);
+            // Send data to server
+            String data = EffectManager.getInstance().getEffectDataAsJson(type);
+            BroadcastManager.getInstance().sendRequestSendData(data);
+        }
+    }
+
+    private void restoreDefaultSettings() {
+        Log.d(TAG, "restoreDefaultSettings: ");
+        EffectManager.getInstance().setDefaultValue();
+        selectEffectType(EffectManager.getInstance().getCurrentEffectType());
     }
 
     private void updateStatus(boolean connected) {

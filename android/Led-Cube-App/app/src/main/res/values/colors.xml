@@ -32,6 +32,7 @@
 
 
     <color name="shape_color">#27282A</color>
+    <color name="dialog_bg_color">#28292D</color>
 
 
     <color name="text_color">#9B9CA3</color>

@@ -38,20 +38,12 @@ public class EffectManager {
     public void init(Context context) {
         this.context = context;
 
-        // Effect list
-        if (!readOldEffectList()) {
-            createDefaultEffectList();
-            saveEffectList();
-        }
-
-        // Current effect type
-        if (!readOldEffectType()) {
-            currentEffectType = EffectItem.EffectType.RGB;
-            saveEffectType();
+        if (!readOldEffectList() || !readOldEffectType()) {
+            createDefaultList();
         }
     }
 
-    public void createDefaultEffectList() {
+    private void createDefaultEffectList() {
         effectItemList = new ArrayList<>();
 
         // RGB
@@ -86,6 +78,40 @@ public class EffectManager {
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.SPEED));
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.FLASH, flashOptionItemList));
+
+        setDefaultValue();
+    }
+
+    private void createDefaultList() {
+        createDefaultEffectList();
+        saveEffectList();
+
+        setCurrentEffectType(EffectItem.EffectType.RGB);
+    }
+
+    public void setDefaultValue() {
+        setCurrentEffectType(EffectItem.EffectType.RGB);
+
+        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.BRIGHTNESS, 50);
+        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.SPEED, 50);
+        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.DIRECTION, 50);
+        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.SENSITIVITY, 50);
+
+        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.BRIGHTNESS, 50);
+        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.COLOR, 50);
+        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.SPEED, 50);
+        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.DIRECTION, 50);
+        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.SENSITIVITY, 50);
+
+        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.BRIGHTNESS, 50);
+        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.COLOR, 50);
+        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.SPEED, 50);
+        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.SENSITIVITY, 50);
+
+        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.BRIGHTNESS, 50);
+        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.COLOR, 50);
+        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.SPEED, 50);
+        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.SENSITIVITY, 50);
     }
 
     public List<EffectItem> getEffectItemList() {
@@ -202,8 +228,6 @@ public class EffectManager {
             } catch (Exception ignored) {
             }
         }
-
-        Log.i(TAG, "readOldEffectType: currentEffectType[" + currentEffectType + "]");
         return false;
     }
 

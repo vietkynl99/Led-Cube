@@ -16,8 +16,8 @@ public class SharedPreferencesManager {
     // Settings
     private static final boolean autoDetectDefault = true;
     private static final boolean syncBrightnessDefault = true;
-    private boolean autoDetect = autoDetectDefault;
-    private boolean syncBrightness = syncBrightnessDefault;
+//    private boolean autoDetect = autoDetectDefault;
+//    private boolean syncBrightness = syncBrightnessDefault;
 
     private SharedPreferencesManager() {
     }
@@ -33,8 +33,33 @@ public class SharedPreferencesManager {
         Log.i(TAG, "init: ");
 
         this.context = context.getApplicationContext();
-        readOldSettings();
         readLastScanInformation();
+    }
+
+    /* Common */
+    public void saveBoolean(String key, boolean value) {
+        if (context == null) {
+            Log.e(TAG, "saveBoolean: Context is null");
+            return;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(key, value);
+        editor.apply();
+    }
+
+    public boolean readBoolean(String key, boolean defaultValue) {
+        if (context == null) {
+            Log.e(TAG, "readLastScanInformation: Context is null");
+            return defaultValue;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return prefs.getBoolean(key, defaultValue);
+    }
+
+    public void restoreDefaultSettings() {
+        setAutoDetect(autoDetectDefault);
+        setSyncBrightness(syncBrightnessDefault);
     }
 
     /* Search Fragment */
@@ -82,43 +107,19 @@ public class SharedPreferencesManager {
 
     /* Settings */
     public boolean isAutoDetect() {
-        return autoDetect;
+        return readBoolean("autoDetect", autoDetectDefault);
     }
 
     public void setAutoDetect(boolean autoDetect) {
-        this.autoDetect = autoDetect;
-        saveOldSettings();
+        saveBoolean("autoDetect", autoDetect);
     }
 
     public boolean isSyncBrightness() {
-        return syncBrightness;
+        return readBoolean("syncBrightness", syncBrightnessDefault);
     }
 
     public void setSyncBrightness(boolean syncBrightness) {
-        this.syncBrightness = syncBrightness;
-        saveOldSettings();
-    }
-
-    public void saveOldSettings() {
-        if (context == null) {
-            Log.e(TAG, "readLastScanInformation: Context is null");
-            return;
-        }
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean("autoDetect", autoDetect);
-        editor.putBoolean("syncBrightness", syncBrightness);
-        editor.apply();
-    }
-
-    public void readOldSettings() {
-        if (context == null) {
-            Log.e(TAG, "readLastScanInformation: Context is null");
-            return;
-        }
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        autoDetect = prefs.getBoolean("autoDetect", autoDetectDefault);
-        syncBrightness = prefs.getBoolean("syncBrightness", syncBrightnessDefault);
+        saveBoolean("syncBrightness", syncBrightness);
     }
 
     /* ServerManager */

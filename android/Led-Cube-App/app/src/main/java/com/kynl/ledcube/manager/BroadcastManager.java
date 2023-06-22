@@ -5,6 +5,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_CHANGE_TO_HO
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_FIND_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
@@ -171,5 +172,9 @@ public class BroadcastManager {
     /* From Search and Settings */
     public void sendRequestChangeToHomeScreen() {
         sendEvent(BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN);
+    }
+
+    public void sendRequestRestoreDefaultSettings() {
+        sendEvent(BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS);
     }
 }
