@@ -25,8 +25,11 @@ import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_
 
 import org.json.JSONObject;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ServerManager {
     private final String TAG = "ServerManager";
+    private final ReentrantLock lock = new ReentrantLock();
     private String ipAddress, macAddress;
     private int apiKey = 0;
     private static ServerManager instance;
@@ -165,6 +168,7 @@ public class ServerManager {
     }
 
     private void sendRequestToServer(ServerMessage sentData) {
+        lock.lock();
         Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
         if (context == null) {
             Log.e(TAG, "sendRequestToServer: Context is null!");
@@ -204,6 +208,7 @@ public class ServerManager {
                 });
 
         requestQueue.add(stringRequest);
+        lock.unlock();
     }
 
     private void handleResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
