@@ -212,6 +212,7 @@ public class ServerManager {
     }
 
     private void handleResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
+        lock.lock();
         String message = "";
         if (isError) {
             message = errorMessage;
@@ -305,6 +306,8 @@ public class ServerManager {
         }
 
         notifyServerResponse(serverState, message);
+
+        lock.unlock();
     }
 
     private void notifyServerResponse(ServerState serverState, String message) {
