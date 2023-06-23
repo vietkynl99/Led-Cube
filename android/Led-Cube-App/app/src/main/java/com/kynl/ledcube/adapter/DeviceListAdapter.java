@@ -14,6 +14,8 @@ import com.kynl.ledcube.R;
 import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.myinterface.OnSubItemClickListener;
 
+import net.cachapa.expandablelayout.ExpandableLayout;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -121,8 +123,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        private final TextView deviceMac, deviceIp, devicePing, deviceConnecting;
+        private final TextView deviceMac, deviceIp, devicePing;
         private final ImageView deviceConnected;
+        private final ExpandableLayout expandable_connecting;
         private OnSubItemClickListener onSubItemClickListener;
 
         public CustomViewHolder(@NonNull View itemView) {
@@ -131,8 +134,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
             devicePing = itemView.findViewById(R.id.devicePing);
-            deviceConnecting = itemView.findViewById(R.id.deviceConnecting);
             deviceConnected = itemView.findViewById(R.id.deviceConnected);
+            expandable_connecting = itemView.findViewById(R.id.expandable_connecting);
 
             mainItemView.setOnClickListener(v -> {
                 if (onSubItemClickListener != null) {
@@ -146,9 +149,13 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
             deviceIp.setText(device.getIp());
             deviceMac.setText(device.getMac());
             devicePing.setText(pingText);
-            deviceConnecting.setVisibility(device.getMac().equals(connectingDeviceMac) ? View.VISIBLE : View.GONE);
             deviceConnected.setVisibility(!savedDeviceMac.isEmpty() && device.getMac().equals(savedDeviceMac) ?
                     View.VISIBLE : View.GONE);
+            if (device.getMac().equals(connectingDeviceMac)) {
+                expandable_connecting.expand();
+            } else {
+                expandable_connecting.collapse();
+            }
         }
 
         public void setOnSubItemClickListener(OnSubItemClickListener onSubItemClickListener) {
