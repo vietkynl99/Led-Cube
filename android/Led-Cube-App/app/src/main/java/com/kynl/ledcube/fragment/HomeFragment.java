@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kynl.ledcube.R;
 import com.kynl.ledcube.adapter.EffectListAdapter;
@@ -39,6 +40,7 @@ public class HomeFragment extends Fragment {
     private ImageView iconStatus, batteryIcon;
     private TextView textStatus, textBatteryLevel;
     private int batteryLevel;
+    private boolean connected;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -78,6 +80,7 @@ public class HomeFragment extends Fragment {
         Log.e(TAG, "onCreate: ");
 
         batteryLevel = 0;
+        connected = false;
     }
 
     @Override
@@ -169,6 +172,15 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateStatus(boolean connected) {
+        if (this.connected != connected) {
+            if (isVisible()) {
+                if (connected) {
+                    Toast.makeText(getContext(), "Connected to device!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Disconnected to device!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
         if (iconStatus != null && textStatus != null) {
             if (connected) {
                 iconStatus.setImageResource(R.drawable.sensors_48);
@@ -182,6 +194,7 @@ public class HomeFragment extends Fragment {
                 }
             }
         }
+        this.connected = connected;
     }
 
     private void setBatteryLevel(int level) {
