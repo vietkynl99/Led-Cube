@@ -8,6 +8,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.model.ServerData;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
@@ -23,6 +24,7 @@ import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ServerManager {
@@ -34,7 +36,7 @@ public class ServerManager {
     private Context context;
     private RequestQueue requestQueue;
     private ServerState serverState;
-    private boolean isRequesting;
+    private boolean busy;
     private OnServerResponseListener onServerResponseListener;
     private OnServerDataChangeListener onServerDataChangeListener;
     private SubnetDevices subnetDevices;
@@ -60,7 +62,7 @@ public class ServerManager {
             requestQueue = Volley.newRequestQueue(context);
         }
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
-        isRequesting = false;
+        busy = false;
         onServerResponseListener = null;
         ipAddress = "";
         macAddress = "";
@@ -69,8 +71,8 @@ public class ServerManager {
         savedIpAddress = SharedPreferencesManager.getInstance().getSavedIpAddress();
         savedMacAddress = SharedPreferencesManager.getInstance().getSavedMacAddress();
         synced = SharedPreferencesManager.getInstance().isSynced();
-        apiKey=SharedPreferencesManager.getInstance().getApiKey();
-        Log.e(TAG, "init: apiKey = " + apiKey );
+        apiKey = SharedPreferencesManager.getInstance().getApiKey();
+        Log.e(TAG, "init: apiKey = " + apiKey);
     }
 
     public boolean isSynced() {
@@ -85,7 +87,7 @@ public class ServerManager {
     }
 
     public boolean isBusy() {
-        return isRequesting;
+        return busy;
     }
 
     public void setIpAddress(String ipAddress) {
@@ -158,11 +160,11 @@ public class ServerManager {
             Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
             return;
         }
-        if (isRequesting) {
+        if (busy) {
             Log.e(TAG, "sendRequestToServer: Server is busy. serverState: " + serverState);
             return;
         }
-        isRequesting = true;
+        busy = true;
         String serverAddress = HTTP_FORMAT + ipAddress;
         String url = Uri.parse(serverAddress)
                 .buildUpon()
@@ -279,7 +281,7 @@ public class ServerManager {
                 }
             }
         }
-        isRequesting = false;
+        busy = false;
 
         if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
             saveDevice(ipAddress, macAddress);
@@ -307,24 +309,57 @@ public class ServerManager {
     }
 
     public void findSubnetDevices() {
+        lock.lock();
         if (onSubnetDeviceFoundListener == null) {
             Log.e(TAG, "findSubnetDevices: Error! Listener is null");
             return;
         }
+        if (busy) {
+            Log.e(TAG, "findSubnetDevices: Server is busy. serverState: " + serverState);
+            return;
+        }
         Log.d(TAG, "findSubnetDevices: Started!");
+        busy = true;
         try {
-            subnetDevices = SubnetDevices.fromLocalAddress().findDevices(onSubnetDeviceFoundListener);
+            subnetDevices = SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
+                @Override
+                public void onDeviceFound(Device device) {
+                    if (onSubnetDeviceFoundListener != null) {
+                        onSubnetDeviceFoundListener.onDeviceFound(device);
+                    }
+                }
+
+                @Override
+                public void onProcessed(int processed, int total) {
+                    if (onSubnetDeviceFoundListener != null) {
+                        onSubnetDeviceFoundListener.onProcessed(processed, total);
+                    }
+                }
+
+                @Override
+                public void onFinished(ArrayList<Device> devicesFound) {
+                    if (onSubnetDeviceFoundListener != null) {
+                        onSubnetDeviceFoundListener.onFinished(devicesFound);
+                    }
+                    busy = false;
+                }
+            });
         } catch (IllegalAccessError e) {
             Log.e(TAG, "findSubnetDevices: Error " + e.getMessage());
+            busy = false;
         }
+        lock.unlock();
     }
 
     public void cancelFindSubnetDevices() {
+        lock.lock();
         if (subnetDevices != null) {
             if (isFindingSubnetDevices) {
                 Log.i(TAG, "stopFindSubnetDevices: Canceled!");
                 subnetDevices.cancel();
             }
         }
+        busy = false;
+        lock.unlock();
     }
 }
