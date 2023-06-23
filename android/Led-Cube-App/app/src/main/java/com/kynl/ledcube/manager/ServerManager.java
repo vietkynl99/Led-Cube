@@ -71,7 +71,7 @@ public class ServerManager {
         isFindingSubnetDevices = false;
         savedIpAddress = "";
         savedMacAddress = "";
-        synced = SharedPreferencesManager.getInstance().readOldSynced();
+        synced = SharedPreferencesManager.getInstance().isSynced();
 
         readSavedDeviceInformation();
     }
@@ -83,7 +83,7 @@ public class ServerManager {
     public void setSynced(boolean synced) {
         if (this.synced != synced) {
             this.synced = synced;
-            SharedPreferencesManager.getInstance().saveSynced(synced);
+            SharedPreferencesManager.getInstance().setSynced(synced);
         }
     }
 

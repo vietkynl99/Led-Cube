@@ -10,14 +10,9 @@ public class SharedPreferencesManager {
     private static final String TAG = "SharedPreferencesManager";
     private static SharedPreferencesManager instance;
     private Context context;
-    // Search
-    private String lastScanTime = "";
-    private String lastScanDevicesList = "";
-    // Settings
+    private static final boolean syncedDefault = false;
     private static final boolean autoDetectDefault = true;
     private static final boolean syncBrightnessDefault = true;
-//    private boolean autoDetect = autoDetectDefault;
-//    private boolean syncBrightness = syncBrightnessDefault;
 
     private SharedPreferencesManager() {
     }
@@ -31,9 +26,7 @@ public class SharedPreferencesManager {
 
     public void init(Context context) {
         Log.i(TAG, "init: ");
-
         this.context = context.getApplicationContext();
-        readLastScanInformation();
     }
 
     /* Common */
@@ -57,6 +50,26 @@ public class SharedPreferencesManager {
         return prefs.getBoolean(key, defaultValue);
     }
 
+    public void saveString(String key, String value) {
+        if (context == null) {
+            Log.e(TAG, "saveBoolean: Context is null");
+            return;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+
+    public String readString(String key, String defaultValue) {
+        if (context == null) {
+            Log.e(TAG, "readLastScanInformation: Context is null");
+            return defaultValue;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return prefs.getString(key, defaultValue);
+    }
+
     public void restoreDefaultSettings() {
         setAutoDetect(autoDetectDefault);
         setSyncBrightness(syncBrightnessDefault);
@@ -64,45 +77,19 @@ public class SharedPreferencesManager {
 
     /* Search Fragment */
     public String getLastScanTime() {
-        return lastScanTime;
+        return readString("lastScanTime", "");
     }
 
     public void setLastScanTime(String lastScanTime) {
-        this.lastScanTime = lastScanTime;
-        saveLastScanInformation();
+        saveString("lastScanTime", lastScanTime);
     }
 
     public String getLastScanDevicesList() {
-        return lastScanDevicesList;
+        return readString("lastScanDevicesList", "");
     }
 
     public void setLastScanDevicesList(String lastScanDevicesList) {
-        this.lastScanDevicesList = lastScanDevicesList;
-        saveLastScanInformation();
-    }
-
-    private void readLastScanInformation() {
-        if (context == null) {
-            Log.e(TAG, "readLastScanInformation: Context is null");
-            return;
-        }
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        lastScanTime = prefs.getString("lastScanTime", "");
-        lastScanDevicesList = prefs.getString("lastScanDevicesList", "");
-    }
-
-    private void saveLastScanInformation() {
-        if (context == null) {
-            Log.e(TAG, "readLastScanInformation: Context is null");
-            return;
-        }
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("lastScanTime", lastScanTime);
-        editor.putString("lastScanDevicesList", lastScanDevicesList);
-        editor.apply();
-
-        Log.i(TAG, "saveLastScanInformation: lastScanTime[" + lastScanTime + "]");
+        saveString("lastScanDevicesList", lastScanDevicesList);
     }
 
     /* Settings */
@@ -123,23 +110,11 @@ public class SharedPreferencesManager {
     }
 
     /* ServerManager */
-    public void saveSynced(boolean synced) {
-        if (context == null) {
-            Log.e(TAG, "saveSynced: Context is null");
-            return;
-        }
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean("synced", synced);
-        editor.apply();
+    public void setSynced(boolean synced) {
+        saveBoolean("synced", synced);
     }
 
-    public boolean readOldSynced() {
-        if (context == null) {
-            Log.e(TAG, "readOldSynced: Context is null");
-            return false;
-        }
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return prefs.getBoolean("synced", false);
+    public boolean isSynced() {
+        return readBoolean("synced", syncedDefault);
     }
 }
