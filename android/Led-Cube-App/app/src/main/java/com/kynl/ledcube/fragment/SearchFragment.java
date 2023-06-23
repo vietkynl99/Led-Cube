@@ -83,14 +83,8 @@ public class SearchFragment extends Fragment {
                         if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
                             deviceListAdapter.setConnectingDeviceMac("");
                         } else {
-//                            deviceListAdapter.setConnectedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
                             deviceListAdapter.setSavedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
                         }
-//                        if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
-//                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_BUT_NOT_PAIRED);
-//                        } else if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
-//                            deviceListAdapter.setConnectedDeviceState(Device.DeviceState.STATE_CONNECTED_AND_PAIRED);
-//                        }
                         // Show message
                         String message = intent.getStringExtra("message");
                         if (!message.isEmpty() && isVisible()) {
@@ -156,15 +150,15 @@ public class SearchFragment extends Fragment {
         deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         deviceListRecyclerView.setAdapter(deviceListAdapter);
         deviceListAdapter.setOnSubItemClickListener((ip, mac) -> {
-            // Debounce
-            if (!isDebouncing) {
-                isDebouncing = true;
-                deviceListAdapter.setConnectingDeviceMac(mac);
-                setRefreshEnable(false);
-                handler.postDelayed(() -> {
-                    isDebouncing = false;
+            if (!ServerManager.getInstance().isBusy()) {
+                // Debounce
+                if (!isDebouncing) {
+                    isDebouncing = true;
+                    deviceListAdapter.setConnectingDeviceMac(mac);
+                    setRefreshEnable(false);
                     BroadcastManager.getInstance().sendRequestPairDevice(ip, mac);
-                }, 1000);
+                    handler.postDelayed(() -> isDebouncing = false, 1000);
+                }
             }
         });
         deviceListAdapter.setSavedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
