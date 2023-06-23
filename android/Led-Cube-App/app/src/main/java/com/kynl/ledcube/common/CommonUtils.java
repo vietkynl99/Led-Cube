@@ -25,6 +25,9 @@ public class CommonUtils {
     public static final String SERVER_DEVICE_NAME = "ledCube";
     public static final String HTTP_FORMAT = "http://";
 
+    // Date
+    public static final String LAST_SCAN_DATE_TIME_FORMAT = "HH:mm:ss dd/MM/yyyy";
+
     // Service
     public enum NetworkServiceState {
         STATE_NONE,

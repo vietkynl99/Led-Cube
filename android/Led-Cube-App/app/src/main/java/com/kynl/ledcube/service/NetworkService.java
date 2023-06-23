@@ -5,6 +5,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
+import static com.kynl.ledcube.common.CommonUtils.LAST_SCAN_DATE_TIME_FORMAT;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -392,7 +393,7 @@ public class NetworkService extends Service {
 
     private String getCurrentTimeString() {
         Date now = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss dd/MM", Locale.US);
+        SimpleDateFormat formatter = new SimpleDateFormat(LAST_SCAN_DATE_TIME_FORMAT, Locale.US);
         return formatter.format(now);
     }
 }

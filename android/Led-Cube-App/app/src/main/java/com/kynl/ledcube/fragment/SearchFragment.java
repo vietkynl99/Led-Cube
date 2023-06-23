@@ -5,6 +5,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPO
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS;
+import static com.kynl.ledcube.common.CommonUtils.LAST_SCAN_DATE_TIME_FORMAT;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -35,7 +36,11 @@ import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.Device;
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
@@ -72,6 +77,7 @@ public class SearchFragment extends Fragment {
                         Activity activity = getActivity();
                         if (activity != null) {
                             activity.runOnUiThread(() -> {
+                                updateLastScanTime();
                                 updateLastScanList();
                                 setRefreshEnable(true);
                             });
@@ -169,7 +175,9 @@ public class SearchFragment extends Fragment {
         /* Refresh button */
         refreshBtn.setOnClickListener(v -> refreshDeviceList());
 
+        updateLastScanTime();
         updateLastScanList();
+
         BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
         return view;
@@ -178,6 +186,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        updateLastScanTime();
         BroadcastManager.getInstance().sendRequestUpdateStatus();
     }
 
@@ -192,12 +201,39 @@ public class SearchFragment extends Fragment {
         BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
     }
 
-    private void updateLastScanList() {
+    private void updateLastScanTime() {
         String lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
+        String timeStr = "";
+        if (!lastScanTime.isEmpty()) {
+            SimpleDateFormat formatter = new SimpleDateFormat(LAST_SCAN_DATE_TIME_FORMAT, Locale.US);
+            try {
+                Date date = formatter.parse(lastScanTime);
+                if (date != null) {
+                    long lastScanTimeMillis = date.getTime();
+                    long currentTimeMillis = System.currentTimeMillis();
+                    long diffTimeMinutes = (currentTimeMillis - lastScanTimeMillis) / 1000 / 60;
+                    if (diffTimeMinutes <= 1) {
+                        timeStr = "1 minute ago";
+                    } else if (diffTimeMinutes < 60) {
+                        timeStr = diffTimeMinutes + " minutes ago";
+                    } else if (diffTimeMinutes < 2 * 60) {
+                        timeStr = "1 hour ago";
+                    } else if (diffTimeMinutes < 24 * 60) {
+                        timeStr = diffTimeMinutes / 60 + " hours ago";
+                    } else {
+                        timeStr = lastScanTime;
+                    }
+                }
+            } catch (ParseException ignored) {
+            }
+        }
+        setInformationText("Last scan: " + timeStr);
+    }
+
+    private void updateLastScanList() {
         String lastScanDevicesList = SharedPreferencesManager.getInstance().getLastScanDevicesList();
-        if (!lastScanDevicesList.isEmpty() && !lastScanTime.isEmpty()) {
+        if (!lastScanDevicesList.isEmpty()) {
             ArrayList<Device> devicesList = convertStringToDevicesList(lastScanDevicesList);
-            setInformationText("Last scan: " + lastScanTime);
             deviceListAdapter.syncList(devicesList);
             deviceListAdapter.setSavedDeviceMac(ServerManager.getInstance().getSavedMacAddress());
         }
