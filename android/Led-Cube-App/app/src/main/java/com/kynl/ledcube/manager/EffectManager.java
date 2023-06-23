@@ -1,9 +1,7 @@
 package com.kynl.ledcube.manager;
 
-import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -218,9 +216,7 @@ public class EffectManager {
     }
 
     private boolean readOldEffectType() {
-        Log.i(TAG, "readOldEffectType: ");
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        String currentEffectTypeStr = prefs.getString("currentEffectType", "");
+        String currentEffectTypeStr = SharedPreferencesManager.getInstance().getCurrentEffectType();
         if (!currentEffectTypeStr.isEmpty()) {
             try {
                 currentEffectType = EffectItem.EffectType.valueOf(currentEffectTypeStr);
@@ -232,20 +228,15 @@ public class EffectManager {
     }
 
     private void saveEffectType() {
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("currentEffectType", String.valueOf(currentEffectType));
-        editor.apply();
-
+        SharedPreferencesManager.getInstance().setCurrentEffectType(String.valueOf(currentEffectType));
         Log.d(TAG, "saveEffectType: currentEffectType[" + currentEffectType + "]");
     }
 
     private boolean readOldEffectList() {
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        String effectItemListStr = prefs.getString("effectItemList", "");
-        if (!effectItemListStr.isEmpty()) {
+        String str = SharedPreferencesManager.getInstance().getEffectItemList();
+        if (!str.isEmpty()) {
             try {
-                effectItemList = convertStringToEffectList(effectItemListStr);
+                effectItemList = convertStringToEffectList(str);
                 if (effectItemList != null) {
                     return true;
                 }
@@ -256,9 +247,6 @@ public class EffectManager {
     }
 
     private void saveEffectList() {
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("effectItemList", getEffectItemListAsString());
-        editor.apply();
+        SharedPreferencesManager.getInstance().setEffectItemList(getEffectItemListAsString());
     }
 }

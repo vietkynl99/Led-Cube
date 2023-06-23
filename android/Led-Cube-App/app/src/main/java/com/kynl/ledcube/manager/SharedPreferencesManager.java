@@ -13,6 +13,7 @@ public class SharedPreferencesManager {
     private static final boolean syncedDefault = false;
     private static final boolean autoDetectDefault = true;
     private static final boolean syncBrightnessDefault = true;
+    private static final int apiKeyDefault = 0;
 
     private SharedPreferencesManager() {
     }
@@ -30,7 +31,7 @@ public class SharedPreferencesManager {
     }
 
     /* Common */
-    public void saveBoolean(String key, boolean value) {
+    private void saveBoolean(String key, boolean value) {
         if (context == null) {
             Log.e(TAG, "saveBoolean: Context is null");
             return;
@@ -41,7 +42,7 @@ public class SharedPreferencesManager {
         editor.apply();
     }
 
-    public boolean readBoolean(String key, boolean defaultValue) {
+    private boolean readBoolean(String key, boolean defaultValue) {
         if (context == null) {
             Log.e(TAG, "readLastScanInformation: Context is null");
             return defaultValue;
@@ -50,7 +51,7 @@ public class SharedPreferencesManager {
         return prefs.getBoolean(key, defaultValue);
     }
 
-    public void saveString(String key, String value) {
+    private void saveString(String key, String value) {
         if (context == null) {
             Log.e(TAG, "saveBoolean: Context is null");
             return;
@@ -61,13 +62,33 @@ public class SharedPreferencesManager {
         editor.apply();
     }
 
-    public String readString(String key, String defaultValue) {
+    private String readString(String key, String defaultValue) {
         if (context == null) {
             Log.e(TAG, "readLastScanInformation: Context is null");
             return defaultValue;
         }
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
         return prefs.getString(key, defaultValue);
+    }
+
+    private void saveInt(String key, int value) {
+        if (context == null) {
+            Log.e(TAG, "saveBoolean: Context is null");
+            return;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(key, value);
+        editor.apply();
+    }
+
+    private int readInt(String key, int defaultValue) {
+        if (context == null) {
+            Log.e(TAG, "readLastScanInformation: Context is null");
+            return defaultValue;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return prefs.getInt(key, defaultValue);
     }
 
     public void restoreDefaultSettings() {
@@ -117,4 +138,46 @@ public class SharedPreferencesManager {
     public boolean isSynced() {
         return readBoolean("synced", syncedDefault);
     }
+
+    public void setSavedIpAddress(String savedIpAddress) {
+        saveString("savedIpAddress", savedIpAddress);
+    }
+
+    public String getSavedIpAddress() {
+        return readString("savedIpAddress", "");
+    }
+
+    public void setSavedMacAddress(String savedMacAddress) {
+        saveString("savedMacAddress", savedMacAddress);
+    }
+
+    public String getSavedMacAddress() {
+        return readString("savedMacAddress", "");
+    }
+
+    public void setApiKey(int apiKey) {
+        saveInt("apiKey", apiKey);
+    }
+
+    public int getApiKey() {
+        return readInt("apiKey", apiKeyDefault);
+    }
+
+    /* Effect Manager */
+    public String getCurrentEffectType() {
+        return readString("currentEffectType", "");
+    }
+
+    public void setCurrentEffectType(String currentEffectType) {
+        saveString("currentEffectType", currentEffectType);
+    }
+
+    public String getEffectItemList() {
+        return readString("effectItemList", "");
+    }
+
+    public void setEffectItemList(String effectItemList) {
+        saveString("effectItemList", effectItemList);
+    }
+
 }

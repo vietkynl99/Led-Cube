@@ -1,7 +1,6 @@
 package com.kynl.ledcube.manager;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
 
@@ -18,7 +17,6 @@ import com.kynl.ledcube.nettool.SubnetDevices;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
-import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_DATA;
@@ -61,7 +59,6 @@ public class ServerManager {
         if (requestQueue == null) {
             requestQueue = Volley.newRequestQueue(context);
         }
-        readApiKey();
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
         isRequesting = false;
         onServerResponseListener = null;
@@ -69,11 +66,11 @@ public class ServerManager {
         macAddress = "";
         subnetDevices = null;
         isFindingSubnetDevices = false;
-        savedIpAddress = "";
-        savedMacAddress = "";
+        savedIpAddress = SharedPreferencesManager.getInstance().getSavedIpAddress();
+        savedMacAddress = SharedPreferencesManager.getInstance().getSavedMacAddress();
         synced = SharedPreferencesManager.getInstance().isSynced();
-
-        readSavedDeviceInformation();
+        apiKey=SharedPreferencesManager.getInstance().getApiKey();
+        Log.e(TAG, "init: apiKey = " + apiKey );
     }
 
     public boolean isSynced() {
@@ -124,27 +121,10 @@ public class ServerManager {
             if (!ip.equals(savedIpAddress) || !mac.equals(savedMacAddress)) {
                 savedIpAddress = ip;
                 savedMacAddress = mac;
-                saveDeviceInformation();
+                SharedPreferencesManager.getInstance().setSavedIpAddress(savedIpAddress);
+                SharedPreferencesManager.getInstance().setSavedMacAddress(savedMacAddress);
             }
         }
-    }
-
-    private void saveDeviceInformation() {
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("savedIpAddress", savedIpAddress);
-        editor.putString("savedMacAddress", savedMacAddress);
-        editor.apply();
-
-        Log.e(TAG, "saveDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
-    }
-
-    private void readSavedDeviceInformation() {
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        savedIpAddress = prefs.getString("savedIpAddress", "");
-        savedMacAddress = prefs.getString("savedMacAddress", "");
-
-        Log.e(TAG, "readDeviceInformation: savedIpAddress[" + savedIpAddress + "] savedMacAddress[" + savedMacAddress + "]");
     }
 
     public void sendCheckConnectionRequest() {
@@ -247,7 +227,7 @@ public class ServerManager {
                         String apiKeyStr = jsonObject.getString("apiKey");
                         apiKey = Integer.parseInt(apiKeyStr);
                         serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                        saveApiKey();
+                        SharedPreferencesManager.getInstance().setApiKey(apiKey);
                         message = "Paired successfully";
                         Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
                     } catch (Exception e) {
@@ -320,21 +300,6 @@ public class ServerManager {
         if (onServerDataChangeListener != null) {
             onServerDataChangeListener.onServerDataChanged(serverData);
         }
-    }
-
-    private void saveApiKey() {
-        // server address
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putInt("apiKey", apiKey);
-        editor.apply();
-    }
-
-    private void readApiKey() {
-        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        apiKey = prefs.getInt("apiKey", 0);
-
-        Log.e(TAG, "readOldSetting: apiKey = " + apiKey);
     }
 
     public void setOnSubnetDeviceFoundListener(SubnetDevices.OnSubnetDeviceFound onSubnetDeviceFoundListener) {
