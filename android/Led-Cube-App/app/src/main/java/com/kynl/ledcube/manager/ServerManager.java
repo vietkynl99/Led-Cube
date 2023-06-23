@@ -338,10 +338,10 @@ public class ServerManager {
 
                 @Override
                 public void onFinished(ArrayList<Device> devicesFound) {
+                    busy = false;
                     if (onSubnetDeviceFoundListener != null) {
                         onSubnetDeviceFoundListener.onFinished(devicesFound);
                     }
-                    busy = false;
                 }
             });
         } catch (IllegalAccessError e) {
