@@ -146,7 +146,7 @@ public class SearchFragment extends Fragment {
         backBtn.setOnClickListener(v -> BroadcastManager.getInstance().sendRequestChangeToHomeScreen());
 
         /* Recycler view */
-        deviceListAdapter = new DeviceListAdapter();
+        deviceListAdapter = new DeviceListAdapter(deviceListRecyclerView);
         deviceListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         deviceListRecyclerView.setAdapter(deviceListAdapter);
         deviceListAdapter.setOnSubItemClickListener((ip, mac) -> {

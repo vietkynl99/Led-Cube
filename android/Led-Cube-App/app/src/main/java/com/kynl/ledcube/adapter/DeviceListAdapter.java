@@ -1,7 +1,6 @@
 package com.kynl.ledcube.adapter;
 
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +19,8 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.CustomViewHolder> {
-    private final String TAG = "DeviceListAdapter";
     private final ReentrantLock lock = new ReentrantLock();
+    private final RecyclerView recyclerView;
     private List<Device> deviceList;
     private String connectingDeviceMac;
     private int connectingDevicePosition;
@@ -29,7 +28,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     private int savedDevicePosition;
     private OnSubItemClickListener onSubItemClickListener;
 
-    public DeviceListAdapter() {
+    public DeviceListAdapter(RecyclerView recyclerView) {
+        this.recyclerView = recyclerView;
         this.deviceList = new ArrayList<>();
         this.connectingDeviceMac = "";
         this.savedDeviceMac = "";
@@ -64,13 +64,13 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         if (!this.connectingDeviceMac.equals(connectingDeviceMac)) {
             this.connectingDeviceMac = connectingDeviceMac;
             if (connectingDevicePosition >= 0) {
-                notifyItemChanged(connectingDevicePosition);
+                updateItemChanged(connectingDevicePosition);
             }
             if (!connectingDeviceMac.isEmpty()) {
                 int position = findMacDevicePosition(connectingDeviceMac);
                 if (position >= 0) {
                     connectingDevicePosition = position;
-                    notifyItemChanged(connectingDevicePosition);
+                    updateItemChanged(connectingDevicePosition);
                 }
             }
         }
@@ -80,14 +80,23 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         if (!this.savedDeviceMac.equals(savedDeviceMac)) {
             this.savedDeviceMac = savedDeviceMac;
             if (savedDevicePosition >= 0) {
-                notifyItemChanged(savedDevicePosition);
+                updateItemChanged(savedDevicePosition);
             }
             if (!savedDeviceMac.isEmpty()) {
                 int position = findMacDevicePosition(savedDeviceMac);
                 if (position >= 0) {
                     savedDevicePosition = position;
-                    notifyItemChanged(savedDevicePosition);
+                    updateItemChanged(savedDevicePosition);
                 }
+            }
+        }
+    }
+
+    private void updateItemChanged(int position) {
+        if (recyclerView != null) {
+            CustomViewHolder viewHolder = (CustomViewHolder) recyclerView.findViewHolderForAdapterPosition(position);
+            if (viewHolder != null) {
+                bindViewHolder(viewHolder, position);
             }
         }
     }
@@ -105,7 +114,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
         // synchronize the values in the list like the new list
         // avoid changing the order in the old list (user experience)
         lock.lock();
-        Log.i(TAG, "syncList: ");
         deviceList = new ArrayList<>();
         deviceList.addAll(newDeviceList);
         notifyDataSetChanged();
@@ -113,14 +121,13 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Cu
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        private final ViewGroup mainItemView;
         private final TextView deviceMac, deviceIp, devicePing, deviceConnecting;
         private final ImageView deviceConnected;
         private OnSubItemClickListener onSubItemClickListener;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
-            mainItemView = itemView.findViewById(R.id.mainItemView);
+            ViewGroup mainItemView = itemView.findViewById(R.id.mainItemView);
             deviceIp = itemView.findViewById(R.id.deviceIp);
             deviceMac = itemView.findViewById(R.id.deviceMac);
             devicePing = itemView.findViewById(R.id.devicePing);
