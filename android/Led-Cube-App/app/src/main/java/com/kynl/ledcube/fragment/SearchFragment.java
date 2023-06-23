@@ -156,8 +156,10 @@ public class SearchFragment extends Fragment {
                     isDebouncing = true;
                     deviceListAdapter.setConnectingDeviceMac(mac);
                     setRefreshEnable(false);
-                    BroadcastManager.getInstance().sendRequestPairDevice(ip, mac);
-                    handler.postDelayed(() -> isDebouncing = false, 1000);
+                    handler.postDelayed(() -> {
+                        isDebouncing = false;
+                        BroadcastManager.getInstance().sendRequestPairDevice(ip, mac);
+                    }, 1000);
                 }
             }
         });
