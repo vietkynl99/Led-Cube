@@ -4,7 +4,6 @@
     <string name="contentDescription">contentDescription</string>
 
     <string name="pair_device">Pair to Led Cube</string>
-    <string name="pairing_device">Pairing...</string>
     <string name="check_connection">Check connection</string>
     <string name="last_scan">Last scan:</string>
 
@@ -21,7 +20,7 @@
     <string name="setting_auto_detect">Automatically detect device</string>
     <string name="setting_sync_brightness">Synchronize the brightness of the effects</string>
     <string name="setting_restore_default_settings">Restore default settings</string>
-    <string name="setting_restore_default_settings_question">Are you sure you want to restore default settings?</string>
+    <string name="setting_restore_default_settings_question">Are you sure want to restore default settings?</string>
 
     <string name="demo_last_scan">Last scan: 08:00 01/01/2020</string>
     <string name="demo_IP">192.168.1.1</string>
@@ -38,9 +37,5 @@
     <string name="no_device">No device</string>
 
     <string name="unit_ms">ms</string>
-
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
