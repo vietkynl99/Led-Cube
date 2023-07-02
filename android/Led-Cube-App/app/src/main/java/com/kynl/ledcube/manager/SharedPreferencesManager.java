@@ -1,10 +1,16 @@
 package com.kynl.ledcube.manager;
 
+import static com.kynl.ledcube.common.CommonUtils.LAST_SCAN_DATE_TIME_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.SHARED_PREFERENCES;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class SharedPreferencesManager {
     private static final String TAG = "SharedPreferencesManager";
@@ -97,9 +103,25 @@ public class SharedPreferencesManager {
     }
 
     /* Search Fragment */
-    public String getLastScanTime() {
+    public String getLastScanTimeString() {
         return readString("lastScanTime", "");
     }
+     public Date getLastScanTime() {
+         String lastScanTime = getLastScanTimeString();
+         if (!lastScanTime.isEmpty()) {
+             SimpleDateFormat formatter = new SimpleDateFormat(LAST_SCAN_DATE_TIME_FORMAT, Locale.US);
+             try {
+                 Date date = formatter.parse(lastScanTime);
+                 if (date != null) {
+                     return date;
+                 }
+             } catch (ParseException ignored) {
+             }
+         }
+         return null;
+    }
+
+
 
     public void setLastScanTime(String lastScanTime) {
         saveString("lastScanTime", lastScanTime);

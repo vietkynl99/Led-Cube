@@ -28,6 +28,9 @@ public class CommonUtils {
     // Date
     public static final String LAST_SCAN_DATE_TIME_FORMAT = "HH:mm:ss dd/MM/yyyy";
 
+    // Service settings
+    public static final int DEVICES_LIST_RESCAN_TIMEOUT = 60 * 60 * 1000;
+
     // Service
     public enum NetworkServiceState {
         STATE_NONE,

@@ -5,6 +5,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_PAUSE_NETWORK_SCAN;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
+import static com.kynl.ledcube.common.CommonUtils.DEVICES_LIST_RESCAN_TIMEOUT;
 import static com.kynl.ledcube.common.CommonUtils.LAST_SCAN_DATE_TIME_FORMAT;
 
 import android.app.Service;
@@ -207,12 +208,8 @@ public class NetworkService extends Service {
             mHandler.postDelayed(mRunnable, networkScanTime * 1000);
         };
 
-        // Try to connect in first time
-        if (ServerManager.getInstance().hasSavedDevice()) {
-            requestConnectToSavedDevice();
-        } else {
-            requestFindSubnetDevicesList();
-        }
+        /* Try to connect in first time */
+        tryInFirstConnection();
     }
 
     @Override
@@ -235,6 +232,22 @@ public class NetworkService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void tryInFirstConnection() {
+        boolean needScanDevicesList = false;
+        Date lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
+        // Rescan if the old scan is older than the time allowed
+        if (lastScanTime != null) {
+            if (System.currentTimeMillis() - lastScanTime.getTime() > DEVICES_LIST_RESCAN_TIMEOUT) {
+                needScanDevicesList = true;
+            }
+        }
+        if (!needScanDevicesList && ServerManager.getInstance().hasSavedDevice()) {
+            requestConnectToSavedDevice();
+        } else {
+            requestFindSubnetDevicesList();
+        }
     }
 
     private void sortDevicesListByIp(ArrayList<Device> devices) {

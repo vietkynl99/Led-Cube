@@ -202,31 +202,25 @@ public class SearchFragment extends Fragment {
     }
 
     private void updateLastScanTime() {
-        String lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
+        Date lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
         String timeStr = "";
-        if (!lastScanTime.isEmpty()) {
-            SimpleDateFormat formatter = new SimpleDateFormat(LAST_SCAN_DATE_TIME_FORMAT, Locale.US);
-            try {
-                Date date = formatter.parse(lastScanTime);
-                if (date != null) {
-                    long lastScanTimeMillis = date.getTime();
-                    long currentTimeMillis = System.currentTimeMillis();
-                    long diffTimeMinutes = (currentTimeMillis - lastScanTimeMillis) / 1000 / 60;
-                    if (diffTimeMinutes <= 1) {
-                        timeStr = "1 minute ago";
-                    } else if (diffTimeMinutes < 60) {
-                        timeStr = diffTimeMinutes + " minutes ago";
-                    } else if (diffTimeMinutes < 2 * 60) {
-                        timeStr = "1 hour ago";
-                    } else if (diffTimeMinutes < 24 * 60) {
-                        timeStr = diffTimeMinutes / 60 + " hours ago";
-                    } else {
-                        timeStr = lastScanTime;
-                    }
-                }
-            } catch (ParseException ignored) {
+        if (lastScanTime != null) {
+            long lastScanTimeMillis = lastScanTime.getTime();
+            long currentTimeMillis = System.currentTimeMillis();
+            long diffTimeMinutes = (currentTimeMillis - lastScanTimeMillis) / 1000 / 60;
+            if (diffTimeMinutes <= 1) {
+                timeStr = "1 minute ago";
+            } else if (diffTimeMinutes < 60) {
+                timeStr = diffTimeMinutes + " minutes ago";
+            } else if (diffTimeMinutes < 2 * 60) {
+                timeStr = "1 hour ago";
+            } else if (diffTimeMinutes < 24 * 60) {
+                timeStr = diffTimeMinutes / 60 + " hours ago";
+            } else {
+                timeStr = SharedPreferencesManager.getInstance().getLastScanTimeString();
             }
         }
+
         setInformationText("Last scan: " + timeStr);
     }
 
