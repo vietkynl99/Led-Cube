@@ -1,8 +1,3 @@
-/**
- * WiFiManager advanced, contains advanced configurartion options
- * Implements RESET_WIFI_PIN button press, press for ondemand configportal, hold for 3 seconds for reset settings.
- */
-
 #include <UART_Debug.h>
 #include "VLog.h"
 #include "HardwareController.h"
@@ -66,6 +61,6 @@ void loop()
 	hardwareController->process();
 	ledManager->process();
 	wifiMaster->process();
-	serviceManager->updateRealTime();
+	// serviceManager->updateRealTime();
 	ServerManager::process();
 }

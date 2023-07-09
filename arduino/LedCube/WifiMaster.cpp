@@ -79,7 +79,7 @@ void WifiMaster::init()
 
 void WifiMaster::resetWifiSettings()
 {
-    LOG_WIFI("Erasing Config, restarting");
+    LOG_WIFI("Reset WIFI settings");
     wm.resetSettings();
     ESP.restart();
 

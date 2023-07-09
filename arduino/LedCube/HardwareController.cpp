@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "HardwareController.h"
 
-
 HardwareController *HardwareController::instance = nullptr;
 
 HardwareController *HardwareController::getInstance()
@@ -15,8 +14,9 @@ HardwareController *HardwareController::getInstance()
 
 HardwareController::HardwareController()
 {
-    pair_mode = false;
-    fake_pair_mode = false;
+    pairMode = false;
+    fakePairMode = false;
+    beepPlayingCount = 0;
 }
 
 void HardwareController::init()
@@ -26,6 +26,14 @@ void HardwareController::init()
     initSerial();
 #endif
     initEEPROM();
+}
+
+void HardwareController::process()
+{
+    buttonHandler();
+    beepHandler();
+    fakePairModeHandler();
+    checkPairMode();
 }
 
 #if USE_SERIAL_DEBUG
@@ -39,8 +47,8 @@ void HardwareController::initSerial()
 
 void HardwareController::initHardwarePin()
 {
-    pinMode(RESET_WIFI_PIN, INPUT_PULLUP);
-    pinMode(PAIR_MODE_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    pinMode(BUZZER_PIN, OUTPUT);
 }
 
 void HardwareController::initEEPROM()
@@ -48,97 +56,140 @@ void HardwareController::initEEPROM()
     EEPROM.begin(EEPROM_SIZE);
 }
 
-void HardwareController::checkResetWifiButton()
-{
-    static bool status_old = 0, status_new = 0;
-    static unsigned long long state_changed_time = 0;
-
-    status_old = status_new;
-    status_new = !digitalRead(RESET_WIFI_PIN);
-    if (status_old != status_new)
-    {
-        state_changed_time = millis();
-    }
-
-    if (status_new)
-    {
-        if ((unsigned long long)(millis() - state_changed_time) > LONG_PRESS_TIME)
-        {
-            LOG_WIFI("Reset button pressed");
-            WifiMaster::getInstance()->resetWifiSettings();
-        }
-    }
-}
-
-void HardwareController::checkPairButton()
-{
-    static bool status_old = 0, status_new = 0;
-    static unsigned long long pair_start_time = 0, pair_time = 0;
-
-    status_old = status_new;
-    status_new = !digitalRead(PAIR_MODE_PIN);
-    if (status_old != status_new)
-    {
-        pair_start_time = millis();
-    }
-
-    if (status_new)
-    {
-        pair_time = millis() - pair_start_time;
-        pair_mode = (pair_time > LONG_PRESS_TIME) && (pair_time < PAIR_MODE_TIMEOUT);
-    }
-    else
-    {
-        pair_mode = false;
-    }
-}
-
 void HardwareController::turnOnFakePairMode()
 {
     // make fake pair mode within 15s
     LOG_SERVER("Turn on fake pair mode");
-    fake_pair_mode = 1;
+    fakePairMode = 1;
 }
 
-void HardwareController::checkFakePairMode()
+void HardwareController::fakePairModeHandler()
 {
-    static unsigned long long fake_pair_time = 0;
-    static bool pre_fake_pair_mode = false;
-    if (!pre_fake_pair_mode && fake_pair_mode)
+    static unsigned long long fakePairTime = 0;
+    static bool preFakePairMode = false;
+    if (!preFakePairMode && fakePairMode)
     {
-        fake_pair_time = millis();
+        fakePairTime = millis();
     }
-    if (fake_pair_mode)
+    if (fakePairMode)
     {
-        if ((unsigned long long)(millis() - fake_pair_time) > PAIR_MODE_TIMEOUT)
+        if ((unsigned long long)(millis() - fakePairTime) > BUTTON_PAIR_MODE_TIMEOUT)
         {
             LOG_SERVER("Turn off fake pair mode");
-            fake_pair_mode = 0;
+            fakePairMode = 0;
         }
     }
-    pre_fake_pair_mode = fake_pair_mode;
+    preFakePairMode = fakePairMode;
 }
 
 void HardwareController::checkPairMode()
 {
-    static bool pre_pair_mode = false;
-    bool pair_mode = isPairingMode();
-    if (pre_pair_mode != pair_mode)
+    static bool prePairMode = false;
+    bool pairMode = isPairingMode();
+    if (prePairMode != pairMode)
     {
-        LOG_SERVER("Pair mode changed to: %d", pair_mode);
+        LOG_SERVER("Pair mode changed to: %d", pairMode);
+        if (pairMode)
+        {
+            beep(1);
+        }
     }
-    pre_pair_mode = pair_mode;
+    prePairMode = pairMode;
 }
 
-void HardwareController::process()
+void HardwareController::beepHandler()
 {
-    checkResetWifiButton();
-	checkPairButton();
-	checkFakePairMode();
-	checkPairMode();
+    static bool pinState = false;
+    static unsigned long long time = 0;
+
+    if (beepPlayingCount > 0)
+    {
+        if ((unsigned long long)(millis() - time) > BUZZER_OUTPUT_TIME)
+        {
+            time = millis();
+            pinState ^= 1;
+            digitalWrite(BUZZER_PIN, pinState);
+            if (!pinState)
+            {
+                beepPlayingCount--;
+            }
+        }
+    }
+    else if (pinState)
+    {
+        pinState = false;
+        digitalWrite(BUZZER_PIN, pinState);
+    }
+}
+
+void HardwareController::buttonHandler()
+{
+    static bool oldState = false;
+    static bool newState = false;
+    static unsigned long long time = 0;
+    static unsigned long long risingTime = 0, pressTime = 0, lastPressTime = 0;
+
+    if ((unsigned long long)(millis() - time) > BUTTON_SCAN_TIME)
+    {
+        time = millis();
+        oldState = newState;
+        newState = !digitalRead(BUTTON_PIN);
+
+        // Rising edge
+        if (!oldState && newState)
+        {
+            lastPressTime = risingTime;
+            risingTime = millis();
+        }
+        // Falling edge
+        if (oldState && !newState)
+        {
+            pairMode = false;
+        }
+        // ON state
+        if (newState)
+        {
+            pressTime = millis() - risingTime;
+            // Press then long press
+            if (risingTime - lastPressTime < BUTTON_DOUBLE_LONG_PRESS_TIME)
+            {
+                if (pressTime > BUTTON_LONG_PRESS_TIME)
+                {
+                    beep(3, true);
+                    WifiMaster::getInstance()->resetWifiSettings();
+                }
+            }
+            // Only long press
+            else
+            {
+                pairMode = pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_PAIR_MODE_TIMEOUT;
+            }
+        }
+    }
 }
 
 bool HardwareController::isPairingMode()
 {
-    return pair_mode || fake_pair_mode;
+    return pairMode || fakePairMode;
+}
+
+void HardwareController::beep(int count, bool blocking)
+{
+    if (blocking)
+    {
+        bool pinState = false;
+        for (int i = 0; i < 2 * count; i++)
+        {
+            pinState ^= 1;
+            digitalWrite(BUZZER_PIN, pinState);
+            delay(BUZZER_OUTPUT_TIME);
+        }
+    }
+    else
+    {
+        if (beepPlayingCount <= 0)
+        {
+            beepPlayingCount = count;
+        }
+    }
 }

@@ -5,25 +5,30 @@
 #include "VLog.h"
 #include "WifiMaster.h"
 
-// Press and hold for 3 seconds to reset wifi settings
-#define RESET_WIFI_PIN 0
-// Press and hold to switch to pair mode
-#define PAIR_MODE_PIN 2
+/*
+Use a single button to control the system:
+Long press about 3s: Switch to Pair mode
+Press and then long press for about 3s: Reset wifi settings
+*/
 
-/* Button press time */
-#define LONG_PRESS_TIME 3000UL
-// (ms) Maximum time for pairing from the moment the pair button is pressed
-#define PAIR_MODE_TIMEOUT 15000UL
+#define BUTTON_PIN D4
+#define BUZZER_PIN D6
 
-/* EEPROM */
-#define EEPROM_SIZE 16 // (bytes)
+#define BUTTON_SCAN_TIME                20UL        // ms
+#define BUTTON_LONG_PRESS_TIME          3000UL      // ms
+#define BUTTON_DOUBLE_LONG_PRESS_TIME   1000UL      // ms
+#define BUTTON_PAIR_MODE_TIMEOUT        15000UL     // ms
+#define BUZZER_OUTPUT_TIME              60UL        // ms
+
+#define EEPROM_SIZE 16 // bytes
 
 class HardwareController
 {
 private:
     static HardwareController *instance;
-    bool pair_mode;
-    bool fake_pair_mode;
+    bool pairMode;
+    bool fakePairMode;
+    int beepPlayingCount;
 
 private:
     HardwareController();
@@ -32,17 +37,18 @@ private:
 #endif
     void initHardwarePin();
     void initEEPROM();
-    void checkResetWifiButton();
-    void checkPairButton();
-    void checkFakePairMode();
+    void fakePairModeHandler();
     void checkPairMode();
+    void beepHandler();
+    void buttonHandler();
 
 public:
     static HardwareController *getInstance();
     void init();
-    void turnOnFakePairMode();
     void process();
+    void turnOnFakePairMode();
     bool isPairingMode();
+    void beep(int count, bool blocking=false);
 };
 
 #endif
