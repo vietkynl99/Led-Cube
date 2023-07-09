@@ -14,7 +14,7 @@
 HardwareController *hardwareController;
 WifiMaster *wifiMaster;
 ServiceManager *serviceManager;
-// LedManager *ledManager;
+LedManager *ledManager;
 
 #if USE_SERIAL_DEBUG
 void debugHandler()
@@ -46,12 +46,12 @@ void debugHandler()
 void setup()
 {
 	hardwareController = HardwareController::getInstance();
-	// ledManager = LedManager::getInstance();
+	ledManager = LedManager::getInstance();
 	wifiMaster = WifiMaster::getInstance();
 	serviceManager = ServiceManager::getInstance();
 
 	hardwareController->init();
-	// ledManager->init();
+	ledManager->init();
 	wifiMaster->init();
 	ServerManager::init();
 	serviceManager->init();
@@ -64,6 +64,7 @@ void loop()
 #endif
 
 	hardwareController->process();
+	ledManager->process();
 	wifiMaster->process();
 	serviceManager->updateRealTime();
 	ServerManager::process();
