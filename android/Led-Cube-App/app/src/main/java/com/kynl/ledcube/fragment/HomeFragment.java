@@ -59,12 +59,15 @@ public class HomeFragment extends Fragment {
                         if (batteryLevel >= 0) {
                             setBatteryLevel(batteryLevel);
                         }
+                        break;
                     }
                     case BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS: {
                         restoreDefaultSettings();
-                    }
-                    default:
                         break;
+                    }
+                    default: {
+                        break;
+                    }
                 }
             }
         }
