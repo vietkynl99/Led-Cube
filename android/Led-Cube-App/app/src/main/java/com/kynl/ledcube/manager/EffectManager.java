@@ -166,7 +166,7 @@ public class EffectManager {
         try {
             List<OptionItem> optionItemList = effectItemList.get(position).getOptionItemList();
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("type", String.valueOf(effectItemList.get(position).getType().ordinal()));
+            jsonObject.put("type", effectItemList.get(position).getType().ordinal());
             for (OptionItem item : optionItemList) {
                 jsonObject.put(item.getText().toLowerCase(), item.getValue());
             }
