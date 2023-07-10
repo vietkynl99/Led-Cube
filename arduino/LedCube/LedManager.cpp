@@ -14,6 +14,8 @@ LedManager *LedManager::getInstance()
 
 LedManager::LedManager()
 {
+    mType = 0;
+    mBrightness = 0;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
@@ -23,7 +25,7 @@ void LedManager::init()
     strip->setBrightness(100);
     strip->show();
 
-    fillColor(0,0,0);
+    fillColor(0, 0, 0);
 }
 
 void LedManager::process()
@@ -35,6 +37,22 @@ void LedManager::process()
         hue += 60;
         fillRainbowColor(hue, 200);
         showTime = millis();
+    }
+}
+
+void LedManager::setType(int type)
+{
+    if (mType != type)
+    {
+        mType = type;
+    }
+}
+
+void LedManager::setBrightness(int brightness);
+{
+    if (mBrightness != brightness)
+    {
+        mBrightness = brightness;
     }
 }
 
@@ -52,7 +70,7 @@ void LedManager::fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat,
     for (int i = 0; i < NUM_LEDS; i++)
     {
         strip->setPixelColor(i, strip->gamma32(strip->ColorHSV(startHue, sat, val)));
-        startHue+=dHue;
+        startHue += dHue;
     }
     strip->show();
 }

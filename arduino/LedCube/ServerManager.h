@@ -8,6 +8,7 @@
 #include <ESP8266WebServer.h>
 #include "VLog.h"
 #include "HardwareController.h"
+#include "LedManager.h"
 
 /* API KEY */
 #define API_KEY_MIN 10000000UL
@@ -49,6 +50,7 @@ public:
     static void sendResponse(int type, String dataKey = "", String dataValue = "");
     static void sendInvalidResponse();
     static void pairDevice(long oldKey);
+    static void dataProcessing(String data);
     static void handleRequest();
     static void handleClient();
     static void process();

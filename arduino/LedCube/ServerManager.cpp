@@ -91,6 +91,25 @@ void ServerManager::pairDevice(long oldKey)
     }
 }
 
+void ServerManager::dataProcessing(String data)
+{
+    if(data.isEmpty()) {
+        return;
+    }
+
+    StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
+    deserializeJson(jsonDoc, data);
+
+    if(jsonDoc["type"].is<int>())
+    {
+        LedManager::getInstance()->setType(jsonDoc["type"]);
+    }
+    if(jsonDoc["brightness"].is<int>())
+    {
+        LedManager::getInstance()->setBrightness(jsonDoc["brightness"]);
+    }
+}
+
 void ServerManager::handleRequest()
 {
     bool validResponse = true;
@@ -154,8 +173,8 @@ void ServerManager::handleRequest()
     case EVENT_REQUEST_SEND_DATA:
     {
         LOG_SERVER("Got data!");
-        // TODO: use data to update cube effect state
         sendResponse(EVENT_RESPONSE_GET_DATA_SUCCESSFUL);
+        dataProcessing(data);
         break;
     }
     default:
