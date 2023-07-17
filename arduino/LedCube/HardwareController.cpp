@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "HardwareController.h"
 
 HardwareController *HardwareController::instance = nullptr;
@@ -17,6 +16,9 @@ HardwareController::HardwareController()
     mPairMode = false;
     mFakePairMode = false;
     mBeepPlayingCount = 0;
+    mTemperature = -1;
+    mHumidity = -1;
+    dhtSensor = new DHT_Async(DHT11_PIN, DHT_TYPE_11);
 }
 
 void HardwareController::init()
@@ -34,6 +36,7 @@ void HardwareController::process()
     beepHandler();
     fakePairModeHandler();
     checkPairMode();
+    processDHT();
 }
 
 #if USE_SERIAL_DEBUG
@@ -99,7 +102,7 @@ void HardwareController::checkPairMode()
 
 void HardwareController::setBeepState(bool state)
 {
-    analogWrite(BUZZER_PIN, state? BUZZER_PWM_MAX : 0);
+    analogWrite(BUZZER_PIN, state ? BUZZER_PWM_MAX : 0);
 }
 
 void HardwareController::beepHandler()
@@ -169,6 +172,24 @@ void HardwareController::buttonHandler()
             {
                 mPairMode = pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_PAIR_MODE_TIMEOUT;
             }
+        }
+    }
+}
+
+void HardwareController::processDHT()
+{
+    static float temp, hum;
+    static unsigned long long time = 0;
+    static bool isFirstTime = true;
+    if (isFirstTime || (unsigned long long)(millis() - time) > DHT11_SCAN_TIME)
+    {
+        if (dhtSensor->measure(&temp, &hum))
+        {
+            isFirstTime = false;
+            time = millis();
+            mTemperature = round(temp);
+            mHumidity = round(hum);
+            LOG_SYSTEM("DHT11 -> temp: %d, humidity: %d", mTemperature, mHumidity);
         }
     }
 }

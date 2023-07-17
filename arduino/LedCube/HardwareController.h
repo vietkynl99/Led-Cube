@@ -1,7 +1,9 @@
 #ifndef _HARDWARE_CONTROLLER_H
 #define _HARDWARE_CONTROLLER_H
 
+#include <Arduino.h>
 #include <EEPROM.h>
+#include <DHT_Async.h>
 #include "VLog.h"
 #include "WifiMaster.h"
 
@@ -11,10 +13,11 @@ Long press about 3s: Switch to Pair mode
 Press and then long press for about 3s: Reset wifi settings
 */
 
-// vol=(adc-255)/55
-
-#define BUTTON_PIN D4
-#define BUZZER_PIN D6
+#define ADC_PIN         A0
+#define ADC_CTRL_PIN    D3
+#define BUTTON_PIN      D4
+#define BUZZER_PIN      D6
+#define DHT11_PIN       D7
 
 #define BUTTON_SCAN_TIME                20UL        // ms
 #define BUTTON_LONG_PRESS_TIME          3000UL      // ms
@@ -24,7 +27,9 @@ Press and then long press for about 3s: Reset wifi settings
 #define BUZZER_OUTPUT_TIME              60UL        // ms
 #define BUZZER_PWM_MAX                  150
 
-#define EEPROM_SIZE 16 // bytes
+#define DHT11_SCAN_TIME                 60000UL     // ms
+
+#define EEPROM_SIZE     16 // bytes
 
 class HardwareController
 {
@@ -33,6 +38,10 @@ private:
     bool mPairMode;
     bool mFakePairMode;
     int mBeepPlayingCount;
+
+    DHT_Async *dhtSensor;
+    int mTemperature;
+    int mHumidity;
 
 private:
     HardwareController();
@@ -46,6 +55,7 @@ private:
     void setBeepState(bool state);
     void beepHandler();
     void buttonHandler();
+    void processDHT();
 
 public:
     static HardwareController *getInstance();
