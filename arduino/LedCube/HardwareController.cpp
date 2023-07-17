@@ -14,9 +14,9 @@ HardwareController *HardwareController::getInstance()
 
 HardwareController::HardwareController()
 {
-    pairMode = false;
-    fakePairMode = false;
-    beepPlayingCount = 0;
+    mPairMode = false;
+    mFakePairMode = false;
+    mBeepPlayingCount = 0;
 }
 
 void HardwareController::init()
@@ -60,26 +60,26 @@ void HardwareController::turnOnFakePairMode()
 {
     // make fake pair mode within 15s
     LOG_SERVER("Turn on fake pair mode");
-    fakePairMode = 1;
+    mFakePairMode = 1;
 }
 
 void HardwareController::fakePairModeHandler()
 {
     static unsigned long long fakePairTime = 0;
     static bool preFakePairMode = false;
-    if (!preFakePairMode && fakePairMode)
+    if (!preFakePairMode && mFakePairMode)
     {
         fakePairTime = millis();
     }
-    if (fakePairMode)
+    if (mFakePairMode)
     {
         if ((unsigned long long)(millis() - fakePairTime) > BUTTON_PAIR_MODE_TIMEOUT)
         {
             LOG_SERVER("Turn off fake pair mode");
-            fakePairMode = 0;
+            mFakePairMode = 0;
         }
     }
-    preFakePairMode = fakePairMode;
+    preFakePairMode = mFakePairMode;
 }
 
 void HardwareController::checkPairMode()
@@ -89,7 +89,7 @@ void HardwareController::checkPairMode()
     if (prePairMode != pairMode)
     {
         LOG_SERVER("Pair mode changed to: %d", pairMode);
-        if (pairMode)
+        if (mPairMode)
         {
             beep(1);
         }
@@ -107,7 +107,7 @@ void HardwareController::beepHandler()
     static bool pinState = false;
     static unsigned long long time = 0;
 
-    if (beepPlayingCount > 0)
+    if (mBeepPlayingCount > 0)
     {
         if ((unsigned long long)(millis() - time) > BUZZER_OUTPUT_TIME)
         {
@@ -116,7 +116,7 @@ void HardwareController::beepHandler()
             setBeepState(pinState);
             if (!pinState)
             {
-                beepPlayingCount--;
+                mBeepPlayingCount--;
             }
         }
     }
@@ -149,7 +149,7 @@ void HardwareController::buttonHandler()
         // Falling edge
         if (oldState && !newState)
         {
-            pairMode = false;
+            mPairMode = false;
         }
         // ON state
         if (newState)
@@ -167,7 +167,7 @@ void HardwareController::buttonHandler()
             // Only long press
             else
             {
-                pairMode = pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_PAIR_MODE_TIMEOUT;
+                mPairMode = pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_PAIR_MODE_TIMEOUT;
             }
         }
     }
@@ -175,7 +175,7 @@ void HardwareController::buttonHandler()
 
 bool HardwareController::isPairingMode()
 {
-    return pairMode || fakePairMode;
+    return mPairMode || mFakePairMode;
 }
 
 void HardwareController::beep(int count, bool blocking)
@@ -192,9 +192,9 @@ void HardwareController::beep(int count, bool blocking)
     }
     else
     {
-        if (beepPlayingCount <= 0)
+        if (mBeepPlayingCount <= 0)
         {
-            beepPlayingCount = count;
+            mBeepPlayingCount = count;
         }
     }
 }

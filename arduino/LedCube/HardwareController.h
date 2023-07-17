@@ -30,9 +30,9 @@ class HardwareController
 {
 private:
     static HardwareController *instance;
-    bool pairMode;
-    bool fakePairMode;
-    int beepPlayingCount;
+    bool mPairMode;
+    bool mFakePairMode;
+    int mBeepPlayingCount;
 
 private:
     HardwareController();
@@ -53,7 +53,7 @@ public:
     void process();
     void turnOnFakePairMode();
     bool isPairingMode();
-    void beep(int count, bool blocking=false);
+    void beep(int count, bool blocking = false);
 };
 
 #endif
