@@ -48,7 +48,7 @@ void LedManager::setType(int type)
     }
 }
 
-void LedManager::setBrightness(int brightness);
+void LedManager::setBrightness(int brightness)
 {
     if (mBrightness != brightness)
     {
