@@ -97,6 +97,11 @@ void HardwareController::checkPairMode()
     prePairMode = pairMode;
 }
 
+void HardwareController::setBeepState(bool state)
+{
+    analogWrite(BUZZER_PIN, state? BUZZER_PWM_MAX : 0);
+}
+
 void HardwareController::beepHandler()
 {
     static bool pinState = false;
@@ -108,7 +113,7 @@ void HardwareController::beepHandler()
         {
             time = millis();
             pinState ^= 1;
-            digitalWrite(BUZZER_PIN, pinState);
+            setBeepState(pinState);
             if (!pinState)
             {
                 beepPlayingCount--;
@@ -118,7 +123,7 @@ void HardwareController::beepHandler()
     else if (pinState)
     {
         pinState = false;
-        digitalWrite(BUZZER_PIN, pinState);
+        setBeepState(pinState);
     }
 }
 
@@ -181,7 +186,7 @@ void HardwareController::beep(int count, bool blocking)
         for (int i = 0; i < 2 * count; i++)
         {
             pinState ^= 1;
-            digitalWrite(BUZZER_PIN, pinState);
+            setBeepState(pinState);
             delay(BUZZER_OUTPUT_TIME);
         }
     }

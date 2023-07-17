@@ -11,6 +11,8 @@ Long press about 3s: Switch to Pair mode
 Press and then long press for about 3s: Reset wifi settings
 */
 
+// vol=(adc-255)/55
+
 #define BUTTON_PIN D4
 #define BUZZER_PIN D6
 
@@ -18,7 +20,9 @@ Press and then long press for about 3s: Reset wifi settings
 #define BUTTON_LONG_PRESS_TIME          3000UL      // ms
 #define BUTTON_DOUBLE_LONG_PRESS_TIME   1000UL      // ms
 #define BUTTON_PAIR_MODE_TIMEOUT        15000UL     // ms
+
 #define BUZZER_OUTPUT_TIME              60UL        // ms
+#define BUZZER_PWM_MAX                  150
 
 #define EEPROM_SIZE 16 // bytes
 
@@ -39,6 +43,7 @@ private:
     void initEEPROM();
     void fakePairModeHandler();
     void checkPairMode();
+    void setBeepState(bool state);
     void beepHandler();
     void buttonHandler();
 
