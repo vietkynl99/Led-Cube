@@ -18,6 +18,8 @@ HardwareController::HardwareController()
     mBeepPlayingCount = 0;
     mTemperature = -1;
     mHumidity = -1;
+    mBatteryLevel = -1;
+    isMeasuringBattery = false;
     dhtSensor = new DHT_Async(DHT11_PIN, DHT_TYPE_11);
 }
 
@@ -36,6 +38,7 @@ void HardwareController::process()
     beepHandler();
     fakePairModeHandler();
     checkPairMode();
+    measureBattery();
     processDHT();
 }
 
@@ -172,6 +175,45 @@ void HardwareController::buttonHandler()
             {
                 mPairMode = pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_PAIR_MODE_TIMEOUT;
             }
+        }
+    }
+}
+
+void HardwareController::measureBattery()
+{
+    static unsigned long long time = 0, scanTime = 0;
+    static bool isFirstTime = true;
+    static int measureCount = 0;
+    static float result = 0;
+    if (!isMeasuringBattery && (isFirstTime || (unsigned long long)(millis() - time) > BATTERY_SCAN_TIME))
+    {
+        isMeasuringBattery = true;
+        measureCount = BATTERY_MEASURE_COUNT_MAX;
+        result = 0;
+        scanTime = millis();
+    }
+    if (isMeasuringBattery && (unsigned long long)(millis() - scanTime) > 10UL)
+    {
+        scanTime = millis();
+        result += analogRead(ADC_PIN);
+        measureCount--;
+        if (measureCount <= 0)
+        {
+            isFirstTime = false;
+            isMeasuringBattery = false;
+            time = millis();
+            result = result / BATTERY_MEASURE_COUNT_MAX;
+            float voltage = (result - 255) / 55;
+            mBatteryLevel = (voltage - BATTERY_MIN_VOLTAGE) * 100 / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE);
+            if (mBatteryLevel > 100)
+            {
+                mBatteryLevel = 100;
+            }
+            if (mBatteryLevel < 0)
+            {
+                mBatteryLevel = 0;
+            }
+            LOG_SYSTEM("Battery: %d -> %.2fV (%d%%)", (int)result, voltage, mBatteryLevel);
         }
     }
 }

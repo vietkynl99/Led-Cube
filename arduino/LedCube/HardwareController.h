@@ -27,7 +27,12 @@ Press and then long press for about 3s: Reset wifi settings
 #define BUZZER_OUTPUT_TIME              60UL        // ms
 #define BUZZER_PWM_MAX                  150
 
-#define DHT11_SCAN_TIME                 60000UL     // ms
+#define DHT11_SCAN_TIME                 120000UL    // ms
+
+#define BATTERY_SCAN_TIME               60000UL     // ms
+#define BATTERY_MEASURE_COUNT_MAX       10
+#define BATTERY_MAX_VOLTAGE             8.4         // V
+#define BATTERY_MIN_VOLTAGE             6.4         // V
 
 #define EEPROM_SIZE     16 // bytes
 
@@ -38,10 +43,12 @@ private:
     bool mPairMode;
     bool mFakePairMode;
     int mBeepPlayingCount;
+    bool isMeasuringBattery;
 
     DHT_Async *dhtSensor;
     int mTemperature;
     int mHumidity;
+    int mBatteryLevel;
 
 private:
     HardwareController();
@@ -55,6 +62,7 @@ private:
     void setBeepState(bool state);
     void beepHandler();
     void buttonHandler();
+    void measureBattery();
     void processDHT();
 
 public:
