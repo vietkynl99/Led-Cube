@@ -43,12 +43,12 @@ void ServerManager::sendResponse(int type, String data)
     static StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
     String json;
 
-    LOG_SERVER("sendResponse type[%d] data[%s]", type, data.c_str());
     jsonDoc["name"] = DEVICE_NAME;
     jsonDoc["type"] = type;
     jsonDoc["data"] = data;
-
     serializeJson(jsonDoc, json);
+
+    LOG_SERVER("sendResponse %s", json.c_str());
     server.send(200, "application/json", json);
 }
 
