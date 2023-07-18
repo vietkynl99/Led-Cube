@@ -33,13 +33,15 @@ import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
 
+import org.json.JSONObject;
+
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
     private OptionListAdapter optionListAdapter;
     private EffectListAdapter effectListAdapter;
     private ImageView iconStatus, batteryIcon;
-    private TextView textStatus, textBatteryLevel;
-    private int batteryLevel;
+    private TextView textStatus, textBatteryLevel, textTemperature, textHumidity;
+    private int batteryLevel, temperature, humidity;
     private boolean connected;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -55,9 +57,14 @@ public class HomeFragment extends Fragment {
                         break;
                     }
                     case BROADCAST_SERVICE_UPDATE_SERVER_DATA: {
-                        int batteryLevel = intent.getIntExtra("batteryLevel", -1);
-                        if (batteryLevel >= 0) {
-                            setBatteryLevel(batteryLevel);
+                        String data = intent.getStringExtra("data");
+                        try {
+                            JSONObject jsonObject = new JSONObject(data);
+                            setBatteryLevel(Integer.parseInt(jsonObject.getString("bat")));
+                            setTemperature(Integer.parseInt(jsonObject.getString("temp")));
+                            setHumidity(Integer.parseInt(jsonObject.getString("hum")));
+                        } catch (Exception e) {
+                            Log.e(TAG, "handleResponseFromServer: Invalid data: " + data);
                         }
                         break;
                     }
@@ -83,6 +90,8 @@ public class HomeFragment extends Fragment {
         Log.e(TAG, "onCreate: ");
 
         batteryLevel = 0;
+        temperature = 0;
+        humidity = 0;
         connected = false;
     }
 
@@ -97,6 +106,8 @@ public class HomeFragment extends Fragment {
         textStatus = view.findViewById(R.id.textStatus);
         batteryIcon = view.findViewById(R.id.batteryIcon);
         textBatteryLevel = view.findViewById(R.id.textBattery);
+        textTemperature = view.findViewById(R.id.textTemperature);
+        textHumidity = view.findViewById(R.id.textHumidity);
         RecyclerView effectListRecyclerView = view.findViewById(R.id.effectListRecyclerView);
         RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
 
@@ -134,6 +145,8 @@ public class HomeFragment extends Fragment {
         BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
         setBatteryLevel(-1);
+        setTemperature(-1);
+        setHumidity(-1);
 
         return view;
     }
@@ -203,16 +216,36 @@ public class HomeFragment extends Fragment {
     private void setBatteryLevel(int level) {
         if (batteryLevel != level) {
             batteryLevel = level;
-            if (level < 0) {
-                String text = "--%";
+            String text = level >= 0 ? String.valueOf(level) : "--";
+            text = text + getResources().getString(R.string.unit_percent);
+            if (textBatteryLevel != null) {
                 textBatteryLevel.setText(text);
-                batteryIcon.setImageLevel(0);
-                return;
             }
-            level = Math.min(100, level);
-            String text = level + "%";
-            textBatteryLevel.setText(text);
-            batteryIcon.setImageLevel((int) Math.round(level / 20.0));
+            if (batteryIcon != null) {
+                batteryIcon.setImageLevel(level >= 0 ? (int) Math.round(level / 20.0) : 0);
+            }
+        }
+    }
+
+    private void setTemperature(int temp) {
+        if (temperature != temp) {
+            temperature = temp;
+            String text = temp >= 0 ? String.valueOf(temp) : "--";
+            text = text + getResources().getString(R.string.unit_temperature);
+            if (textTemperature != null) {
+                textTemperature.setText(text);
+            }
+        }
+    }
+
+    private void setHumidity(int hum) {
+        if (humidity != hum) {
+            humidity = hum;
+            String text = hum >= 0 ? String.valueOf(hum) : "--";
+            text = text + getResources().getString(R.string.unit_percent);
+            if (textHumidity != null) {
+                textHumidity.setText(text);
+            }
         }
     }
 }

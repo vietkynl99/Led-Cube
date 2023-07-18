@@ -9,7 +9,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.Device;
-import com.kynl.ledcube.model.ServerData;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
 import com.kynl.ledcube.myinterface.OnServerResponseListener;
@@ -251,14 +250,11 @@ public class ServerManager {
                 }
                 case EVENT_RESPONSE_UPDATE_DATA: {
                     serverState = ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
-                    try {
-                        JSONObject jsonObject = new JSONObject(receivedData.getData());
-                        String batteryLevelStr = jsonObject.getString("batteryLevel");
-                        int batteryLevel = Integer.parseInt(batteryLevelStr);
-                        ServerData serverData = new ServerData(batteryLevel);
-                        notifyServerDataChanged(serverData);
-                    } catch (Exception e) {
-                        Log.e(TAG, "handleResponseFromServer: Invalid string: " + receivedData.getData());
+                    String data = receivedData.getData();
+                    if (data == null) {
+                        Log.e(TAG, "handleResponseFromServer: data is null");
+                    } else {
+                        notifyServerDataChanged(data);
                     }
                     break;
                 }
@@ -298,7 +294,7 @@ public class ServerManager {
         }
     }
 
-    private void notifyServerDataChanged(ServerData serverData) {
+    private void notifyServerDataChanged(String serverData) {
         if (onServerDataChangeListener != null) {
             onServerDataChangeListener.onServerDataChanged(serverData);
         }

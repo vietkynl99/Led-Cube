@@ -22,11 +22,13 @@
     <string name="setting_restore_default_settings">Restore default settings</string>
     <string name="setting_restore_default_settings_question">Are you sure want to restore default settings?</string>
 
+    <string name="unit_percent">%</string>
+    <string name="unit_temperature">°C</string>
+
     <string name="demo_last_scan">Last scan: 08:00 01/01/2020</string>
     <string name="demo_IP">192.168.1.1</string>
     <string name="demo_MAC">00:11:22:33:44:55:66</string>
     <string name="demo_ping">1000</string>
-    <string name="demo_battery_level">50%</string>
 
     <string name="sample_username">Viet Kynl</string>
     <string name="sample_email">vietkynl@gmail.com</string>

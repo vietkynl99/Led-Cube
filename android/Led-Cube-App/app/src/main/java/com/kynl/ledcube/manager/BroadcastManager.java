@@ -28,7 +28,6 @@ import com.kynl.ledcube.model.Device;
 
 import com.kynl.ledcube.common.CommonUtils.NetworkServiceState;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
-import com.kynl.ledcube.model.ServerData;
 
 
 public class BroadcastManager {
@@ -128,10 +127,10 @@ public class BroadcastManager {
         sendBroadcast(intent);
     }
 
-    public void sendUpdateServerData(ServerData serverData) {
+    public void sendUpdateServerData(String serverData) {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_UPDATE_SERVER_DATA);
-        intent.putExtra("batteryLevel", serverData.getBatteryLevel());
+        intent.putExtra("data", serverData);
         sendBroadcast(intent);
     }
 

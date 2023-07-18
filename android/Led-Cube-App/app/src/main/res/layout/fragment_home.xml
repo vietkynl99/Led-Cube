@@ -28,77 +28,133 @@
         android:layout_marginEnd="25dp"
         android:orientation="vertical">
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="0dp"
-            android:orientation="vertical">
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
 
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/montserrat_medium"
-                android:text="@string/app_name"
-                android:textColor="@color/white"
-                android:textSize="28sp" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <ImageView
-                    android:id="@+id/iconStatus"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center"
-                    android:backgroundTintMode="multiply"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/sensors_off_48" />
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/textStatus"
-                    android:layout_width="match_parent"
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="0dp"
-                    android:text="@string/offline"
-                    android:textColor="@color/icon_color" />
+                    android:fontFamily="@font/montserrat_medium"
+                    android:text="@string/app_name"
+                    android:textColor="@color/white"
+                    android:textSize="28sp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/iconStatus"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:backgroundTintMode="multiply"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/sensors_off_48" />
+
+                    <TextView
+                        android:id="@+id/textStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="0dp"
+                        android:text="@string/offline"
+                        android:textColor="@color/icon_color" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/batteryIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="0dp"
+                        android:src="@drawable/battery_icon" />
+
+                    <TextView
+                        android:id="@+id/textBattery"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/icon_color"
+                        tools:text="50%" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="0dp"
+                        android:src="@drawable/temperature_48"
+                        app:tint="@color/icon_color" />
+
+                    <TextView
+                        android:id="@+id/textTemperature"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/icon_color"
+                        tools:text="30°C" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="0dp"
+                        android:src="@drawable/humidity_64"
+                        app:tint="@color/icon_color" />
+
+                    <TextView
+                        android:id="@+id/textHumidity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/icon_color"
+                        tools:text="60%" />
+                </LinearLayout>
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="210dp"
+                android:layout_marginTop="100dp"
+                android:layout_marginBottom="0dp"
+                android:alpha="0.8"
+                android:src="@drawable/demo_cube" />
 
-                <ImageView
-                    android:id="@+id/batteryIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="0dp"
-                    android:src="@drawable/battery_icon" />
-
-                <TextView
-                    android:id="@+id/textBattery"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="0dp"
-                    android:text="@string/demo_battery_level"
-                    android:textColor="@color/icon_color" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="210dp"
-            android:alpha="0.8"
-            android:src="@drawable/demo_cube" />
+        </FrameLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
