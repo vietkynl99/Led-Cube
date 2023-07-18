@@ -6,6 +6,7 @@
 #include <DHT_Async.h>
 #include "VLog.h"
 #include "WifiMaster.h"
+#include "ServerManager.h"
 
 /*
 Use a single button to control the system:
@@ -72,6 +73,7 @@ public:
     void turnOnFakePairMode();
     bool isPairingMode();
     void beep(int count, bool blocking = false);
+    String getAllData();
 };
 
 #endif

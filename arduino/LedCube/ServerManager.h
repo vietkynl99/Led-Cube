@@ -1,6 +1,7 @@
 #ifndef _SERVER_MANAGER_H
 #define _SERVER_MANAGER_H
 
+#include <Arduino.h>
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
@@ -47,7 +48,9 @@ public:
     static void init();
     static void checkWifiStatus();
     static String generateJson(String key, String value);
-    static void sendResponse(int type, String dataKey = "", String dataValue = "");
+    static void sendResponse(int type, String data);
+    static void sendResponse(int type, String dataKey, String dataValue);
+    static void sendResponse(int type);
     static void sendInvalidResponse();
     static void pairDevice(long oldKey);
     static void dataProcessing(String data);

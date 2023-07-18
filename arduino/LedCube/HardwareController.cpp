@@ -261,3 +261,14 @@ void HardwareController::beep(int count, bool blocking)
         }
     }
 }
+
+String HardwareController::getAllData() {
+    StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
+    String json;
+    jsonDoc["bat"] = mBatteryLevel;
+    jsonDoc["hum"] = mHumidity;
+    jsonDoc["temp"] = mTemperature;
+
+    serializeJson(jsonDoc, json);
+    return json;
+}

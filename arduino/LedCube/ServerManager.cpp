@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "ServerManager.h"
 
 ESP8266WebServer ServerManager::server;
@@ -39,15 +38,10 @@ String ServerManager::generateJson(String key, String value)
     return json;
 }
 
-void ServerManager::sendResponse(int type, String dataKey, String dataValue)
+void ServerManager::sendResponse(int type, String data)
 {
     static StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
-    String json = "", data = "";
-
-    if (!dataKey.isEmpty() && !dataValue.isEmpty())
-    {
-        data = generateJson(dataKey, dataValue);
-    }
+    String json;
 
     LOG_SERVER("sendResponse type[%d] data[%s]", type, data.c_str());
     jsonDoc["name"] = DEVICE_NAME;
@@ -56,6 +50,21 @@ void ServerManager::sendResponse(int type, String dataKey, String dataValue)
 
     serializeJson(jsonDoc, json);
     server.send(200, "application/json", json);
+}
+
+void ServerManager::sendResponse(int type, String dataKey, String dataValue)
+{
+    String data = "";
+    if (!dataKey.isEmpty() && !dataValue.isEmpty())
+    {
+        data = generateJson(dataKey, dataValue);
+    }
+    sendResponse(type, data);
+}
+
+void ServerManager::sendResponse(int type)
+{
+    sendResponse(type, "");
 }
 
 void ServerManager::sendInvalidResponse()
@@ -167,12 +176,11 @@ void ServerManager::handleRequest()
     {
     case EVENT_REQUEST_CHECK_CONNECTION:
     {
-        sendResponse(EVENT_RESPONSE_UPDATE_DATA, "batteryLevel", String(batteryLevel));
+        sendResponse(EVENT_RESPONSE_UPDATE_DATA, HardwareController::getInstance()->getAllData());
         break;
     }
     case EVENT_REQUEST_SEND_DATA:
     {
-        LOG_SERVER("Got data!");
         sendResponse(EVENT_RESPONSE_GET_DATA_SUCCESSFUL);
         dataProcessing(data);
         break;
