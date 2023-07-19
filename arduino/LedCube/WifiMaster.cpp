@@ -24,7 +24,7 @@ void WifiMaster::printConnectedWifiInfo()
 void WifiMaster::init()
 {
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-    delay(3000);
+    delay(500);
 
     LOG_SYSTEM("Starting");
 
