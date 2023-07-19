@@ -139,6 +139,8 @@ public class HomeFragment extends Fragment {
             EffectItem.EffectType preType = EffectManager.getInstance().getCurrentEffectType();
             if (type != preType) {
                 selectEffectType(type);
+            } else {
+                selectEffectType(EffectItem.EffectType.OFF);
             }
         });
 

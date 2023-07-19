@@ -128,6 +128,9 @@ public class EffectManager {
     }
 
     public void setOptionValue(EffectItem.EffectType effectType, OptionItem.OptionType optionType, int value) {
+        if (effectType == EffectItem.EffectType.OFF) {
+            return;
+        }
         // find effectType position
         int effectTypePosition = findEffectTypePosition(effectType);
         if (effectTypePosition < 0) {
@@ -158,6 +161,17 @@ public class EffectManager {
     }
 
     public String getEffectDataAsJson(EffectItem.EffectType type) {
+        if (type == EffectItem.EffectType.OFF) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("type", EffectItem.EffectType.OFF.ordinal());
+                return jsonObject.toString();
+            } catch (Exception e) {
+                Log.e(TAG, "getEffectDataAsJson: Error while converting to json");
+                return "";
+            }
+        }
+
         int position = findEffectTypePosition(type);
         if (position < 0) {
             Log.e(TAG, "getEffectDataAsJson: Can not find position of " + type);

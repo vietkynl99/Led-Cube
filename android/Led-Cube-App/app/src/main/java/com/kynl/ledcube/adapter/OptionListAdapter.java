@@ -29,6 +29,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
     private OnOptionValueChangeListener onOptionValueChangeListener;
 
     public OptionListAdapter(List<EffectItem> effectItemList) {
+        Log.d(TAG, "OptionListAdapter: ");
         this.effectItemList = effectItemList;
     }
 
@@ -86,12 +87,20 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
     }
 
     public void select(EffectItem.EffectType type) {
+        if (type == EffectItem.EffectType.OFF) {
+            effectItem = null;
+            optionItemList = null;
+            notifyDataSetChanged();
+            return;
+        }
+
         for (int i = 0; i < effectItemList.size(); i++) {
             if (effectItemList.get(i).getType() == type) {
                 effectItem = effectItemList.get(i);
                 optionItemList = effectItem.getOptionItemList();
                 Log.i(TAG, "updateEffectType: Update effect type " + effectItem.getType());
                 notifyDataSetChanged();
+                return;
             }
         }
     }

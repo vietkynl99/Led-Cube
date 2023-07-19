@@ -56,9 +56,15 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
 
 
     private void setSelectedPosition(int selectedPosition) {
-        if (selectedPosition >= 0 && selectedPosition <= effectItemList.size()) {
+        if (selectedPosition < 0 || selectedPosition >= effectItemList.size()) {
+            Log.i(TAG, "setSelectedPosition: " + selectedPosition);
+            if (this.selectedPosition >= 0 && this.selectedPosition < effectItemList.size()) {
+                notifyItemChanged(this.selectedPosition);
+            }
+            this.selectedPosition = selectedPosition;
+        } else {
+            Log.i(TAG, "setSelectedPosition: type " + effectItemList.get(selectedPosition).getType());
             if (this.selectedPosition != selectedPosition) {
-                Log.i(TAG, "setSelectedPosition: type " + effectItemList.get(selectedPosition).getType());
                 // notify old position
                 if (this.selectedPosition >= 0) {
                     notifyItemChanged(this.selectedPosition);
@@ -77,7 +83,7 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
                 return;
             }
         }
-        Log.e(TAG, "select: Error. Can not find type " + type);
+        setSelectedPosition(-1);
     }
 
 
