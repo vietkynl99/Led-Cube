@@ -32,11 +32,15 @@ void LedManager::process()
 {
     static unsigned long long showTime = 0;
     static uint16_t hue = 0;
-    if ((unsigned long long)(millis() - showTime) > 10UL)
+
+    if (mType != OFF)
     {
-        hue += 60;
-        fillRainbowColor(hue, 200);
-        showTime = millis();
+        if ((unsigned long long)(millis() - showTime) > 10UL)
+        {
+            hue += 60;
+            fillRainbowColor(hue, 200, 255, mBrightness * 255 / 100);
+            showTime = millis();
+        }
     }
 }
 
@@ -45,6 +49,10 @@ void LedManager::setType(int type)
     if (mType != type)
     {
         mType = type;
+        if (mType == OFF)
+        {
+            turnOff();
+        }
     }
 }
 
@@ -73,4 +81,9 @@ void LedManager::fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat,
         startHue += dHue;
     }
     strip->show();
+}
+
+void LedManager::turnOff()
+{
+    fillColor(0, 0, 0);
 }
