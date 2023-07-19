@@ -38,7 +38,7 @@ import com.kynl.ledcube.common.CommonUtils.ServerState;
 
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
-    private final int networkScanTime = 10;
+    private final int networkScanTime = 5000;
     private Handler mHandler;
     private Runnable mRunnable;
     private final Gson gson = new Gson();
@@ -195,17 +195,19 @@ public class NetworkService extends Service {
         mHandler = new Handler();
         mRunnable = () -> {
             // If it have free time for 5 seconds, then start checking the connection
+            int scanTime = networkScanTime;
             if (!ServerManager.getInstance().isBusy()) {
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - lastFreeTime > networkScanTime * 500) {
+                if (currentTime - lastFreeTime > networkScanTime) {
                     if (ServerManager.getInstance().isSynced()) {
+                        scanTime = scanTime * 2;
                         requestConnectToSavedDevice();
                     } else {
                         requestSyncLastData();
                     }
                 }
             }
-            mHandler.postDelayed(mRunnable, networkScanTime * 1000);
+            mHandler.postDelayed(mRunnable, scanTime);
         };
 
         /* Try to connect in first time */
@@ -216,7 +218,7 @@ public class NetworkService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "onStartCommand: ");
         // Runnable
-        mHandler.postDelayed(mRunnable, networkScanTime * 1000);
+        mHandler.postDelayed(mRunnable, networkScanTime);
         return START_STICKY;
     }
 
