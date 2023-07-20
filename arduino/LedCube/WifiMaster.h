@@ -13,7 +13,7 @@
 #define WM_NONBLOCKING_MODE 1
 
 /* AP mode */
-#define AP_SSID "Kynl Led Cube"
+#define AP_SSID "Led Cube"
 #define AP_PASSWORD "12345678"
 
 class WifiMaster
