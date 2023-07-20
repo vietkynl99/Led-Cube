@@ -18,15 +18,22 @@ void ServerManager::init()
 
 void ServerManager::checkWifiStatus()
 {
-	static int pre_status = -1;
-	int status = WiFi.status();
-	if (status != pre_status)
-	{
-		LOG_WIFI("WiFi status changed to %d", status);
-	}
-	pre_status = status;
+    static int pre_status = -1;
+    int status = WiFi.status();
+    if (status != pre_status)
+    {
+        pre_status = status;
+        LOG_WIFI("WiFi status changed to %d", status);
+        if (status == WL_CONNECTED)
+        {
+            HardwareController::getInstance()->beep(1);
+        }
+        else
+        {
+            HardwareController::getInstance()->beep(2);
+        }
+    }
 }
-
 
 String ServerManager::generateJson(String key, String value)
 {
@@ -102,18 +109,19 @@ void ServerManager::pairDevice(long oldKey)
 
 void ServerManager::dataProcessing(String data)
 {
-    if(data.isEmpty()) {
+    if (data.isEmpty())
+    {
         return;
     }
 
     StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
     deserializeJson(jsonDoc, data);
 
-    if(jsonDoc["type"].is<int>())
+    if (jsonDoc["type"].is<int>())
     {
         LedManager::getInstance()->setType(jsonDoc["type"]);
     }
-    if(jsonDoc["brightness"].is<int>())
+    if (jsonDoc["brightness"].is<int>())
     {
         LedManager::getInstance()->setBrightness(jsonDoc["brightness"]);
     }
