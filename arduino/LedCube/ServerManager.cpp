@@ -22,16 +22,16 @@ void ServerManager::checkWifiStatus()
     int status = WiFi.status();
     if (status != pre_status)
     {
-        pre_status = status;
         LOG_WIFI("WiFi status changed to %d", status);
         if (status == WL_CONNECTED)
         {
             HardwareController::getInstance()->beep(1);
         }
-        else
+        else if(pre_status == WL_CONNECTED)
         {
             HardwareController::getInstance()->beep(2);
         }
+        pre_status = status;
     }
 }
 
