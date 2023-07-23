@@ -52,6 +52,12 @@ public class EffectManager {
         rgbOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.RGB, rgbOptionItemList));
 
+        // Gravity
+        List<OptionItem> gravityOptionItemList = new ArrayList<>();
+        gravityOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
+        gravityOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR));
+        effectItemList.add(new EffectItem(EffectItem.EffectType.GRAVITY, gravityOptionItemList));
+
         // Music
         List<OptionItem> musicOptionItemList = new ArrayList<>();
         musicOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
@@ -80,7 +86,7 @@ public class EffectManager {
         setDefaultValue();
     }
 
-    private void createDefaultList() {
+    public void createDefaultList() {
         createDefaultEffectList();
         saveEffectList();
 
@@ -94,6 +100,9 @@ public class EffectManager {
         setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.SPEED, 50);
         setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.DIRECTION, 50);
         setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.SENSITIVITY, 50);
+
+        setOptionValue(EffectItem.EffectType.GRAVITY, OptionItem.OptionType.BRIGHTNESS, 50);
+        setOptionValue(EffectItem.EffectType.GRAVITY, OptionItem.OptionType.COLOR, 50);
 
         setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.BRIGHTNESS, 50);
         setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.COLOR, 50);

@@ -10,7 +10,8 @@ public class EffectItem {
         RGB,
         MUSIC,
         WAVE,
-        FLASH
+        FLASH,
+        GRAVITY
     }
 
     private final EffectType type;
@@ -29,7 +30,7 @@ public class EffectItem {
         return optionItemList;
     }
 
-    public int getIconId () {
+    public int getIconId() {
         switch (type) {
             case RGB:
                 return R.drawable.rgb_64;
@@ -39,12 +40,14 @@ public class EffectItem {
                 return R.drawable.wave_50;
             case FLASH:
                 return R.drawable.lightning_60;
+            case GRAVITY:
+                return R.drawable.gravity_64;
             default:
                 return -1;
         }
     }
 
-    public int getHighlightIconId () {
+    public int getHighlightIconId() {
         switch (type) {
             case RGB:
                 return R.drawable.rgb_hightlight_64;
@@ -54,6 +57,8 @@ public class EffectItem {
                 return R.drawable.wave_hightlight_50;
             case FLASH:
                 return R.drawable.lightning_hightlight_60;
+            case GRAVITY:
+                return R.drawable.gravity_highlight_64;
             default:
                 return -1;
         }

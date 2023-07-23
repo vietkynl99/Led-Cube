@@ -185,7 +185,8 @@ public class HomeFragment extends Fragment {
 
     private void restoreDefaultSettings() {
         Log.d(TAG, "restoreDefaultSettings: ");
-        EffectManager.getInstance().setDefaultValue();
+        //TODO: reload all lists
+        EffectManager.getInstance().createDefaultList();
         selectEffectType(EffectManager.getInstance().getCurrentEffectType());
     }
 
