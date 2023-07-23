@@ -20,7 +20,9 @@ HardwareController::HardwareController()
     mHumidity = -1;
     mBatteryLevel = -1;
     isMeasuringBattery = false;
-    dhtSensor = new DHT_Async(DHT11_PIN, DHT_TYPE_11);
+    angleXOffset = 0;
+    angleYOffset = 0;
+    angleZOffset = 0;
 }
 
 void HardwareController::init()
@@ -30,6 +32,7 @@ void HardwareController::init()
     initSerial();
 #endif
     initEEPROM();
+    initSensors();
 }
 
 void HardwareController::process()
@@ -39,7 +42,10 @@ void HardwareController::process()
     fakePairModeHandler();
     checkPairMode();
     measureBattery();
+#ifdef ENABLE_DHT11_SENSOR
     processDHT();
+#endif
+    processMPU();
 }
 
 #if USE_SERIAL_DEBUG
@@ -59,6 +65,18 @@ void HardwareController::initHardwarePin()
 void HardwareController::initEEPROM()
 {
     EEPROM.begin(EEPROM_SIZE);
+}
+
+void HardwareController::initSensors()
+{
+#ifdef ENABLE_DHT11_SENSOR
+    dhtSensor = new DHT_Async(DHT11_PIN, DHT_TYPE_11);
+#endif
+
+    mpuSensor = new MPU6050(Wire);
+    Wire.begin();
+    mpuSensor->begin();
+    // mpuSensor->calcGyroOffsets(true);
 }
 
 void HardwareController::turnOnFakePairMode()
@@ -235,6 +253,11 @@ void HardwareController::processDHT()
     }
 }
 
+void HardwareController::processMPU()
+{
+    mpuSensor->update();
+}
+
 bool HardwareController::isPairingMode()
 {
     return mPairMode || mFakePairMode;
@@ -261,7 +284,8 @@ void HardwareController::beep(int count, bool blocking)
     }
 }
 
-String HardwareController::getAllData() {
+String HardwareController::getSensorsData()
+{
     StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
     String json;
     jsonDoc["bat"] = mBatteryLevel;
@@ -270,4 +294,19 @@ String HardwareController::getAllData() {
 
     serializeJson(jsonDoc, json);
     return json;
+}
+
+float HardwareController::getAngleX()
+{
+    return mpuSensor->getAngleX() + angleXOffset;
+}
+
+float HardwareController::getAngleY()
+{
+    return mpuSensor->getAngleY() + angleYOffset;
+}
+
+float HardwareController::getAngleZ()
+{
+    return mpuSensor->getAngleZ() + angleZOffset;
 }

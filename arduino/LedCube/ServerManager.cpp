@@ -27,7 +27,7 @@ void ServerManager::checkWifiStatus()
         {
             HardwareController::getInstance()->beep(1);
         }
-        else if(pre_status == WL_CONNECTED)
+        else if (pre_status < 0 || pre_status == WL_CONNECTED)
         {
             HardwareController::getInstance()->beep(2);
         }
@@ -184,7 +184,7 @@ void ServerManager::handleRequest()
     {
     case EVENT_REQUEST_CHECK_CONNECTION:
     {
-        sendResponse(EVENT_RESPONSE_UPDATE_DATA, HardwareController::getInstance()->getAllData());
+        sendResponse(EVENT_RESPONSE_UPDATE_DATA, HardwareController::getInstance()->getSensorsData());
         break;
     }
     case EVENT_REQUEST_SEND_DATA:

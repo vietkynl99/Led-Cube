@@ -49,7 +49,7 @@ void setup()
 	ledManager->init();
 	wifiMaster->init();
 	ServerManager::init();
-	serviceManager->init();
+	// serviceManager->init();
 }
 
 void loop()

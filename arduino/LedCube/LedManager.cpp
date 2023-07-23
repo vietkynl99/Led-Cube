@@ -15,31 +15,64 @@ LedManager *LedManager::getInstance()
 LedManager::LedManager()
 {
     mType = 0;
-    mBrightness = 0;
+    mBrightness = -1;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
 void LedManager::init()
 {
     strip->begin();
-    strip->setBrightness(100);
+    strip->setBrightness(20);
     strip->show();
 
-    fillColor(0, 0, 0);
+    turnOff();
 }
 
 void LedManager::process()
 {
-    static unsigned long long showTime = 0;
+    static unsigned long long time = 0;
     static uint16_t hue = 0;
 
-    if (mType != OFF)
+    if ((unsigned long long)(millis() - time) > 10UL)
     {
-        if ((unsigned long long)(millis() - showTime) > 10UL)
+        time = millis();
+        switch (mType)
+        {
+        case RGB:
         {
             hue += 60;
-            fillRainbowColor(hue, 200, 255, mBrightness * 255 / 100);
-            showTime = millis();
+            fillRainbowColor(hue, 200);
+            break;
+        }
+        case GRAVITY:
+        {
+            float angleX = HardwareController::getInstance()->getAngleX();
+            float angleY = HardwareController::getInstance()->getAngleY();
+            float angleZ = HardwareController::getInstance()->getAngleZ();
+            int pointX = 4;
+            int pointY = 4;
+            int pointZ = 4;
+            float offset = -angleX * pointX - angleY * pointY - angleZ * pointZ;
+            // LOG_LED("angleX:%.2f, angleY:%.2f, angleZ:%.2f", angleX, angleY, angleZ);
+
+            hue = HUE_BLUE;
+            for (int i = 0; i < NUM_LEDS; i++)
+            {
+                int x, y, z;
+                if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+                {
+                    bool enable = angleX * x + angleY * y + angleZ * z + offset > 0;
+                    setLed(i, enable, strip->ColorHSV(hue));
+                }
+                hue += 50;
+            }
+            strip->show();
+            break;
+        }
+        default:
+        {
+            break;
+        }
         }
     }
 }
@@ -49,10 +82,7 @@ void LedManager::setType(int type)
     if (mType != type)
     {
         mType = type;
-        if (mType == OFF)
-        {
-            turnOff();
-        }
+        turnOff();
     }
 }
 
@@ -61,6 +91,7 @@ void LedManager::setBrightness(int brightness)
     if (mBrightness != brightness)
     {
         mBrightness = brightness;
+        strip->setBrightness(mBrightness);
     }
 }
 
@@ -86,4 +117,21 @@ void LedManager::fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat,
 void LedManager::turnOff()
 {
     fillColor(0, 0, 0);
+}
+
+void LedManager::setLed(int position, bool enable, uint32_t color)
+{
+    if (position >= 0 && position < NUM_LEDS)
+    {
+        strip->setPixelColor(position, enable ? strip->gamma32(color) : 0);
+    }
+}
+
+void LedManager::setLed(int x, int y, int z, bool enable, uint32_t color)
+{
+    int position = PixelCoordinate::getArrayPosition(x, y, z);
+    if (position >= 0)
+    {
+        setLed(position, enable, color);
+    }
 }

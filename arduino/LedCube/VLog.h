@@ -8,6 +8,7 @@
 #define LOG_WIFI(...) LOG("WIFI", __VA_ARGS__)
 #define LOG_SYSTEM(...) LOG("SYSTEM", __VA_ARGS__)
 #define LOG_SERVER(...) LOG("SERVER", __VA_ARGS__)
+#define LOG_LED(...) LOG("LED", __VA_ARGS__)
 #else
 #define LOG(TAG, MSG)
 #define LOG_WIFI(MSG)
