@@ -90,7 +90,7 @@ public class EffectManager {
         createDefaultEffectList();
         saveEffectList();
 
-        setCurrentEffectType(EffectItem.EffectType.RGB);
+        setCurrentEffectType(EffectItem.EffectType.OFF);
     }
 
     public void setDefaultValue() {
