@@ -41,6 +41,12 @@ Press and then long press for about 3s: Reset wifi settings
 #define BATTERY_MIN_VOLTAGE 6.4 // V
 
 #define EEPROM_SIZE 16 // bytes
+#define EEPROM_ADDR_API_KEY 0
+#define EEPROM_ADDR_LED_TYPE 4
+#define EEPROM_ADDR_LED_BRIGHTNESS 8
+
+#define EEPROM_SET_DATA(ADDRESS, VALUE) {EEPROM.put(ADDRESS, VALUE); EEPROM.commit();}
+#define EEPROM_GET_DATA(ADDRESS, VALUE) {EEPROM.get(ADDRESS, VALUE);}
 
 class HardwareController
 {

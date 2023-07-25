@@ -214,13 +214,12 @@ void ServerManager::process()
 
 void ServerManager::saveApiKeyToEEPROM()
 {
-    EEPROM.put(0, apiKey);
-    EEPROM.commit();
+    EEPROM_SET_DATA(EEPROM_ADDR_API_KEY, apiKey);
 }
 
 void ServerManager::loadApiKeyFromEEPROM()
 {
-    EEPROM.get(0, apiKey);
+    EEPROM_GET_DATA(EEPROM_ADDR_API_KEY, apiKey);
     LOG_SYSTEM("Read EEPROM -> API KEY: %d", apiKey);
 }
 

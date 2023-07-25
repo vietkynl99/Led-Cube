@@ -18,6 +18,8 @@
 #define HUE_GREEN   21845
 #define HUE_BLUE    43690
 
+#define RESTORE_PREVIOUS_DATA
+
 class LedManager
 {
 private:
@@ -28,7 +30,8 @@ private:
         MUSIC,
         WAVE,
         FLASH,
-        GRAVITY
+        GRAVITY,
+        EFFECT_MAX
     };
 
     static LedManager *instance;

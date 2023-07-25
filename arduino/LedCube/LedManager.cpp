@@ -14,18 +14,33 @@ LedManager *LedManager::getInstance()
 
 LedManager::LedManager()
 {
-    mType = 0;
-    mBrightness = -1;
+    mType = OFF;
+    mBrightness = 0;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
 void LedManager::init()
 {
     strip->begin();
-    strip->setBrightness(20);
     strip->show();
-
     turnOff();
+
+#ifdef RESTORE_PREVIOUS_DATA
+    EEPROM_GET_DATA(EEPROM_ADDR_LED_TYPE, mType);
+    EEPROM_GET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
+    if (mType < OFF || mType >= EFFECT_MAX)
+    {
+        mType = OFF;
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, mType);
+    }
+    if (mBrightness < 0 || mBrightness > 100)
+    {
+        mBrightness = 0;
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
+    }
+    strip->setBrightness(mBrightness);
+#endif
+    LOG_LED("type: %d, brightness: %d", mType, mBrightness);
 }
 
 void LedManager::process()
@@ -93,6 +108,9 @@ void LedManager::setType(int type)
     {
         mType = type;
         turnOff();
+#ifdef RESTORE_PREVIOUS_DATA
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, mType);
+#endif
     }
 }
 
@@ -102,6 +120,9 @@ void LedManager::setBrightness(int brightness)
     {
         mBrightness = brightness;
         strip->setBrightness(mBrightness);
+#ifdef RESTORE_PREVIOUS_DATA
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
+#endif
     }
 }
 
