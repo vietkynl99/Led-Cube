@@ -16,8 +16,6 @@ HardwareController::HardwareController()
     mPairMode = false;
     mFakePairMode = false;
     mBeepPlayingCount = 0;
-    mTemperature = -1;
-    mHumidity = -1;
     mBatteryLevel = -1;
     isMeasuringBattery = false;
 }
@@ -70,6 +68,8 @@ void HardwareController::initSensors()
 {
 #ifdef ENABLE_DHT11_SENSOR
     dhtSensor = new DHT_Async(DHT11_PIN, DHT_TYPE_11);
+    mTemperature = -1;
+    mHumidity = -1;
 #endif
 
 #ifdef ENABLE_MPU6050_SENSOR
@@ -77,7 +77,7 @@ void HardwareController::initSensors()
     Wire.begin();
     mpuSensor->begin();
     // mpuSensor->calcGyroOffsets(true);
-    
+
     angleXOffset = 0;
     angleYOffset = 0;
     angleZOffset = 0;
@@ -240,6 +240,7 @@ void HardwareController::measureBattery()
     }
 }
 
+#ifdef ENABLE_DHT11_SENSOR
 void HardwareController::processDHT()
 {
     static float temp, hum;
@@ -257,6 +258,7 @@ void HardwareController::processDHT()
         }
     }
 }
+#endif
 
 #ifdef ENABLE_MPU6050_SENSOR
 void HardwareController::processMPU()
@@ -296,8 +298,10 @@ String HardwareController::getSensorsData()
     StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
     String json;
     jsonDoc["bat"] = mBatteryLevel;
+#ifdef ENABLE_DHT11_SENSOR
     jsonDoc["hum"] = mHumidity;
     jsonDoc["temp"] = mTemperature;
+#endif
 
     serializeJson(jsonDoc, json);
     return json;

@@ -16,7 +16,7 @@ Long press about 3s: Switch to Pair mode
 Press and then long press for about 3s: Reset wifi settings
 */
 
-// #define ENABLE_DHT11_SENSOR
+#define ENABLE_DHT11_SENSOR
 // #define ENABLE_MPU6050_SENSOR
 
 #define ADC_PIN A0
@@ -51,10 +51,13 @@ private:
     int mBeepPlayingCount;
     bool isMeasuringBattery;
 
+    int mBatteryLevel;
+
+#ifdef ENABLE_DHT11_SENSOR
     DHT_Async *dhtSensor;
     int mTemperature;
     int mHumidity;
-    int mBatteryLevel;
+#endif
 
 #ifdef ENABLE_MPU6050_SENSOR
     MPU6050 *mpuSensor;
@@ -77,7 +80,9 @@ private:
     void beepHandler();
     void buttonHandler();
     void measureBattery();
+#ifdef ENABLE_DHT11_SENSOR
     void processDHT();
+#endif
 #ifdef ENABLE_MPU6050_SENSOR
     void processMPU();
 #endif
