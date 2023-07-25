@@ -57,6 +57,7 @@ void LedManager::process()
             strip->show();
             break;
         }
+#ifdef ENABLE_MPU6050_SENSOR
         case GRAVITY:
         {
             float angleX = HardwareController::getInstance()->getAngleX();
@@ -77,6 +78,7 @@ void LedManager::process()
             strip->show();
             break;
         }
+#endif
         default:
         {
             break;

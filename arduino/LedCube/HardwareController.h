@@ -17,6 +17,7 @@ Press and then long press for about 3s: Reset wifi settings
 */
 
 // #define ENABLE_DHT11_SENSOR
+// #define ENABLE_MPU6050_SENSOR
 
 #define ADC_PIN A0
 #define ADC_CTRL_PIN D3
@@ -55,10 +56,12 @@ private:
     int mHumidity;
     int mBatteryLevel;
 
+#ifdef ENABLE_MPU6050_SENSOR
     MPU6050 *mpuSensor;
     float angleXOffset;
     float angleYOffset;
     float angleZOffset;
+#endif
 
 private:
     HardwareController();
@@ -75,7 +78,9 @@ private:
     void buttonHandler();
     void measureBattery();
     void processDHT();
+#ifdef ENABLE_MPU6050_SENSOR
     void processMPU();
+#endif
 
 public:
     static HardwareController *getInstance();
@@ -85,9 +90,11 @@ public:
     bool isPairingMode();
     void beep(int count, bool blocking = false);
     String getSensorsData();
+#ifdef ENABLE_MPU6050_SENSOR
     float getAngleX();
     float getAngleY();
     float getAngleZ();
+#endif
 };
 
 #endif

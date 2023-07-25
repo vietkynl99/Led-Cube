@@ -20,9 +20,6 @@ HardwareController::HardwareController()
     mHumidity = -1;
     mBatteryLevel = -1;
     isMeasuringBattery = false;
-    angleXOffset = 0;
-    angleYOffset = 0;
-    angleZOffset = 0;
 }
 
 void HardwareController::init()
@@ -45,7 +42,9 @@ void HardwareController::process()
 #ifdef ENABLE_DHT11_SENSOR
     processDHT();
 #endif
+#ifdef ENABLE_MPU6050_SENSOR
     processMPU();
+#endif
 }
 
 #if USE_SERIAL_DEBUG
@@ -73,10 +72,16 @@ void HardwareController::initSensors()
     dhtSensor = new DHT_Async(DHT11_PIN, DHT_TYPE_11);
 #endif
 
+#ifdef ENABLE_MPU6050_SENSOR
     mpuSensor = new MPU6050(Wire);
     Wire.begin();
     mpuSensor->begin();
     // mpuSensor->calcGyroOffsets(true);
+    
+    angleXOffset = 0;
+    angleYOffset = 0;
+    angleZOffset = 0;
+#endif
 }
 
 void HardwareController::turnOnFakePairMode()
@@ -253,10 +258,12 @@ void HardwareController::processDHT()
     }
 }
 
+#ifdef ENABLE_MPU6050_SENSOR
 void HardwareController::processMPU()
 {
     mpuSensor->update();
 }
+#endif
 
 bool HardwareController::isPairingMode()
 {
@@ -296,6 +303,7 @@ String HardwareController::getSensorsData()
     return json;
 }
 
+#ifdef ENABLE_MPU6050_SENSOR
 float HardwareController::getAngleX()
 {
     return mpuSensor->getAngleX() + angleXOffset;
@@ -310,3 +318,4 @@ float HardwareController::getAngleZ()
 {
     return mpuSensor->getAngleZ() + angleZOffset;
 }
+#endif
