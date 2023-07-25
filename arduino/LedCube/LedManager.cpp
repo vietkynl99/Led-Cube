@@ -32,6 +32,11 @@ void LedManager::process()
 {
     static unsigned long long time = 0;
     static uint16_t hue = 0;
+    static int x, y, z;
+    static int a = 1, b = 1, c = 1;
+    static int pointX = 4, pointY = 4, pointZ = 4;
+    static int d = -(a * x + b * y + c * z);
+    static int dHue = 100;
 
     if ((unsigned long long)(millis() - time) > 10UL)
     {
@@ -40,8 +45,16 @@ void LedManager::process()
         {
         case RGB:
         {
-            hue += 60;
-            fillRainbowColor(hue, 200);
+            hue += dHue;
+            for (int i = 0; i < NUM_LEDS; i++)
+            {
+                if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+                {
+                    int distance = a * x + b * y + c * z;
+                    setLed(i, 1, strip->ColorHSV(distance * 500 + hue));
+                }
+            }
+            strip->show();
             break;
         }
         case GRAVITY:
@@ -49,16 +62,11 @@ void LedManager::process()
             float angleX = HardwareController::getInstance()->getAngleX();
             float angleY = HardwareController::getInstance()->getAngleY();
             float angleZ = HardwareController::getInstance()->getAngleZ();
-            int pointX = 4;
-            int pointY = 4;
-            int pointZ = 4;
             float offset = -angleX * pointX - angleY * pointY - angleZ * pointZ;
-            // LOG_LED("angleX:%.2f, angleY:%.2f, angleZ:%.2f", angleX, angleY, angleZ);
 
             hue = HUE_BLUE;
             for (int i = 0; i < NUM_LEDS; i++)
             {
-                int x, y, z;
                 if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
                 {
                     bool enable = angleX * x + angleY * y + angleZ * z + offset > 0;
