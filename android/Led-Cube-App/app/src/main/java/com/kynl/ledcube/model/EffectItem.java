@@ -11,7 +11,8 @@ public class EffectItem {
         MUSIC,
         WAVE,
         FLASH,
-        GRAVITY
+        GRAVITY,
+        EFFECT_MAX
     }
 
     private final EffectType type;
