@@ -15,7 +15,11 @@ LedManager *LedManager::getInstance()
 LedManager::LedManager()
 {
     mType = OFF;
-    mBrightness = 0;
+    mBrightness = 1;
+    mSensitivity = 0;
+    mSubType = NONE;
+    mGHue = HUE_GREEN;
+    mDHue = 0;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
@@ -27,6 +31,9 @@ void LedManager::init()
 #ifdef RESTORE_PREVIOUS_DATA
     restoreSettings();
 #endif
+    setType(mType, true);
+    setBrightness(mBrightness, true);
+    LOG_LED("type: %d, brightness: %d", mType, mBrightness);
 
     FFT = new arduinoFFT();
 }
@@ -35,6 +42,8 @@ void LedManager::restoreSettings()
 {
     EEPROM_GET_DATA(EEPROM_ADDR_LED_TYPE, mType);
     EEPROM_GET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
+    EEPROM_GET_DATA(EEPROM_ADDR_LED_SENSITIVITY, mSensitivity);
+
     if (mType < OFF || mType >= EFFECT_MAX)
     {
         mType = OFF;
@@ -42,11 +51,14 @@ void LedManager::restoreSettings()
     }
     if (mBrightness < 0 || mBrightness > 100)
     {
-        mBrightness = 0;
+        mBrightness = 1;
         EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
     }
-    strip->setBrightness(mBrightness);
-    LOG_LED("type: %d, brightness: %d", mType, mBrightness);
+    if (mSensitivity < 0 || mSensitivity > 100)
+    {
+        mSensitivity = 1;
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_SENSITIVITY, mSensitivity);
+    }
 }
 
 void LedManager::process()
@@ -77,9 +89,16 @@ void LedManager::process()
     }
 }
 
-void LedManager::setType(int type)
+void LedManager::setType(int type, bool force)
 {
+#ifdef RESTORE_PREVIOUS_DATA
     if (mType != type)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, type);
+    }
+#endif
+
+    if (mType != type || force)
     {
         mType = type;
         if (mType != MUSIC)
@@ -90,21 +109,48 @@ void LedManager::setType(int type)
             }
         }
         turnOff();
-#ifdef RESTORE_PREVIOUS_DATA
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, mType);
-#endif
+
+        switch (mType)
+        {
+        case MUSIC:
+            mGHue = HUE_BLUE;
+            mDHue = 1200;
+            mSubType = MUSIC_TYPE_1_SIDE;
+            break;
+        default:
+            break;
+        }
     }
 }
 
-void LedManager::setBrightness(int brightness)
+void LedManager::setBrightness(int brightness, bool force)
 {
+#ifdef RESTORE_PREVIOUS_DATA
     if (mBrightness != brightness)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, brightness);
+    }
+#endif
+
+    if (mBrightness != brightness || force)
     {
         mBrightness = brightness;
         strip->setBrightness(mBrightness);
+    }
+}
+
+void LedManager::setSensitivity(int sensitivity, bool force)
+{
 #ifdef RESTORE_PREVIOUS_DATA
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
+    if (mSensitivity != sensitivity)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_SENSITIVITY, sensitivity);
+    }
 #endif
+
+    if (mSensitivity != sensitivity || force)
+    {
+        mSensitivity = sensitivity;
     }
 }
 
@@ -168,10 +214,7 @@ void LedManager::gravityEffectHandler()
 void LedManager::musicEffectHandler()
 {
     static unsigned long long time = 0, time2 = 0, time3 = 0, time4 = 0;
-    static uint16_t hue = 0;
     static int x, y, z;
-    static int pointX = 4, pointY = 4, pointZ = 4;
-    static int dHue = 100;
     static int index = 0;
     static int scale[MATRIX_SIZE_1D] = {26, 28, 30, 32, 34, 36, 38, 40};
     static int fftLevel[MATRIX_SIZE_1D] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -225,14 +268,45 @@ void LedManager::musicEffectHandler()
 
     if ((unsigned long long)(millis() - time) > 10UL)
     {
-        hue = HUE_BLUE;
-        for (int i = MATRIX_SIZE_2D; i < 2 * MATRIX_SIZE_2D; i++)
+        for (int i = 0; i < NUM_LEDS; i++)
         {
-            if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+            int side = i / MATRIX_SIZE_2D;
+            if (mSubType == MUSIC_TYPE_FULL_SIDES ||
+                (mSubType == MUSIC_TYPE_4_SIDES && (side != 0 && side != 4)) ||
+                (mSubType == MUSIC_TYPE_1_SIDE && side == 1))
             {
-                setLed(i, (y >= 1 && y <= MATRIX_SIZE_1D) ? z <= fftLevel[y - 1] + 1 : 0, strip->ColorHSV(hue));
+                if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+                {
+                    int level = z;
+                    int pos = 0; // 0-7
+                    switch (side)
+                    {
+                    case 0:
+                    case 4:
+                        level = x;
+                        pos = y - 1;
+                        break;
+                    case 1:
+                        pos = y - 1;
+                        break;
+                    case 2:
+                        pos = x - 1;
+                        break;
+                    case 3:
+                        pos = MATRIX_SIZE_1D - y;
+                        break;
+                    case 5:
+                        pos = MATRIX_SIZE_1D - x;
+                        break;
+                    default:
+                        break;
+                    }
+                    if (pos >= 0 && pos < MATRIX_SIZE_1D)
+                    {
+                        setLed(i, level <= fftLevel[pos], strip->ColorHSV(mGHue + mDHue * level + mDHue * (x + y) / 3));
+                    }
+                }
             }
-            hue += dHue;
         }
         strip->show();
         time = millis();

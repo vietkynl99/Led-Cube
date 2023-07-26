@@ -42,10 +42,23 @@ private:
         EFFECT_MAX
     };
 
+    enum SubEffectType
+    {
+        NONE,
+        MUSIC_TYPE_1_SIDE,
+        MUSIC_TYPE_4_SIDES,
+        MUSIC_TYPE_FULL_SIDES,
+        SUB_EFFECT_MAX
+    };
+
     static LedManager *instance;
     Adafruit_NeoPixel *strip;
     int mType;
     int mBrightness;
+    int mSensitivity;
+    int mSubType;
+    uint16_t mGHue;
+    uint16_t mDHue;
 
     arduinoFFT *FFT;
 
@@ -57,8 +70,9 @@ public:
     void init();
     void process();
     void restoreSettings();
-    void setType(int type);
-    void setBrightness(int brightness);
+    void setType(int type, bool force = false);
+    void setBrightness(int brightness, bool force = false);
+    void setSensitivity(int sensitivity, bool force = false);
     void rgbEffectHandler();
 #ifdef ENABLE_MPU6050_SENSOR
     void gravityEffectHandler();

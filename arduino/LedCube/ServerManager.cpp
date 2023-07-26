@@ -125,6 +125,10 @@ void ServerManager::dataProcessing(String data)
     {
         LedManager::getInstance()->setBrightness(jsonDoc["brightness"]);
     }
+    if (jsonDoc["sensitivity"].is<int>())
+    {
+        LedManager::getInstance()->setSensitivity(jsonDoc["sensitivity"]);
+    }
 }
 
 void ServerManager::handleRequest()
