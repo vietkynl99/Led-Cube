@@ -29,9 +29,6 @@ void LedManager::init()
 #endif
 
     FFT = new arduinoFFT();
-
-    // test
-    setType(MUSIC);
 }
 
 void LedManager::restoreSettings()
