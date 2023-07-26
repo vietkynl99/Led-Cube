@@ -17,7 +17,7 @@ HardwareController::HardwareController()
     mFakePairMode = false;
     mBeepPlayingCount = 0;
     mBatteryLevel = -1;
-    isMeasuringBattery = false;
+    mAdcMode = ADC_MODE_NONE;
 }
 
 void HardwareController::init()
@@ -36,7 +36,9 @@ void HardwareController::process()
     beepHandler();
     fakePairModeHandler();
     checkPairMode();
+#ifdef ENABLE_BATTERY_MEASUREMENT
     measureBattery();
+#endif
 #ifdef ENABLE_DHT11_SENSOR
     processDHT();
 #endif
@@ -57,6 +59,9 @@ void HardwareController::initHardwarePin()
 {
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(BUZZER_PIN, OUTPUT);
+    pinMode(ADC_CTRL_PIN, OUTPUT);
+
+    digitalWrite(ADC_CTRL_PIN, LOW);
 }
 
 void HardwareController::initEEPROM()
@@ -203,39 +208,56 @@ void HardwareController::buttonHandler()
 
 void HardwareController::measureBattery()
 {
-    static unsigned long long time = 0, scanTime = 0;
+    static unsigned long long time = 0, startTime = 0;
     static bool isFirstTime = true;
     static int measureCount = 0;
     static float result = 0;
-    if (!isMeasuringBattery && (isFirstTime || (unsigned long long)(millis() - time) > BATTERY_SCAN_TIME))
+    static bool isRunning = false;
+
+    if (!isRunning)
     {
-        isMeasuringBattery = true;
-        measureCount = BATTERY_MEASURE_COUNT_MAX;
-        result = 0;
-        scanTime = millis();
-    }
-    if (isMeasuringBattery && (unsigned long long)(millis() - scanTime) > 10UL)
-    {
-        scanTime = millis();
-        result += analogRead(ADC_PIN);
-        measureCount--;
-        if (measureCount <= 0)
+        if ((isFirstTime || (unsigned long long)(millis() - time) > BATTERY_SCAN_TIME))
         {
-            isFirstTime = false;
-            isMeasuringBattery = false;
-            time = millis();
-            result = result / BATTERY_MEASURE_COUNT_MAX;
-            float voltage = (result - 255) / 55;
-            mBatteryLevel = (voltage - BATTERY_MIN_VOLTAGE) * 100 / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE);
-            if (mBatteryLevel > 100)
+            if (!isAdcAvailable())
             {
-                mBatteryLevel = 100;
+                time = millis();
             }
-            if (mBatteryLevel < 0)
+            else
             {
-                mBatteryLevel = 0;
+                changeAdcMode(ADC_MODE_BATTERY);
+                isRunning = true;
+                measureCount = BATTERY_MEASURE_COUNT_MAX;
+                result = 0;
+                startTime = millis();
             }
-            LOG_SYSTEM("Battery: %d -> %.2fV (%d%%)", (int)result, voltage, mBatteryLevel);
+        }
+    }
+    else
+    {
+        if ((unsigned long long)(millis() - startTime) > 10UL)
+        {
+            startTime = millis();
+            result += analogRead(ADC_PIN);
+            measureCount--;
+            if (measureCount <= 0)
+            {
+                changeAdcMode(ADC_MODE_NONE);
+                isFirstTime = false;
+                isRunning = false;
+                time = millis();
+                result = result / BATTERY_MEASURE_COUNT_MAX;
+                float voltage = (result - 255) / 55;
+                mBatteryLevel = (voltage - BATTERY_MIN_VOLTAGE) * 100 / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE);
+                if (mBatteryLevel > 100)
+                {
+                    mBatteryLevel = 100;
+                }
+                if (mBatteryLevel < 0)
+                {
+                    mBatteryLevel = 0;
+                }
+                LOG_SYSTEM("Battery: %d -> %.2fV (%d%%)", (int)result, voltage, mBatteryLevel);
+            }
         }
     }
 }
@@ -323,3 +345,30 @@ float HardwareController::getAngleZ()
     return mpuSensor->getAngleZ() + angleZOffset;
 }
 #endif
+
+int HardwareController::getAdc()
+{
+    return analogRead(ADC_PIN);
+}
+
+int HardwareController::getAdcMode()
+{
+    return mAdcMode;
+}
+
+bool HardwareController::isAdcAvailable()
+{
+    return mAdcMode == ADC_MODE_NONE;
+}
+
+void HardwareController::changeAdcMode(int mode)
+{
+    if (!isAdcAvailable() && mode != ADC_MODE_NONE)
+    {
+        LOG_SYSTEM("Error: ADC is not available. Current mode %d", mAdcMode);
+        return;
+    }
+    mAdcMode = mode;
+    LOG_SYSTEM("ADC mode changed to %d", mAdcMode);
+    digitalWrite(ADC_CTRL_PIN, mAdcMode == ADC_MODE_BATTERY);
+}
