@@ -124,7 +124,7 @@ void HardwareController::checkPairMode()
         LOG_SERVER("Pair mode changed to: %d", pairMode);
         if (mPairMode)
         {
-            beep(1);
+            beep(2);
         }
     }
     prePairMode = pairMode;
