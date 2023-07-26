@@ -301,10 +301,7 @@ void LedManager::musicEffectHandler()
                     default:
                         break;
                     }
-                    if (pos >= 0 && pos < MATRIX_SIZE_1D)
-                    {
-                        setLed(i, level <= fftLevel[pos], strip->ColorHSV(mGHue + mDHue * level + mDHue * (x + y) / 3));
-                    }
+                    setLed(i, level <= fftLevel[pos], strip->ColorHSV(mGHue + mDHue * level + mDHue * (x + y) / 3));
                 }
             }
         }
