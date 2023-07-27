@@ -1,7 +1,6 @@
 package com.kynl.ledcube.manager;
 
 
-import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -19,7 +18,6 @@ public class EffectManager {
     private final String TAG = "EffectManager";
     private final Gson gson = new Gson();
     private static EffectManager instance;
-    private Context context;
     private List<EffectItem> effectItemList;
     private EffectItem.EffectType currentEffectType;
 
@@ -33,9 +31,7 @@ public class EffectManager {
         return instance;
     }
 
-    public void init(Context context) {
-        this.context = context;
-
+    public void init() {
         if (!readOldEffectList() || !readOldEffectType()) {
             createDefaultList();
         }
@@ -62,8 +58,8 @@ public class EffectManager {
         List<OptionItem> musicOptionItemList = new ArrayList<>();
         musicOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
         musicOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR));
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.SPEED));
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.DIRECTION));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.MODE, 1,1,3));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.DEVIATION,0,0,100));
         musicOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.MUSIC, musicOptionItemList));
 
@@ -83,7 +79,8 @@ public class EffectManager {
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.FLASH, flashOptionItemList));
 
-        setDefaultValue();
+
+        setCurrentEffectType(EffectItem.EffectType.RGB);
     }
 
     public void createDefaultList() {
@@ -91,34 +88,6 @@ public class EffectManager {
         saveEffectList();
 
         setCurrentEffectType(EffectItem.EffectType.OFF);
-    }
-
-    public void setDefaultValue() {
-        setCurrentEffectType(EffectItem.EffectType.RGB);
-
-        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.BRIGHTNESS, 50);
-        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.SPEED, 50);
-        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.DIRECTION, 50);
-        setOptionValue(EffectItem.EffectType.RGB, OptionItem.OptionType.SENSITIVITY, 50);
-
-        setOptionValue(EffectItem.EffectType.GRAVITY, OptionItem.OptionType.BRIGHTNESS, 50);
-        setOptionValue(EffectItem.EffectType.GRAVITY, OptionItem.OptionType.COLOR, 50);
-
-        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.BRIGHTNESS, 50);
-        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.COLOR, 50);
-        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.SPEED, 50);
-        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.DIRECTION, 50);
-        setOptionValue(EffectItem.EffectType.MUSIC, OptionItem.OptionType.SENSITIVITY, 50);
-
-        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.BRIGHTNESS, 50);
-        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.COLOR, 50);
-        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.SPEED, 50);
-        setOptionValue(EffectItem.EffectType.WAVE, OptionItem.OptionType.SENSITIVITY, 50);
-
-        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.BRIGHTNESS, 50);
-        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.COLOR, 50);
-        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.SPEED, 50);
-        setOptionValue(EffectItem.EffectType.FLASH, OptionItem.OptionType.SENSITIVITY, 50);
     }
 
     public List<EffectItem> getEffectItemList() {

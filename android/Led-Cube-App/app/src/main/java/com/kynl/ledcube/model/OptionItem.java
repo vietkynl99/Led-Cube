@@ -6,22 +6,36 @@ public class OptionItem {
     public enum OptionType {
         BRIGHTNESS,
         COLOR,
+        MODE,
+        DEVIATION,
         SPEED,
         DIRECTION,
         SENSITIVITY
     }
 
+    private final int defaultMinValue = 1;
+    private final int defaultMaxValue = 100;
     private final OptionType type;
     private int value;
+    private int minValue;
+    private int maxValue;
 
     public OptionItem(OptionType type) {
         this.type = type;
-        this.value = 0;
+        this.minValue = defaultMinValue;
+        this.maxValue = defaultMaxValue;
+        this.value = minValue;
     }
 
-    public OptionItem(OptionType type, int value) {
+    public OptionItem(OptionType type, int value, int minValue, int maxValue) {
         this.type = type;
-        this.value = value;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        if (value >= minValue && value <= maxValue) {
+            this.value = value;
+        } else {
+            this.value = minValue;
+        }
     }
 
     public OptionType getType() {
@@ -33,7 +47,19 @@ public class OptionItem {
     }
 
     public void setValue(int value) {
-        this.value = value;
+        if (value >= minValue && value <= maxValue) {
+            this.value = value;
+        } else {
+            this.value = minValue;
+        }
+    }
+
+    public int getMinValue() {
+        return minValue;
+    }
+
+    public int getMaxValue() {
+        return maxValue;
     }
 
     public int getIconId() {
@@ -41,20 +67,8 @@ public class OptionItem {
     }
 
     public String getText() {
-        switch (type) {
-            case BRIGHTNESS:
-                return "Brightness";
-            case COLOR:
-                return "Color";
-            case SPEED:
-                return "Speed";
-            case DIRECTION:
-                return "Direction";
-            case SENSITIVITY:
-                return "Sensitivity";
-            default:
-                return "";
-        }
+        String text = type.toString();
+        return text.toLowerCase().substring(0, 1).toUpperCase() + text.toLowerCase().substring(1);
     }
 
 }

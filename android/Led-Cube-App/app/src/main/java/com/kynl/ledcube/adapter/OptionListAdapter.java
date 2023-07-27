@@ -1,6 +1,7 @@
 package com.kynl.ledcube.adapter;
 
 
+import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.kynl.ledcube.R;
@@ -41,6 +43,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         holder.bind(position, optionItemList.get(position));
@@ -125,10 +128,13 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             split_item = itemView.findViewById(R.id.split_item);
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.O)
         public void bind(int position, OptionItem item) {
             icon.setImageResource(item.getIconId());
             option_item_text.setText(item.getText());
             option_value_text.setText(String.valueOf(item.getValue()));
+            option_seek_bar.setMin(item.getMinValue());
+            option_seek_bar.setMax(item.getMaxValue());
             option_seek_bar.setProgress(item.getValue());
             option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_right_48);
             expandable_layout.collapse(false);
