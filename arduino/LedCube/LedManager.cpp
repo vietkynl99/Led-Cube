@@ -101,6 +101,7 @@ void LedManager::setType(int type, bool force)
     if (mType != type || force)
     {
         mType = type;
+        LOG_LED("Type changed to %d", mType);
         if (mType != MUSIC)
         {
             if (HardwareController::getInstance()->getAdcMode() == ADC_MODE_MIC)
@@ -308,6 +309,11 @@ void LedManager::musicEffectHandler()
         strip->show();
         time = millis();
     }
+}
+
+void LedManager::changeToNextType()
+{
+    setType((mType + 1) % EFFECT_MAX);
 }
 
 void LedManager::fillColor(uint16_t hue, uint8_t sat, uint8_t val)

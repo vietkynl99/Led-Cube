@@ -183,24 +183,36 @@ void HardwareController::buttonHandler()
         if (oldState && !newState)
         {
             mPairMode = false;
+            pressTime = millis() - risingTime;
+            if (pressTime > BUTTON_SHORT_PRESS_TIME_MIN && pressTime < BUTTON_SHORT_PRESS_TIME_MAX)
+            {
+                beep(1);
+                LedManager::getInstance()->changeToNextType();
+            }
         }
         // ON state
         if (newState)
         {
             pressTime = millis() - risingTime;
-            // Press then long press
-            if (risingTime - lastPressTime < BUTTON_DOUBLE_LONG_PRESS_TIME)
+            // long press
+            if (pressTime > BUTTON_LONG_PRESS_TIME)
             {
-                if (pressTime > BUTTON_LONG_PRESS_TIME)
+                // Press then long press
+                if (risingTime - lastPressTime < BUTTON_DOUBLE_LONG_PRESS_TIME)
                 {
                     beep(3, true);
                     WifiMaster::getInstance()->resetWifiSettings();
                 }
+                // Only long press
+                else
+                {
+                    mPairMode = pressTime < BUTTON_PAIR_MODE_TIMEOUT;
+                }
             }
-            // Only long press
+            // short press
             else
             {
-                mPairMode = pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_PAIR_MODE_TIMEOUT;
+                mPairMode = false;
             }
         }
     }

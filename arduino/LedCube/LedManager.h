@@ -78,6 +78,7 @@ public:
     void gravityEffectHandler();
 #endif
     void musicEffectHandler();
+    void changeToNextType();
     void fillColor(uint16_t hue, uint8_t sat = 255, uint8_t val = 255);
     void fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat = 255, uint8_t val = 255);
     void turnOff();
