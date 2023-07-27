@@ -24,9 +24,14 @@
 #define FFT_OUTPUT_SIZE     32      // FFT_SAMPLES / 2
 #define FFT_BLOCK_OFFSET    2
 #define FFT_BLOCK_SIZE      3       // <= (FFT_OUTPUT_SIZE - FFT_BLOCK_OFFSET) / MATRIX_SIZE_1D
-#define FFT_SCALE           1.2
+#define FFT_SCALE_MIN       0.2
+#define FFT_SCALE_MAX       2.0
 
 #define RESTORE_PREVIOUS_DATA
+
+#define DEFAULT_TYPE        OFF
+#define DEFAULT_BRIGHTNESS  10
+#define DEFAULT_SENSITIVITY 50
 
 class LedManager
 {
@@ -56,6 +61,7 @@ private:
     int mType;
     int mBrightness;
     int mSensitivity;
+    float mScale;
     int mSubType;
     uint16_t mGHue;
     uint16_t mDHue;

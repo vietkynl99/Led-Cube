@@ -14,9 +14,9 @@ LedManager *LedManager::getInstance()
 
 LedManager::LedManager()
 {
-    mType = OFF;
-    mBrightness = 1;
-    mSensitivity = 0;
+    mType = DEFAULT_TYPE;
+    mBrightness = DEFAULT_BRIGHTNESS;
+    mSensitivity = DEFAULT_SENSITIVITY;
     mSubType = NONE;
     mGHue = HUE_GREEN;
     mDHue = 0;
@@ -33,7 +33,8 @@ void LedManager::init()
 #endif
     setType(mType, true);
     setBrightness(mBrightness, true);
-    LOG_LED("type: %d, brightness: %d", mType, mBrightness);
+    setSensitivity(mSensitivity, true);
+    LOG_LED("type: %d, brightness: %d, sensitivity: %d", mType, mBrightness, mSensitivity);
 
     FFT = new arduinoFFT();
 }
@@ -46,17 +47,17 @@ void LedManager::restoreSettings()
 
     if (mType < OFF || mType >= EFFECT_MAX)
     {
-        mType = OFF;
+        mType = DEFAULT_TYPE;
         EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, mType);
     }
     if (mBrightness < 0 || mBrightness > 100)
     {
-        mBrightness = 1;
+        mBrightness = DEFAULT_BRIGHTNESS;
         EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
     }
     if (mSensitivity < 0 || mSensitivity > 100)
     {
-        mSensitivity = 1;
+        mSensitivity = DEFAULT_SENSITIVITY;
         EEPROM_SET_DATA(EEPROM_ADDR_LED_SENSITIVITY, mSensitivity);
     }
 }
@@ -152,6 +153,11 @@ void LedManager::setSensitivity(int sensitivity, bool force)
     if (mSensitivity != sensitivity || force)
     {
         mSensitivity = sensitivity;
+
+        if (mType == MUSIC)
+        {
+            mScale = mSensitivity * (FFT_SCALE_MAX - FFT_SCALE_MIN) / 100.0 + FFT_SCALE_MIN;
+        }
     }
 }
 
@@ -261,7 +267,7 @@ void LedManager::musicEffectHandler()
             {
                 fftLevel[i] += fftVReal[j];
             }
-            fftLevel[i] *= FFT_SCALE / scale[i];
+            fftLevel[i] *= mScale / scale[i];
         }
         // LOG_LED("fft -> %d %d %d %d %d %d %d %d", fftLevel[0], fftLevel[1], fftLevel[2], fftLevel[3], fftLevel[4], fftLevel[5], fftLevel[6], fftLevel[7]);
         time2 = millis();
