@@ -103,7 +103,7 @@
                 android:layout_height="match_parent">
 
                 <com.rtugeek.android.colorseekbar.ColorSeekBar
-                    android:id="@+id/option_color_seek_bar"
+                    android:id="@+id/option_hue_seek_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="15dp"

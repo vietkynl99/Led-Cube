@@ -1,6 +1,7 @@
 package com.kynl.ledcube.adapter;
 
 
+import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -81,10 +82,12 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             }
         });
 
-        holder.option_color_seek_bar.setOnColorChangeListener((progress, colorARGB) -> {
-            int colorRGB = colorARGB & 0x00FFFFFF;
+        holder.option_hue_seek_bar.setOnColorChangeListener((progress, color) -> {
+            float[] hsv = new float[3];
+            Color.colorToHSV(color, hsv);
+            int hue = (int) (0xFFFF*hsv[0]/360);
             int pos = holder.getAdapterPosition();
-            optionItemList.get(pos).setValue(colorRGB);
+            optionItemList.get(pos).setValue(hue);
             if (onOptionValueChangeListener != null) {
                 onOptionValueChangeListener.onValueChanged(effectItem.getType(),
                         optionItemList.get(pos).getType(),
@@ -128,7 +131,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         private final ExpandableLayout expandable_layout;
         private final SeekBar option_seek_bar;
         private final View split_item;
-        private final ColorSeekBar option_color_seek_bar;
+        private final ColorSeekBar option_hue_seek_bar;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -142,13 +145,13 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             option_value_text = itemView.findViewById(R.id.option_value_text);
             option_seek_bar = itemView.findViewById(R.id.option_seek_bar);
             split_item = itemView.findViewById(R.id.split_item);
-            option_color_seek_bar = itemView.findViewById(R.id.option_color_seek_bar);
+            option_hue_seek_bar = itemView.findViewById(R.id.option_hue_seek_bar);
         }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         public void bind(int position, OptionItem item) {
-            option_view_value.setVisibility(item.getType() != OptionItem.OptionType.COLOR ? View.VISIBLE : View.GONE);
-            option_view_color.setVisibility(item.getType() == OptionItem.OptionType.COLOR ? View.VISIBLE : View.GONE);
+            option_view_value.setVisibility(item.getType() != OptionItem.OptionType.HUE ? View.VISIBLE : View.GONE);
+            option_view_color.setVisibility(item.getType() == OptionItem.OptionType.HUE ? View.VISIBLE : View.GONE);
             icon.setImageResource(item.getIconId());
             option_item_text.setText(item.getText());
             option_value_text.setText(String.valueOf(item.getValue()));
@@ -156,7 +159,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             option_seek_bar.setMin(item.getMinValue());
             option_seek_bar.setMax(item.getMaxValue());
             option_seek_bar.setProgress(item.getValue());
-            option_color_seek_bar.setColor(item.getValue());
+//            option_color_seek_bar.setColor(item.getValue());
 
             option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_right_48);
             expandable_layout.collapse(false);

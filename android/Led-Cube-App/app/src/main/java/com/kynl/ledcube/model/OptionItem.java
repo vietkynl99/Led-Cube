@@ -6,7 +6,7 @@ public class OptionItem {
     public enum OptionType {
         BRIGHTNESS,
         MODE,
-        COLOR,
+        HUE,
         SATURATION,
         DEVIATION,
         SPEED,
