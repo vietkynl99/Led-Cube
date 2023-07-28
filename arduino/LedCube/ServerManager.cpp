@@ -121,9 +121,25 @@ void ServerManager::dataProcessing(String data)
     {
         LedManager::getInstance()->setType(jsonDoc["type"]);
     }
+    if (jsonDoc["mode"].is<int>())
+    {
+        LedManager::getInstance()->setSubType(jsonDoc["mode"]);
+    }
     if (jsonDoc["brightness"].is<int>())
     {
         LedManager::getInstance()->setBrightness(jsonDoc["brightness"]);
+    }
+    if (jsonDoc["saturation"].is<int>())
+    {
+        LedManager::getInstance()->setSaturation(jsonDoc["saturation"]);
+    }
+    if (jsonDoc["hue"].is<uint16_t>())
+    {
+        LedManager::getInstance()->setHue(jsonDoc["hue"]);
+    }
+    if (jsonDoc["deviation"].is<uint16_t>())
+    {
+        LedManager::getInstance()->setDeviation(jsonDoc["deviation"]);
     }
     if (jsonDoc["sensitivity"].is<int>())
     {

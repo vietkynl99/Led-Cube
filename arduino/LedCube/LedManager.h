@@ -31,6 +31,7 @@
 
 #define DEFAULT_TYPE        OFF
 #define DEFAULT_BRIGHTNESS  10
+#define DEFAULT_SATURATION  100
 #define DEFAULT_SENSITIVITY 50
 
 class LedManager
@@ -60,6 +61,7 @@ private:
     Adafruit_NeoPixel *strip;
     int mType;
     int mBrightness;
+    int mSaturation;
     int mSensitivity;
     float mScale;
     int mSubType;
@@ -74,11 +76,17 @@ private:
 public:
     static LedManager *getInstance();
     void init();
-    void process();
+    void readPreviousEEPROMData(int& data, int address, int minValue, int maxValue, int defaultValue);
+    void readPreviousEEPROMData(uint16_t &data, int address);
     void restoreSettings();
     void setType(int type, bool force = false);
+    void setSubType(int subType, bool force = false);
     void setBrightness(int brightness, bool force = false);
+    void setSaturation(int saturation, bool force = false);
     void setSensitivity(int sensitivity, bool force = false);
+    void setHue(uint16_t hue, bool force = false);
+    void setDeviation(int deviation, bool force = false);
+    void process();
     void rgbEffectHandler();
 #ifdef ENABLE_MPU6050_SENSOR
     void gravityEffectHandler();

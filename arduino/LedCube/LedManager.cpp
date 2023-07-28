@@ -17,6 +17,7 @@ LedManager::LedManager()
     mType = DEFAULT_TYPE;
     mBrightness = DEFAULT_BRIGHTNESS;
     mSensitivity = DEFAULT_SENSITIVITY;
+    mSaturation = DEFAULT_SATURATION;
     mSubType = NONE;
     mGHue = HUE_GREEN;
     mDHue = 0;
@@ -33,32 +34,162 @@ void LedManager::init()
 #endif
     setType(mType, true);
     setBrightness(mBrightness, true);
+    setSaturation(mSaturation, true);
     setSensitivity(mSensitivity, true);
-    LOG_LED("type: %d, brightness: %d, sensitivity: %d", mType, mBrightness, mSensitivity);
+    setSubType(mSubType, true);
+    setHue(mGHue, true);
+    setDeviation(mDHue, true);
+    LOG_LED("type: %d, subType: %d, brightness: %d, sensitivity: %d", mType, mSubType, mBrightness, mSensitivity);
 
     FFT = new arduinoFFT();
 }
 
+void LedManager::readPreviousEEPROMData(int &data, int address, int minValue, int maxValue, int defaultValue)
+{
+    EEPROM_GET_DATA(address, data);
+
+    if (data < minValue || data > maxValue)
+    {
+        data = defaultValue;
+        EEPROM_SET_DATA(address, data);
+    }
+}
+
+void LedManager::readPreviousEEPROMData(uint16_t &data, int address)
+{
+    EEPROM_GET_DATA(address, data);
+}
+
 void LedManager::restoreSettings()
 {
-    EEPROM_GET_DATA(EEPROM_ADDR_LED_TYPE, mType);
-    EEPROM_GET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
-    EEPROM_GET_DATA(EEPROM_ADDR_LED_SENSITIVITY, mSensitivity);
+    readPreviousEEPROMData(mType, EEPROM_ADDR_LED_TYPE, OFF, EFFECT_MAX - 1, DEFAULT_TYPE);
+    readPreviousEEPROMData(mBrightness, EEPROM_ADDR_LED_BRIGHTNESS, 0, 100, DEFAULT_BRIGHTNESS);
+    readPreviousEEPROMData(mSaturation, EEPROM_ADDR_LED_SATURATION, 0, 100, DEFAULT_SATURATION);
+    readPreviousEEPROMData(mSensitivity, EEPROM_ADDR_LED_SENSITIVITY, 0, 100, DEFAULT_SENSITIVITY);
+    readPreviousEEPROMData(mSubType, EEPROM_ADDR_LED_SUB_TYPE, 0, 100, 0);
+    readPreviousEEPROMData(mGHue, EEPROM_ADDR_LED_GHUE);
+    readPreviousEEPROMData(mDHue, EEPROM_ADDR_LED_DHUE);
+}
 
-    if (mType < OFF || mType >= EFFECT_MAX)
+
+
+void LedManager::setType(int type, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mType != type)
     {
-        mType = DEFAULT_TYPE;
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, mType);
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, type);
     }
-    if (mBrightness < 0 || mBrightness > 100)
+#endif
+
+    if (mType != type || force)
     {
-        mBrightness = DEFAULT_BRIGHTNESS;
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, mBrightness);
+        mType = type;
+        LOG_LED("Type changed to %d", mType);
+        if (mType != MUSIC)
+        {
+            if (HardwareController::getInstance()->getAdcMode() == ADC_MODE_MIC)
+            {
+                HardwareController::getInstance()->changeAdcMode(ADC_MODE_NONE);
+            }
+        }
+        turnOff();
     }
-    if (mSensitivity < 0 || mSensitivity > 100)
+}
+
+void LedManager::setSubType(int subType, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mSubType != subType)
     {
-        mSensitivity = DEFAULT_SENSITIVITY;
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_SENSITIVITY, mSensitivity);
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_SUB_TYPE, mSubType);
+    }
+#endif
+
+    if (mSubType != subType || force)
+    {
+        mSubType = subType;
+    }
+}
+
+void LedManager::setBrightness(int brightness, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mBrightness != brightness)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, brightness);
+    }
+#endif
+
+    if (mBrightness != brightness || force)
+    {
+        mBrightness = brightness;
+        strip->setBrightness(mBrightness);
+    }
+}
+
+void LedManager::setSaturation(int saturation, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mSaturation != saturation)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_SATURATION, saturation);
+    }
+#endif
+
+    if (mSaturation != saturation || force)
+    {
+        mSaturation = saturation;
+    }
+}
+
+void LedManager::setSensitivity(int sensitivity, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mSensitivity != sensitivity)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_SENSITIVITY, sensitivity);
+    }
+#endif
+
+    if (mSensitivity != sensitivity || force)
+    {
+        mSensitivity = sensitivity;
+
+        if (mType == MUSIC)
+        {
+            mScale = mSensitivity * (FFT_SCALE_MAX - FFT_SCALE_MIN) / 100.0 + FFT_SCALE_MIN;
+        }
+    }
+}
+
+void LedManager::setHue(uint16_t hue, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mGHue != hue)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_GHUE, hue);
+    }
+#endif
+
+    if (mGHue != hue || force)
+    {
+        mGHue = hue;
+    }
+}
+
+void LedManager::setDeviation(int deviation, bool force)
+{
+#ifdef RESTORE_PREVIOUS_DATA
+    if (mDHue != deviation)
+    {
+        EEPROM_SET_DATA(EEPROM_ADDR_LED_DHUE, deviation);
+    }
+#endif
+
+    if (mDHue != deviation || force)
+    {
+        mDHue = deviation;
     }
 }
 
@@ -90,77 +221,6 @@ void LedManager::process()
     }
 }
 
-void LedManager::setType(int type, bool force)
-{
-#ifdef RESTORE_PREVIOUS_DATA
-    if (mType != type)
-    {
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_TYPE, type);
-    }
-#endif
-
-    if (mType != type || force)
-    {
-        mType = type;
-        LOG_LED("Type changed to %d", mType);
-        if (mType != MUSIC)
-        {
-            if (HardwareController::getInstance()->getAdcMode() == ADC_MODE_MIC)
-            {
-                HardwareController::getInstance()->changeAdcMode(ADC_MODE_NONE);
-            }
-        }
-        turnOff();
-
-        switch (mType)
-        {
-        case MUSIC:
-            mGHue = HUE_BLUE;
-            mDHue = 1200;
-            mSubType = MUSIC_TYPE_1_SIDE;
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-void LedManager::setBrightness(int brightness, bool force)
-{
-#ifdef RESTORE_PREVIOUS_DATA
-    if (mBrightness != brightness)
-    {
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_BRIGHTNESS, brightness);
-    }
-#endif
-
-    if (mBrightness != brightness || force)
-    {
-        mBrightness = brightness;
-        strip->setBrightness(mBrightness);
-    }
-}
-
-void LedManager::setSensitivity(int sensitivity, bool force)
-{
-#ifdef RESTORE_PREVIOUS_DATA
-    if (mSensitivity != sensitivity)
-    {
-        EEPROM_SET_DATA(EEPROM_ADDR_LED_SENSITIVITY, sensitivity);
-    }
-#endif
-
-    if (mSensitivity != sensitivity || force)
-    {
-        mSensitivity = sensitivity;
-
-        if (mType == MUSIC)
-        {
-            mScale = mSensitivity * (FFT_SCALE_MAX - FFT_SCALE_MIN) / 100.0 + FFT_SCALE_MIN;
-        }
-    }
-}
-
 void LedManager::rgbEffectHandler()
 {
     static unsigned long long time = 0;
@@ -179,7 +239,7 @@ void LedManager::rgbEffectHandler()
             if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
             {
                 int distance = a * x + b * y + c * z;
-                setLed(i, 1, strip->ColorHSV(distance * 500 + hue));
+                setLed(i, 1, strip->ColorHSV(distance * 500 + hue, mSaturation));
             }
         }
         strip->show();
@@ -209,7 +269,7 @@ void LedManager::gravityEffectHandler()
             if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
             {
                 bool enable = angleX * x + angleY * y + angleZ * z + offset > 0;
-                setLed(i, enable, strip->ColorHSV(hue));
+                setLed(i, enable, strip->ColorHSV(hue, mSaturation));
             }
             hue += 50;
         }
@@ -308,7 +368,7 @@ void LedManager::musicEffectHandler()
                     default:
                         break;
                     }
-                    setLed(i, level <= fftLevel[pos], strip->ColorHSV(mGHue + mDHue * level + mDHue * (x + y) / 3));
+                    setLed(i, level <= fftLevel[pos], strip->ColorHSV(mGHue + mDHue * level + mDHue * (x + y) / 3, mSaturation));
                 }
             }
         }

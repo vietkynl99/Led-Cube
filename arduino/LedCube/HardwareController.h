@@ -47,7 +47,11 @@ Press and then long press for about 3s: Reset wifi settings
 #define EEPROM_ADDR_API_KEY             0
 #define EEPROM_ADDR_LED_TYPE            4
 #define EEPROM_ADDR_LED_BRIGHTNESS      8
-#define EEPROM_ADDR_LED_SENSITIVITY     12
+#define EEPROM_ADDR_LED_SATURATION      12
+#define EEPROM_ADDR_LED_SENSITIVITY     16
+#define EEPROM_ADDR_LED_SUB_TYPE        20
+#define EEPROM_ADDR_LED_GHUE            24
+#define EEPROM_ADDR_LED_DHUE            28
 
 #define EEPROM_SET_DATA(ADDR, VALUE)    {EEPROM.put(ADDR, VALUE); EEPROM.commit();}
 #define EEPROM_GET_DATA(ADDR, VALUE)    {EEPROM.get(ADDR, VALUE);}
