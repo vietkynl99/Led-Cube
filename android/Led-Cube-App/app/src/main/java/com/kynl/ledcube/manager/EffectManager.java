@@ -1,6 +1,7 @@
 package com.kynl.ledcube.manager;
 
 
+import android.graphics.Color;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -40,6 +41,8 @@ public class EffectManager {
     private void createDefaultEffectList() {
         effectItemList = new ArrayList<>();
 
+        int defaultColor = Color.parseColor("#61CFEE");
+
         // RGB
         List<OptionItem> rgbOptionItemList = new ArrayList<>();
         rgbOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
@@ -51,22 +54,23 @@ public class EffectManager {
         // Gravity
         List<OptionItem> gravityOptionItemList = new ArrayList<>();
         gravityOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
-        gravityOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR));
+        gravityOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR, defaultColor, false));
         effectItemList.add(new EffectItem(EffectItem.EffectType.GRAVITY, gravityOptionItemList));
 
         // Music
         List<OptionItem> musicOptionItemList = new ArrayList<>();
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR));
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.MODE, 1,1,3));
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.DEVIATION,0,0,100));
-        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS, 20, 1, 100));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.MODE, 1, 1, 3));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR, defaultColor, false));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.SATURATION, 100, 0, 100));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.DEVIATION, 0, 0, 100));
+        musicOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY, 30, 1, 100));
         effectItemList.add(new EffectItem(EffectItem.EffectType.MUSIC, musicOptionItemList));
 
         // Wave
         List<OptionItem> waveOptionItemList = new ArrayList<>();
         waveOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
-        waveOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR));
+        waveOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR, defaultColor, false));
         waveOptionItemList.add(new OptionItem(OptionItem.OptionType.SPEED));
         waveOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.WAVE, waveOptionItemList));
@@ -74,7 +78,7 @@ public class EffectManager {
         // Flash
         List<OptionItem> flashOptionItemList = new ArrayList<>();
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.BRIGHTNESS));
-        flashOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR));
+        flashOptionItemList.add(new OptionItem(OptionItem.OptionType.COLOR, defaultColor, false));
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.SPEED));
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.FLASH, flashOptionItemList));

@@ -18,6 +18,7 @@ import com.kynl.ledcube.R;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
 import com.kynl.ledcube.myinterface.OnOptionValueChangeListener;
+import com.rtugeek.android.colorseekbar.ColorSeekBar;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
@@ -56,6 +57,7 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
                 holder.option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_down_48);
             }
         });
+
         holder.option_seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -76,6 +78,17 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
                             optionItemList.get(pos).getType(),
                             optionItemList.get(pos).getValue());
                 }
+            }
+        });
+
+        holder.option_color_seek_bar.setOnColorChangeListener((progress, colorARGB) -> {
+            int colorRGB = colorARGB & 0x00FFFFFF;
+            int pos = holder.getAdapterPosition();
+            optionItemList.get(pos).setValue(colorRGB);
+            if (onOptionValueChangeListener != null) {
+                onOptionValueChangeListener.onValueChanged(effectItem.getType(),
+                        optionItemList.get(pos).getType(),
+                        optionItemList.get(pos).getValue());
             }
         });
     }
@@ -109,16 +122,19 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
     }
 
     static class CustomViewHolder extends RecyclerView.ViewHolder {
-        private final ViewGroup option_item_main_view;
+        private final ViewGroup option_item_main_view, option_view_value, option_view_color;
         private final ImageView icon, option_arrow;
         private final TextView option_item_text, option_value_text;
         private final ExpandableLayout expandable_layout;
         private final SeekBar option_seek_bar;
         private final View split_item;
+        private final ColorSeekBar option_color_seek_bar;
 
         public CustomViewHolder(@NonNull View itemView) {
             super(itemView);
             option_item_main_view = itemView.findViewById(R.id.option_item_main_view);
+            option_view_value = itemView.findViewById(R.id.option_view_value);
+            option_view_color = itemView.findViewById(R.id.option_view_color);
             expandable_layout = itemView.findViewById(R.id.expandable_layout);
             icon = itemView.findViewById(R.id.option_item_icon);
             option_arrow = itemView.findViewById(R.id.option_arrow);
@@ -126,16 +142,22 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
             option_value_text = itemView.findViewById(R.id.option_value_text);
             option_seek_bar = itemView.findViewById(R.id.option_seek_bar);
             split_item = itemView.findViewById(R.id.split_item);
+            option_color_seek_bar = itemView.findViewById(R.id.option_color_seek_bar);
         }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         public void bind(int position, OptionItem item) {
+            option_view_value.setVisibility(item.getType() != OptionItem.OptionType.COLOR ? View.VISIBLE : View.GONE);
+            option_view_color.setVisibility(item.getType() == OptionItem.OptionType.COLOR ? View.VISIBLE : View.GONE);
             icon.setImageResource(item.getIconId());
             option_item_text.setText(item.getText());
             option_value_text.setText(String.valueOf(item.getValue()));
+
             option_seek_bar.setMin(item.getMinValue());
             option_seek_bar.setMax(item.getMaxValue());
             option_seek_bar.setProgress(item.getValue());
+            option_color_seek_bar.setColor(item.getValue());
+
             option_arrow.setImageResource(R.drawable.baseline_keyboard_arrow_right_48);
             expandable_layout.collapse(false);
             split_item.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);

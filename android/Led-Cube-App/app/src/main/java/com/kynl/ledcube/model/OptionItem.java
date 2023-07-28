@@ -5,29 +5,31 @@ import com.kynl.ledcube.R;
 public class OptionItem {
     public enum OptionType {
         BRIGHTNESS,
-        COLOR,
         MODE,
+        COLOR,
+        SATURATION,
         DEVIATION,
         SPEED,
         DIRECTION,
         SENSITIVITY
     }
 
-    private final int defaultMinValue = 1;
-    private final int defaultMaxValue = 100;
     private final OptionType type;
     private int value;
-    private int minValue;
-    private int maxValue;
+    private final int minValue;
+    private final int maxValue;
+    private final boolean enableMinMax;
 
     public OptionItem(OptionType type) {
+        this.enableMinMax = true;
         this.type = type;
-        this.minValue = defaultMinValue;
-        this.maxValue = defaultMaxValue;
+        this.minValue = 1;
+        this.maxValue = 100;
         this.value = minValue;
     }
 
     public OptionItem(OptionType type, int value, int minValue, int maxValue) {
+        this.enableMinMax = true;
         this.type = type;
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -35,6 +37,22 @@ public class OptionItem {
             this.value = value;
         } else {
             this.value = minValue;
+        }
+    }
+
+    public OptionItem(OptionType type, int value, boolean enableMinMax) {
+        this.enableMinMax = enableMinMax;
+        this.type = type;
+        this.minValue = 1;
+        this.maxValue = 100;
+        if (enableMinMax) {
+            if (value >= minValue && value <= maxValue) {
+                this.value = value;
+            } else {
+                this.value = minValue;
+            }
+        } else {
+            this.value = value;
         }
     }
 
@@ -47,10 +65,14 @@ public class OptionItem {
     }
 
     public void setValue(int value) {
-        if (value >= minValue && value <= maxValue) {
-            this.value = value;
+        if (enableMinMax) {
+            if (value >= minValue && value <= maxValue) {
+                this.value = value;
+            } else {
+                this.value = minValue;
+            }
         } else {
-            this.value = minValue;
+            this.value = value;
         }
     }
 
