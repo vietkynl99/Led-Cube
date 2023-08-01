@@ -85,7 +85,7 @@ void WifiMaster::resetWifiSettings()
 
     // start portal w delay
     LOG_WIFI("Starting config portal");
-    wm.setConfigPortalTimeout(120);
+    wm.setConfigPortalTimeout(240);
 
     if (!wm.startConfigPortal("OnDemandAP", "password"))
     {
