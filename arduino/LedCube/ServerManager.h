@@ -6,6 +6,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
 #include "VLog.h"
 #include "HardwareController.h"
 #include "LedManager.h"
@@ -16,7 +17,10 @@
 
 /* Device name */
 #define DEVICE_NAME "ledCube"
-#define HOST_NAME "esp8266-ledcube"
+
+/* mDNS domain name */
+// the fully-qualified domain name is "ledCube.local"
+#define mDNS_DOMAIN DEVICE_NAME
 
 #define JSON_BYTE_MAX 200
 
@@ -54,7 +58,6 @@ public:
     static void pairDevice(long oldKey);
     static void dataProcessing(String data);
     static void handleRequest();
-    static void handleClient();
     static void process();
 
     static void saveApiKeyToEEPROM();

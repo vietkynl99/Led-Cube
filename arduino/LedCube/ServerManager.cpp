@@ -8,11 +8,21 @@ void ServerManager::init()
 {
     loadApiKeyFromEEPROM();
 
-    WiFi.hostname(HOST_NAME);
+    if (MDNS.begin(mDNS_DOMAIN))
+    {
+        LOG_SYSTEM("Start mDNS responder at %s.local", mDNS_DOMAIN);
+    }
+    else
+    {
+        LOG_SYSTEM("Error setting up MDNS responder!");
+    }
+
     // Register callback function for http request
     server.on("/", handleRequest);
     // Start server
     server.begin(80);
+
+    MDNS.addService("http", "tcp", 80);
     LOG_SERVER("Server started");
 }
 
@@ -221,15 +231,11 @@ void ServerManager::handleRequest()
     }
 }
 
-void ServerManager::handleClient()
-{
-    server.handleClient();
-}
-
 void ServerManager::process()
 {
     checkWifiStatus();
-    handleClient();
+    MDNS.update();
+    server.handleClient();
 }
 
 void ServerManager::saveApiKeyToEEPROM()
