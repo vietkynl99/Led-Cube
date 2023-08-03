@@ -20,10 +20,10 @@ void ServerManager::init()
     // Register callback function for http request
     server.on("/", handleRequest);
     // Start server
-    server.begin(80);
+    server.begin(WEB_SERVER_PORT);
 
-    MDNS.addService("http", "tcp", 80);
-    LOG_SERVER("Server started");
+    MDNS.addService("http", "tcp", WEB_SERVER_PORT);
+    LOG_SERVER("Server started at port %d", WEB_SERVER_PORT);
 }
 
 void ServerManager::checkWifiStatus()

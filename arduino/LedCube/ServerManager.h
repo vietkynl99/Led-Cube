@@ -18,6 +18,9 @@
 /* Device name */
 #define DEVICE_NAME "ledCube"
 
+/* WebServer Port */
+#define WEB_SERVER_PORT 51308
+
 /* mDNS domain name */
 // the fully-qualified domain name is "ledCube.local"
 #define mDNS_DOMAIN DEVICE_NAME
