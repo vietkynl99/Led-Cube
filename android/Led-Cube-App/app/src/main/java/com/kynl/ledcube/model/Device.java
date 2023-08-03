@@ -53,7 +53,7 @@ public class Device implements Serializable {
     }
 
     public boolean isValid() {
-        return !ip.isEmpty() && !mac.isEmpty() && !ip.endsWith(".1") && !mac.equals("FAILED");
+        return !ip.isEmpty() && !ip.endsWith(".1");
     }
 
     public String getIp() {

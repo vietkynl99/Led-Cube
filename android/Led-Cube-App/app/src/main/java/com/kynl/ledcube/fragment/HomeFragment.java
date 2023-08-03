@@ -1,9 +1,11 @@
 package com.kynl.ledcube.fragment;
 
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_NOTIFY_MESSAGE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPONSE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,12 +40,14 @@ import org.json.JSONObject;
 
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
+    private final Handler handler = new Handler();
     private OptionListAdapter optionListAdapter;
     private EffectListAdapter effectListAdapter;
     private ImageView iconStatus, batteryIcon;
-    private TextView textStatus, textBatteryLevel, textTemperature, textHumidity;
+    private TextView textStatus, textBatteryLevel, textTemperature, textHumidity, textPairing;
     private int batteryLevel, temperature, humidity;
-    private boolean connected;
+    private ServerState serverState;
+    private boolean isDebouncing = false;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -53,18 +58,34 @@ public class HomeFragment extends Fragment {
                 switch (event) {
                     case BROADCAST_SERVICE_SERVER_RESPONSE: {
                         ServerState serverState = (ServerState) intent.getSerializableExtra("serverState");
-                        updateStatus(serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
+                        updateStatus(serverState);
+                        break;
+                    }
+                    case BROADCAST_SERVICE_NOTIFY_MESSAGE: {
+                        String message = intent.getStringExtra("message");
+                        if (message != null) {
+                            Activity activity = getActivity();
+                            if (activity != null) {
+                                activity.runOnUiThread(() -> {
+                                    if (isVisible()) {
+                                        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }
                         break;
                     }
                     case BROADCAST_SERVICE_UPDATE_SERVER_DATA: {
                         String data = intent.getStringExtra("data");
-                        try {
-                            JSONObject jsonObject = new JSONObject(data);
-                            setBatteryLevel(Integer.parseInt(jsonObject.getString("bat")));
-                            setTemperature(Integer.parseInt(jsonObject.getString("temp")));
-                            setHumidity(Integer.parseInt(jsonObject.getString("hum")));
-                        } catch (Exception e) {
-                            Log.e(TAG, "handleResponseFromServer: Invalid data: " + data);
+                        if (data != null) {
+                            try {
+                                JSONObject jsonObject = new JSONObject(data);
+                                setBatteryLevel(Integer.parseInt(jsonObject.getString("bat")));
+                                setTemperature(Integer.parseInt(jsonObject.getString("temp")));
+                                setHumidity(Integer.parseInt(jsonObject.getString("hum")));
+                            } catch (Exception e) {
+                                Log.e(TAG, "handleResponseFromServer: Invalid data: " + data);
+                            }
                         }
                         break;
                     }
@@ -92,7 +113,7 @@ public class HomeFragment extends Fragment {
         batteryLevel = 0;
         temperature = 0;
         humidity = 0;
-        connected = false;
+        serverState = ServerState.SERVER_STATE_DISCONNECTED;
     }
 
     @Override
@@ -144,6 +165,27 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        /* Pair */
+        textPairing = view.findViewById(R.id.textPairing);
+        textPairing.setVisibility(View.INVISIBLE);
+        ImageView imageDemoCube = view.findViewById(R.id.imageDemoCube);
+        imageDemoCube.setOnClickListener(v -> {
+            if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED && textPairing.getVisibility() != View.VISIBLE) {
+                if (!ServerManager.getInstance().isBusy()) {
+                    // Debounce
+                    if (!isDebouncing) {
+                        Log.d(TAG, "onCreateView: sendRequestPairDevice");
+                        isDebouncing = true;
+                        textPairing.setVisibility(View.VISIBLE);
+                        handler.postDelayed(() -> {
+                            isDebouncing = false;
+                            BroadcastManager.getInstance().sendRequestPairDevice("", "");
+                        }, 1000);
+                    }
+                }
+            }
+        });
+
         BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
         setBatteryLevel(-1);
@@ -190,30 +232,34 @@ public class HomeFragment extends Fragment {
         selectEffectType(EffectManager.getInstance().getCurrentEffectType());
     }
 
-    private void updateStatus(boolean connected) {
-        if (this.connected != connected) {
+    private void updateStatus(ServerState serverState) {
+        Log.e(TAG, "updateStatus: " + serverState);
+        boolean connected = serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED;
+        if (this.serverState != serverState) {
             if (isVisible()) {
-                if (connected) {
+                if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                     Toast.makeText(getContext(), "Connected to device!", Toast.LENGTH_SHORT).show();
+                } else if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
+                    Toast.makeText(getContext(), "Device is not paired!", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(getContext(), "Disconnected to device!", Toast.LENGTH_SHORT).show();
                 }
             }
         }
         if (iconStatus != null && textStatus != null) {
-            if (connected) {
-                iconStatus.setImageResource(R.drawable.sensors_48);
+            iconStatus.setImageResource(connected ? R.drawable.sensors_48 : R.drawable.sensors_off_48);
+            if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
                 textStatus.setText(getResources().getString(R.string.online));
-            } else {
-                iconStatus.setImageResource(R.drawable.sensors_off_48);
-                if (ServerManager.getInstance().hasSavedDevice()) {
-                    textStatus.setText(getResources().getString(R.string.offline));
-                } else {
-                    textStatus.setText(getResources().getString(R.string.no_device));
-                }
+            } else if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
+                textStatus.setText(getResources().getString(R.string.offline));
+            } else if (serverState == ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED) {
+                textStatus.setText(getResources().getString(R.string.not_paired));
             }
         }
-        this.connected = connected;
+        if (textPairing != null) {
+            textPairing.setVisibility(View.INVISIBLE);
+        }
+        this.serverState = serverState;
     }
 
     private void setBatteryLevel(int level) {

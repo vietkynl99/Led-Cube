@@ -2,6 +2,7 @@ package com.kynl.ledcube.manager;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -17,6 +18,8 @@ import com.kynl.ledcube.nettool.SubnetDevices;
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
+import static com.kynl.ledcube.common.CommonUtils.MDNS_SERVER_DOMAIN;
+import static com.kynl.ledcube.common.CommonUtils.MDNS_SUPPORT_ANDROID_VERSION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_DATA;
@@ -74,6 +77,10 @@ public class ServerManager {
         Log.e(TAG, "init: apiKey = " + apiKey);
     }
 
+    public boolean isSupportMDNS() {
+        return Build.VERSION.SDK_INT >= MDNS_SUPPORT_ANDROID_VERSION;
+    }
+
     public boolean isSynced() {
         return synced;
     }
@@ -114,7 +121,7 @@ public class ServerManager {
     }
 
     public boolean hasSavedDevice() {
-        return !savedIpAddress.isEmpty() && !savedMacAddress.isEmpty();
+        return isSupportMDNS() || (!savedIpAddress.isEmpty() && !savedMacAddress.isEmpty());
     }
 
     public void saveDevice(String ip, String mac) {
@@ -155,7 +162,7 @@ public class ServerManager {
             Log.e(TAG, "sendRequestToServer: Context is null!");
             return;
         }
-        if (ipAddress.isEmpty()) {
+        if (!isSupportMDNS() && ipAddress.isEmpty()) {
             Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
             return;
         }
@@ -164,7 +171,7 @@ public class ServerManager {
             return;
         }
         busy = true;
-        String serverAddress = HTTP_FORMAT + ipAddress;
+        String serverAddress = isSupportMDNS() ? HTTP_FORMAT + MDNS_SERVER_DOMAIN : HTTP_FORMAT + ipAddress;
         String url = Uri.parse(serverAddress)
                 .buildUpon()
                 .appendQueryParameter("key", sentData.getKeyAsString())
@@ -260,12 +267,13 @@ public class ServerManager {
                 }
                 // State is disconnected
                 case EVENT_RESPONSE_INVALID_KEY: {
-                    serverState = ServerState.SERVER_STATE_DISCONNECTED;
-                    Log.i(TAG, "handleResponseFromServer: Key is invalid");
+                    serverState = ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                    message = "Device is not paired";
+                    Log.i(TAG, "handleResponseFromServer: " + message);
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_IGNORED: {
-                    serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                    serverState = ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     message = "Request is ignored by server";
                     Log.i(TAG, "handleResponseFromServer: " + message);
                     break;

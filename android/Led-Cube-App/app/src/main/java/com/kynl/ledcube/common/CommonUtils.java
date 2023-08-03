@@ -13,6 +13,7 @@ public class CommonUtils {
     public static final String BROADCAST_SERVICE_UPDATE_STATUS = "BROADCAST_SERVICE_UPDATE_STATUS";
     public static final String BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS = "BROADCAST_SERVICE_UPDATE_SUBNET_PROGRESS";
     public static final String BROADCAST_SERVICE_UPDATE_SERVER_DATA = "BROADCAST_SERVICE_UPDATE_SERVER_DATA";
+    public static final String BROADCAST_SERVICE_NOTIFY_MESSAGE = "BROADCAST_SERVICE_NOTIFY_MESSAGE";
     public static final String BROADCAST_REQUEST_FIND_SUBNET_DEVICE = "BROADCAST_REQUEST_FIND_SUBNET_DEVICE";
     public static final String BROADCAST_REQUEST_PAIR_DEVICE = "BROADCAST_REQUEST_PAIR_DEVICE";
     public static final String BROADCAST_REQUEST_UPDATE_STATUS = "BROADCAST_REQUEST_UPDATE_STATUS";
@@ -21,8 +22,12 @@ public class CommonUtils {
     public static final String BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN = "BROADCAST_REQUEST_CHANGE_TO_HOME_SCREEN";
     public static final String BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS = "BROADCAST_REQUEST_RESTORE_DEFAULT_SETTINGS";
 
+    // mDNS support Android version
+    public static final int MDNS_SUPPORT_ANDROID_VERSION = 31;
+
     // Server device name
     public static final String SERVER_DEVICE_NAME = "ledCube";
+    public static final String MDNS_SERVER_DOMAIN = "ledCube.local:51308";
     public static final String HTTP_FORMAT = "http://";
 
     // Date

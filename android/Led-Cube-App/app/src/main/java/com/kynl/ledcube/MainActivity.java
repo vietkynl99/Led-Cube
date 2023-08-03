@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -17,6 +18,8 @@ import com.kynl.ledcube.fragment.HomeFragment;
 import com.kynl.ledcube.fragment.SearchFragment;
 import com.kynl.ledcube.fragment.SettingsFragment;
 import com.kynl.ledcube.manager.BroadcastManager;
+import com.kynl.ledcube.manager.ServerManager;
+import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.service.NetworkService;
 
 public class MainActivity extends AppCompatActivity {
@@ -49,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (ServerManager.getInstance().isSupportMDNS()) {
+            Log.i(TAG, "onCreate: Android SDK version " + Build.VERSION.SDK_INT + " with mDNS support");
+        } else {
+            Log.i(TAG, "onCreate: Android SDK version " + Build.VERSION.SDK_INT + " does not support mDNS");
+        }
 
         /* Variable */
 
@@ -99,7 +108,9 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.meowBottomNavigation);
 
         bottomNavigation.add(new MeowBottomNavigation.Model(1, R.drawable.home_w_48));
-        bottomNavigation.add(new MeowBottomNavigation.Model(2, R.drawable.search_w_50));
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            bottomNavigation.add(new MeowBottomNavigation.Model(2, R.drawable.search_w_50));
+        }
         bottomNavigation.add(new MeowBottomNavigation.Model(3, R.drawable.settings_w_48));
 
         bottomNavigation.setOnClickMenuListener(item -> {
@@ -109,7 +120,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case 2: {
-                    changeFragment(searchFragment);
+                    if (!ServerManager.getInstance().isSupportMDNS()) {
+                        changeFragment(searchFragment);
+                    }
                     break;
                 }
                 case 3: {
@@ -127,19 +140,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fragmentTransactionInit() {
-        homeFragment = new HomeFragment();
-        searchFragment = new SearchFragment();
-        settingsFragment = new SettingsFragment();
-
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.fragment_content, homeFragment);
-        fragmentTransaction.add(R.id.fragment_content, searchFragment);
-        fragmentTransaction.add(R.id.fragment_content, settingsFragment);
 
-        // Show default fragment
-        fragmentTransaction.hide(searchFragment);
-        fragmentTransaction.hide(settingsFragment);
+        homeFragment = new HomeFragment();
+        fragmentTransaction.add(R.id.fragment_content, homeFragment);
         fragmentTransaction.show(homeFragment);
+
+
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            searchFragment = new SearchFragment();
+            fragmentTransaction.add(R.id.fragment_content, searchFragment);
+            fragmentTransaction.hide(searchFragment);
+        }
+
+        settingsFragment = new SettingsFragment();
+        fragmentTransaction.add(R.id.fragment_content, settingsFragment);
+        fragmentTransaction.hide(settingsFragment);
 
         fragmentTransaction.commit();
     }
@@ -155,9 +171,11 @@ public class MainActivity extends AppCompatActivity {
                 fragmentTransaction.hide(homeFragment);
                 homeFragment.onPause();
             }
-            if (searchFragment.isVisible()) {
-                fragmentTransaction.hide(searchFragment);
-                searchFragment.onPause();
+            if (!ServerManager.getInstance().isSupportMDNS()) {
+                if (searchFragment.isVisible()) {
+                    fragmentTransaction.hide(searchFragment);
+                    searchFragment.onPause();
+                }
             }
             if (settingsFragment.isVisible()) {
                 fragmentTransaction.hide(settingsFragment);

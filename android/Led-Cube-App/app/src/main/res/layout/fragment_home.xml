@@ -49,7 +49,7 @@
                     android:textSize="28sp" />
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <ImageView
@@ -68,8 +68,10 @@
                         android:layout_gravity="center"
                         android:layout_marginStart="8dp"
                         android:layout_marginEnd="0dp"
+                        android:layout_weight="1"
                         android:text="@string/offline"
                         android:textColor="@color/icon_color" />
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -145,15 +147,25 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/imageView"
+            <TextView
+                android:id="@+id/textPairing"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="80dp"
+                android:text="@string/pairing"
+                android:textAlignment="center"
+                android:textColor="@color/icon_color"
+                android:visibility="invisible"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/imageDemoCube"
+                android:layout_width="210dp"
                 android:layout_height="210dp"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="100dp"
-                android:layout_marginBottom="0dp"
                 android:alpha="0.8"
                 android:src="@drawable/demo_cube" />
-
         </FrameLayout>
 
         <FrameLayout

@@ -10,6 +10,7 @@ import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_SEND_DATA;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_REQUEST_UPDATE_STATUS;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_ADD_SUBNET_DEVICE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_FINISH_FIND_SUBNET_DEVICE;
+import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_NOTIFY_MESSAGE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_SERVER_RESPONSE;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_STATE_CHANGED;
 import static com.kynl.ledcube.common.CommonUtils.BROADCAST_SERVICE_UPDATE_SERVER_DATA;
@@ -131,6 +132,13 @@ public class BroadcastManager {
         Intent intent = new Intent(BROADCAST_ACTION);
         intent.putExtra("event", BROADCAST_SERVICE_UPDATE_SERVER_DATA);
         intent.putExtra("data", serverData);
+        sendBroadcast(intent);
+    }
+
+    public void sendNotifyMessage(String message) {
+        Intent intent = new Intent(BROADCAST_ACTION);
+        intent.putExtra("event", BROADCAST_SERVICE_NOTIFY_MESSAGE);
+        intent.putExtra("message", message);
         sendBroadcast(intent);
     }
 

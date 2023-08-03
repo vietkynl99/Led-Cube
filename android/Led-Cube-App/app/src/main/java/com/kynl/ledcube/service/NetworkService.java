@@ -28,7 +28,6 @@ import com.kynl.ledcube.nettool.SubnetDevices;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
@@ -45,7 +44,6 @@ public class NetworkService extends Service {
     private final int retryMax = 1;
     private NetworkServiceState networkServiceState;
     private int retryCount;
-    private long lastFreeTime;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -61,16 +59,16 @@ public class NetworkService extends Service {
                     case BROADCAST_REQUEST_PAIR_DEVICE: {
                         String ip = intent.getStringExtra("ip");
                         String mac = intent.getStringExtra("mac");
-                        if (!ip.isEmpty() && !mac.isEmpty()) {
-                            requestPairDevice(ip, mac);
-                        }
+                        requestPairDevice(ip, mac);
                         break;
                     }
                     case BROADCAST_REQUEST_SEND_DATA: {
                         String data = intent.getStringExtra("data");
-                        if (!data.isEmpty()) {
-                            requestSendData(data);
-                            ServerManager.getInstance().setSynced(false);
+                        if (data != null) {
+                            if (!data.isEmpty()) {
+                                requestSendData(data);
+                                ServerManager.getInstance().setSynced(false);
+                            }
                         }
                         break;
                     }
@@ -103,11 +101,13 @@ public class NetworkService extends Service {
 
         networkServiceState = NetworkServiceState.STATE_NONE;
         retryCount = 0;
-        lastFreeTime = System.currentTimeMillis();
 
         /* Server response */
         ServerManager.getInstance().setOnServerResponseListener((serverState, message) -> {
             Log.i(TAG, ">>> Server status changed: serverState[" + serverState + "]");
+            if (networkServiceState == NetworkServiceState.STATE_PAIR_DEVICE) {
+                BroadcastManager.getInstance().sendNotifyMessage(message);
+            }
             switch (networkServiceState) {
                 case STATE_TRY_TO_CONNECT_DEVICE: {
                     if (serverState == ServerState.SERVER_STATE_DISCONNECTED) {
@@ -142,6 +142,10 @@ public class NetworkService extends Service {
                         Log.e(TAG, "Server status changed: Send data failed");
                     }
                     ServerManager.getInstance().setSynced(serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED);
+                    setNetworkServiceState(NetworkServiceState.STATE_NONE);
+                    break;
+                }
+                case STATE_NONE: {
                     setNetworkServiceState(NetworkServiceState.STATE_NONE);
                     break;
                 }
@@ -194,20 +198,12 @@ public class NetworkService extends Service {
         /* Runnable */
         mHandler = new Handler();
         mRunnable = () -> {
-            // If it have free time for 5 seconds, then start checking the connection
-            int scanTime = networkScanTime;
             if (!ServerManager.getInstance().isBusy()) {
-                long currentTime = System.currentTimeMillis();
-                if (currentTime - lastFreeTime > networkScanTime) {
-                    if (ServerManager.getInstance().isSynced()) {
-                        scanTime = scanTime * 2;
-                        requestConnectToSavedDevice();
-                    } else {
-                        requestSyncLastData();
-                    }
-                }
+                requestSyncLastData();
+                mHandler.postDelayed(mRunnable, networkScanTime);
+            } else {
+                mHandler.postDelayed(mRunnable, networkScanTime / 2);
             }
-            mHandler.postDelayed(mRunnable, scanTime);
         };
 
         /* Try to connect in first time */
@@ -238,17 +234,18 @@ public class NetworkService extends Service {
 
     private void tryInFirstConnection() {
         boolean needScanDevicesList = false;
-        Date lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
-        // Rescan if the old scan is older than the time allowed
-        if (lastScanTime != null) {
-            if (System.currentTimeMillis() - lastScanTime.getTime() > DEVICES_LIST_RESCAN_TIMEOUT) {
-                needScanDevicesList = true;
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            Date lastScanTime = SharedPreferencesManager.getInstance().getLastScanTime();
+            if (lastScanTime != null) {
+                if (System.currentTimeMillis() - lastScanTime.getTime() > DEVICES_LIST_RESCAN_TIMEOUT) {
+                    needScanDevicesList = true;
+                }
             }
         }
-        if (!needScanDevicesList && ServerManager.getInstance().hasSavedDevice()) {
-            requestConnectToSavedDevice();
-        } else {
+        if (needScanDevicesList || !ServerManager.getInstance().hasSavedDevice()) {
             requestFindSubnetDevicesList();
+        } else {
+            requestConnectToSavedDevice();
         }
     }
 
@@ -280,10 +277,6 @@ public class NetworkService extends Service {
     }
 
     private void setNetworkServiceState(NetworkServiceState networkServiceState) {
-        if (this.networkServiceState != NetworkServiceState.STATE_NONE &&
-                networkServiceState == NetworkServiceState.STATE_NONE) {
-            lastFreeTime = System.currentTimeMillis();
-        }
         if (this.networkServiceState != networkServiceState) {
             this.networkServiceState = networkServiceState;
             Log.i(TAG, ">>> Service state changed: " + networkServiceState);
@@ -292,14 +285,6 @@ public class NetworkService extends Service {
     }
 
     private void requestSyncLastData() {
-        if (!ServerManager.getInstance().hasSavedDevice()) {
-            Log.e(TAG, "requestSyncLastData: No saved device");
-            return;
-        }
-        if (ServerManager.getInstance().isBusy()) {
-            Log.e(TAG, "requestSyncLastData: Network Service is busy. Please try again. State:" + networkServiceState);
-            return;
-        }
         Log.d(TAG, "requestSyncLastData: ");
         String data = EffectManager.getInstance().getCurrentEffectDataAsJson();
         requestSendData(data);
@@ -316,18 +301,22 @@ public class NetworkService extends Service {
             return;
         }
         Log.d(TAG, "requestSendData: " + data);
-        String ip = ServerManager.getInstance().getSavedIpAddress();
-        String mac = ServerManager.getInstance().getMacAddress();
-        setNetworkServiceState(NetworkServiceState.STATE_SEND_DATA);
-        ServerManager.getInstance().setIpAddress(ip);
-        ServerManager.getInstance().setMacAddress(mac);
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            String ip = ServerManager.getInstance().getSavedIpAddress();
+            String mac = ServerManager.getInstance().getMacAddress();
+            setNetworkServiceState(NetworkServiceState.STATE_SEND_DATA);
+            ServerManager.getInstance().setIpAddress(ip);
+            ServerManager.getInstance().setMacAddress(mac);
+        }
         ServerManager.getInstance().sendData(data);
     }
 
     private void requestPairDevice(String ipAddress, String macAddress) {
-        if (ipAddress.isEmpty()) {
-            Log.e(TAG, "requestPairDevice: IP is empty");
-            return;
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            if (ipAddress.isEmpty()) {
+                Log.e(TAG, "requestPairDevice: IP is empty");
+                return;
+            }
         }
         if (ServerManager.getInstance().isBusy()) {
             Log.e(TAG, "requestPairDevice: Network Service is busy. Please try again. State:" + networkServiceState);
@@ -336,15 +325,19 @@ public class NetworkService extends Service {
         Log.d(TAG, "requestPairDevice: " + ipAddress + " " + macAddress);
         retryCount = 0;
         setNetworkServiceState(NetworkServiceState.STATE_PAIR_DEVICE);
-        ServerManager.getInstance().setIpAddress(ipAddress);
-        ServerManager.getInstance().setMacAddress(macAddress);
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            ServerManager.getInstance().setIpAddress(ipAddress);
+            ServerManager.getInstance().setMacAddress(macAddress);
+        }
         ServerManager.getInstance().sendPairRequest();
     }
 
     private void requestConnectToDevice(String ipAddress, String macAddress) {
-        if (ipAddress.isEmpty()) {
-            Log.e(TAG, "requestConnectToDevice: IP is empty");
-            return;
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            if (ipAddress.isEmpty()) {
+                Log.e(TAG, "requestConnectToDevice: IP is empty");
+                return;
+            }
         }
         if (ServerManager.getInstance().isBusy()) {
             Log.e(TAG, "requestConnectToDevice: Network Service is busy. Please try again. State:" + networkServiceState);
@@ -353,17 +346,23 @@ public class NetworkService extends Service {
         Log.d(TAG, "requestConnectToDevice: " + ipAddress + " " + macAddress);
         retryCount = 0;
         setNetworkServiceState(NetworkServiceState.STATE_TRY_TO_CONNECT_DEVICE);
-        ServerManager.getInstance().setIpAddress(ipAddress);
-        ServerManager.getInstance().setMacAddress(macAddress);
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            ServerManager.getInstance().setIpAddress(ipAddress);
+            ServerManager.getInstance().setMacAddress(macAddress);
+        }
         ServerManager.getInstance().sendCheckConnectionRequest();
     }
 
     private void requestConnectToSavedDevice() {
-        if (ServerManager.getInstance().hasSavedDevice()) {
-            Log.d(TAG, "requestConnectToSavedDevice: ");
-            String ip = ServerManager.getInstance().getSavedIpAddress();
-            String mac = ServerManager.getInstance().getMacAddress();
-            requestConnectToDevice(ip, mac);
+        if (!ServerManager.getInstance().isSupportMDNS()) {
+            if (ServerManager.getInstance().hasSavedDevice()) {
+                Log.d(TAG, "requestConnectToSavedDevice: ");
+                String ip = ServerManager.getInstance().getSavedIpAddress();
+                String mac = ServerManager.getInstance().getMacAddress();
+                requestConnectToDevice(ip, mac);
+            }
+        } else {
+            requestConnectToDevice("", "");
         }
     }
 

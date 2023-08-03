@@ -33,10 +33,11 @@
     <string name="sample_username">Viet Kynl</string>
     <string name="sample_email">vietkynl@gmail.com</string>
 
+    <string name="pairing">Pairing…</string>
     <string name="connecting">Connecting…</string>
     <string name="online">Online</string>
     <string name="offline">Offline</string>
-    <string name="no_device">No device</string>
+    <string name="not_paired">Not paired</string>
 
     <string name="unit_ms">ms</string>
 
