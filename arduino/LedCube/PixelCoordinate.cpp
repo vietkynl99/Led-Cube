@@ -31,8 +31,8 @@ bool PixelCoordinate::getDescartesPositions(int arrayPosition, int *x, int *y, i
     {
     case 0:
     {
-        *x = position / MATRIX_SIZE_1D + 1;
-        *y = position % MATRIX_SIZE_1D + 1;
+        *x = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
+        *y = MATRIX_SIZE_1D - position % MATRIX_SIZE_1D;
         *z = 0;
         break;
     }
