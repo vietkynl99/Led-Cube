@@ -219,8 +219,8 @@ void ServerManager::handleRequest()
     }
     case EVENT_REQUEST_SEND_DATA:
     {
-        sendResponse(EVENT_RESPONSE_GET_DATA_SUCCESSFUL);
         dataProcessing(data);
+        sendResponse(EVENT_RESPONSE_GET_DATA_SUCCESSFUL, HardwareController::getInstance()->getSensorsData());
         break;
     }
     default:
