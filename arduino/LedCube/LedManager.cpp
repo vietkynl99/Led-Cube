@@ -71,8 +71,6 @@ void LedManager::restoreSettings()
     readPreviousEEPROMData(mDHue, EEPROM_ADDR_LED_DHUE);
 }
 
-
-
 void LedManager::setType(int type, bool force)
 {
 #ifdef RESTORE_PREVIOUS_DATA
@@ -85,12 +83,20 @@ void LedManager::setType(int type, bool force)
     if (mType != type || force)
     {
         mType = type;
-        LOG_LED("Type changed to %d", mType);
+        LOG_LED("Change type: %d, subType: %d, brightness: %d, sensitivity: %d", mType, mSubType, mBrightness, mSensitivity);
+
         if (mType != MUSIC)
         {
             if (HardwareController::getInstance()->getAdcMode() == ADC_MODE_MIC)
             {
                 HardwareController::getInstance()->changeAdcMode(ADC_MODE_NONE);
+            }
+        }
+        if (mType == MUSIC)
+        {
+            if (mSubType < MUSIC_TYPE_1_SIDE || mSubType > MUSIC_TYPE_FULL_SIDES)
+            {
+                setSubType(MUSIC_TYPE_1_SIDE);
             }
         }
         turnOff();
@@ -109,6 +115,7 @@ void LedManager::setSubType(int subType, bool force)
     if (mSubType != subType || force)
     {
         mSubType = subType;
+        turnOff();
     }
 }
 
