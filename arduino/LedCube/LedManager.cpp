@@ -265,20 +265,32 @@ void LedManager::gravityEffectHandler()
     if ((unsigned long long)(millis() - time) > 10UL)
     {
         time = millis();
-        float angleX = HardwareController::getInstance()->getAngleX();
-        float angleY = HardwareController::getInstance()->getAngleY();
-        float angleZ = HardwareController::getInstance()->getAngleZ();
-        float offset = -angleX * pointX - angleY * pointY - angleZ * pointZ;
+        float angleX = HardwareController::getInstance()->getAngleX() * PI / 180;
+        float angleY = HardwareController::getInstance()->getAngleY() * PI / 180;
+        float angleZ = HardwareController::getInstance()->getAngleZ() * PI / 180;
 
-        hue = HUE_BLUE;
+        // ma tran quay
+        // float r0 = cos(angleY) * cos(angleZ);
+        // float r1 = cos(angleZ) * sin(angleX) * sin(angleY) - cos(angleX) * sin(angleZ);
+        float a = cos(angleX) * cos(angleZ) * sin(angleY) + sin(angleX) * sin(angleZ);
+        // float r3 = cos(angleY) * sin(angleZ);
+        // float r4 = cos(angleX) * cos(angleZ) + sin(angleX) * sin(angleY) * sin(angleZ);
+        float b = -cos(angleZ) * sin(angleX) + cos(angleX) * sin(angleY) * sin(angleZ);
+        // float r6 = -sin(angleY);
+        // float r7 = cos(angleY) * sin(angleX);
+        float c = cos(angleX) * cos(angleY);
+
+        float offset = -aX * pointX - aY * pointY - aZ * pointZ;
+
+        hue += 50;
         for (int i = 0; i < NUM_LEDS; i++)
         {
             if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
             {
-                bool enable = angleX * x + angleY * y + angleZ * z + offset > 0;
-                setLed(i, enable, strip->ColorHSV(hue, mSaturation));
+                int distance = aX * x + aY * y + aZ * z;
+                bool enable = aX * x + aY * y + aZ * z + offset > 0;
+                setLed(i, enable, strip->ColorHSV(distance * 500 + hue, mSaturation));
             }
-            hue += 50;
         }
         strip->show();
     }
