@@ -10,7 +10,7 @@ void ServerManager::init()
 
     if (MDNS.begin(mDNS_DOMAIN))
     {
-        LOG_SYSTEM("Start mDNS responder at %s.local", mDNS_DOMAIN);
+        LOG_SYSTEM("Start mDNS responder at http://%s.local:%d", mDNS_DOMAIN, WEB_SERVER_PORT);
     }
     else
     {
