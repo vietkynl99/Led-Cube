@@ -90,7 +90,7 @@ public class ServerManager {
             Log.e(TAG, "createNewSocketConnection: connected: " + connected);
             isConnectingSocket = false;
             if (connected) {
-                setServerState(SERVER_STATE_CONNECTED_BUT_NOT_PAIRED);
+//                setServerState(SERVER_STATE_CONNECTED_BUT_NOT_PAIRED);
                 sendCheckConnectionRequest();
             } else {
                 setServerState(SERVER_STATE_DISCONNECTED);
