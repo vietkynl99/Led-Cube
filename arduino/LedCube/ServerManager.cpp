@@ -110,6 +110,7 @@ void ServerManager::pairDevice(uint8_t id, long oldKey)
         saveApiKeyToEEPROM();
         LOG_SERVER("Paired new device, apiKey: %d", apiKey);
         sendResponse(id, EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL, "apiKey", String(apiKey));
+        HardwareController::getInstance()->beep(1);
     }
 }
 
