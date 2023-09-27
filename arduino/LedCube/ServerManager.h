@@ -7,6 +7,8 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <WebSocketsServer.h>
+#include <Hash.h>
 #include "VLog.h"
 #include "HardwareController.h"
 #include "LedManager.h"
@@ -47,20 +49,20 @@ enum EventType
 class ServerManager
 {
 public:
-    static ESP8266WebServer server;
+    static WebSocketsServer *webSocket;
     static long apiKey;
     static int batteryLevel;
 
     static void init();
     static void checkWifiStatus();
     static String generateJson(String key, String value);
-    static void sendResponse(int type, String data);
-    static void sendResponse(int type, String dataKey, String dataValue);
-    static void sendResponse(int type);
-    static void sendInvalidResponse();
-    static void pairDevice(long oldKey);
+    static void sendResponse(uint8_t id, int type, String data);
+    static void sendResponse(uint8_t id, int type, String dataKey, String dataValue);
+    static void sendResponse(uint8_t id, int type);
+    static void pairDevice(uint8_t id, long oldKey);
     static void dataProcessing(String data);
-    static void handleRequest();
+    static void onSocketEvent(uint8_t id, WStype_t type, uint8_t * payload, size_t length);
+    static void handleRequest(uint8_t id, long key, int type, String data);
     static void process();
 
     static void saveApiKeyToEEPROM();

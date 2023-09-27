@@ -1,6 +1,6 @@
 #include "ServerManager.h"
 
-ESP8266WebServer ServerManager::server;
+WebSocketsServer *ServerManager::webSocket;
 long ServerManager::apiKey = 0;
 int ServerManager::batteryLevel = 25;
 
@@ -10,19 +10,19 @@ void ServerManager::init()
 
     if (MDNS.begin(mDNS_DOMAIN))
     {
-        LOG_SYSTEM("Start mDNS responder at http://%s.local:%d", mDNS_DOMAIN, WEB_SERVER_PORT);
+        LOG_SYSTEM("Start mDNS responder at ws://%s.local:%d/ws", mDNS_DOMAIN, WEB_SERVER_PORT);
     }
     else
     {
         LOG_SYSTEM("Error setting up MDNS responder!");
     }
 
-    // Register callback function for http request
-    server.on("/", handleRequest);
-    // Start server
-    server.begin(WEB_SERVER_PORT);
+    webSocket = new WebSocketsServer(WEB_SERVER_PORT);
 
-    MDNS.addService("http", "tcp", WEB_SERVER_PORT);
+    webSocket->begin();
+    webSocket->onEvent(onSocketEvent);
+
+    MDNS.addService("ws", "tcp", WEB_SERVER_PORT);
     LOG_SERVER("Server started at port %d", WEB_SERVER_PORT);
 }
 
@@ -55,7 +55,7 @@ String ServerManager::generateJson(String key, String value)
     return json;
 }
 
-void ServerManager::sendResponse(int type, String data)
+void ServerManager::sendResponse(uint8_t id, int type, String data)
 {
     static StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
     String json;
@@ -66,40 +66,36 @@ void ServerManager::sendResponse(int type, String data)
     serializeJson(jsonDoc, json);
 
     LOG_SERVER("sendResponse %s", json.c_str());
-    server.send(200, "application/json", json);
+    webSocket->sendTXT(id, json);
 }
 
-void ServerManager::sendResponse(int type, String dataKey, String dataValue)
+void ServerManager::sendResponse(uint8_t id, int type, String dataKey, String dataValue)
 {
     String data = "";
     if (!dataKey.isEmpty() && !dataValue.isEmpty())
     {
         data = generateJson(dataKey, dataValue);
     }
-    sendResponse(type, data);
+    sendResponse(id, type, data);
 }
 
-void ServerManager::sendResponse(int type)
+void ServerManager::sendResponse(uint8_t id, int type)
 {
-    sendResponse(type, "");
+    sendResponse(id, type, "");
 }
 
-void ServerManager::sendInvalidResponse()
-{
-    server.send(200, "text/plain", ".");
-}
 
-void ServerManager::pairDevice(long oldKey)
+void ServerManager::pairDevice(uint8_t id, long oldKey)
 {
     if (oldKey == apiKey && apiKey >= API_KEY_MIN && apiKey <= API_KEY_MAX)
     {
         LOG_SERVER("Device is paired!!! Ignored Request!")
-        sendResponse(EVENT_RESPONSE_PAIR_DEVICE_PAIRED);
+        sendResponse(id, EVENT_RESPONSE_PAIR_DEVICE_PAIRED);
     }
     else if (!HardwareController::getInstance()->isPairingMode())
     {
         LOG_SERVER("Ignored Request!")
-        sendResponse(EVENT_RESPONSE_PAIR_DEVICE_IGNORED);
+        sendResponse(id, EVENT_RESPONSE_PAIR_DEVICE_IGNORED);
     }
     else
     {
@@ -113,7 +109,7 @@ void ServerManager::pairDevice(long oldKey)
         apiKey = newKey;
         saveApiKeyToEEPROM();
         LOG_SERVER("Paired new device, apiKey: %d", apiKey);
-        sendResponse(EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL, "apiKey", String(apiKey));
+        sendResponse(id, EVENT_RESPONSE_PAIR_DEVICE_SUCCESSFUL, "apiKey", String(apiKey));
     }
 }
 
@@ -157,55 +153,89 @@ void ServerManager::dataProcessing(String data)
     }
 }
 
-void ServerManager::handleRequest()
+void ServerManager::onSocketEvent(uint8_t id, WStype_t type, uint8_t *payload, size_t length)
 {
-    bool validResponse = true;
-    bool keyIsValid = false;
-    String keyStr = server.arg("key");
-    long key = keyStr.toInt();
-    if (key > 0 && key == apiKey)
-    {
-        keyIsValid = true;
-    }
-    if (keyStr.isEmpty())
-    {
-        validResponse = false;
-    }
 
-    int type = -1;
-    String typeStr = server.arg("type");
-    int typeInt = typeStr.toInt();
-    if (typeInt >= EVENT_NONE)
+    switch (type)
     {
-        type = typeInt;
-    }
-    if (typeStr.isEmpty() || type < 0)
+    case WStype_DISCONNECTED:
     {
-        validResponse = false;
+        LOG_SERVER("[%u] Disconnected!", id);
+        break;
     }
-
-    String data = server.arg("data");
-
-    LOG_SERVER("Received a request: key[%d] type[%d] data[%s] -> valid[%d] keyValid[%d]", key, type, data.c_str(), validResponse, keyIsValid);
-
-    if (!validResponse)
+    case WStype_CONNECTED:
     {
-        sendInvalidResponse();
-        return;
+        IPAddress ip = webSocket->remoteIP(id);
+        LOG_SERVER("[%u] Connected from %d.%d.%d.%d url: %s", id, ip[0], ip[1], ip[2], ip[3], payload);
+        break;
     }
+    case WStype_TEXT:
+    {
+        LOG_SERVER("[%u] get Text: %s", id, payload);
+        String message = String((char *)payload);
+        if (message.isEmpty())
+        {
+            return;
+        }
+
+        StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
+        DeserializationError error = deserializeJson(jsonDoc, message);
+        if (error)
+        {
+            LOG_SERVER("Cannot deserialize json");
+        }
+        else
+        {
+            long key = -1;
+            int type = -1;
+            String data = "";
+
+            if (jsonDoc["key"].is<long>())
+            {
+                key = jsonDoc["key"];
+            }
+            if (jsonDoc["type"].is<int>())
+            {
+                type = jsonDoc["type"];
+            }
+            if (jsonDoc["data"].is<String>())
+            {
+                data = jsonDoc["data"].as<String>();
+            }
+            if (key >= 0 && type >= 0)
+            {
+                handleRequest(id, key, type, data);
+            }
+            else
+            {
+                LOG_SERVER("Invalid message");
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void ServerManager::handleRequest(uint8_t id, long key, int type, String data)
+{
+    bool keyIsValid = key > 0 && key == apiKey;
+
+    LOG_SERVER("Received a request: id[%d] key[%d] type[%d] data[%s] -> keyValid[%d]", id, key, type, data.c_str(), keyIsValid);
 
     /* Handle event */
     // If type=EVENT_REQUEST_PAIR_DEVICE we don't need to check key
     if (type == EVENT_REQUEST_PAIR_DEVICE)
     {
-        pairDevice(key);
+        pairDevice(id, key);
         return;
     }
 
     // Check key is valid
     if (!keyIsValid)
     {
-        sendResponse(EVENT_RESPONSE_INVALID_KEY);
+        sendResponse(id, EVENT_RESPONSE_INVALID_KEY);
         return;
     }
 
@@ -214,18 +244,18 @@ void ServerManager::handleRequest()
     {
     case EVENT_REQUEST_CHECK_CONNECTION:
     {
-        sendResponse(EVENT_RESPONSE_UPDATE_DATA, HardwareController::getInstance()->getSensorsData());
+        sendResponse(id, EVENT_RESPONSE_UPDATE_DATA, HardwareController::getInstance()->getSensorsData());
         break;
     }
     case EVENT_REQUEST_SEND_DATA:
     {
         dataProcessing(data);
-        sendResponse(EVENT_RESPONSE_GET_DATA_SUCCESSFUL, HardwareController::getInstance()->getSensorsData());
+        sendResponse(id, EVENT_RESPONSE_GET_DATA_SUCCESSFUL, HardwareController::getInstance()->getSensorsData());
         break;
     }
     default:
     {
-        sendResponse(EVENT_RESPONSE_CHECK_CONNECTION, "pair", keyIsValid ? "1" : "0");
+        sendResponse(id, EVENT_RESPONSE_CHECK_CONNECTION, "pair", keyIsValid ? "1" : "0");
         break;
     }
     }
@@ -235,7 +265,7 @@ void ServerManager::process()
 {
     checkWifiStatus();
     MDNS.update();
-    server.handleClient();
+    webSocket->loop();
 }
 
 void ServerManager::saveApiKeyToEEPROM()
