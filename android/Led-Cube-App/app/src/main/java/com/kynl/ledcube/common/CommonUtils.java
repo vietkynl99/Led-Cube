@@ -28,7 +28,7 @@ public class CommonUtils {
     // Server device name
     public static final String SERVER_DEVICE_NAME = "ledCube";
     public static final String WEBSOCKET_URL = "ws://ledCube.local:51308/ws";
-    public static final int AUTO_CONNECT_TIMEOUT = 5000;
+    public static final int AUTO_CONNECT_TIMEOUT = 10000;
 
     // Date
     public static final String LAST_SCAN_DATE_TIME_FORMAT = "HH:mm:ss dd/MM/yyyy";
