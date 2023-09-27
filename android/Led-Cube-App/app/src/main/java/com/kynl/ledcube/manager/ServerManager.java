@@ -13,6 +13,7 @@ import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
 import com.kynl.ledcube.myinterface.OnServerResponseListener;
+import com.kynl.ledcube.nettool.SocketClient;
 import com.kynl.ledcube.nettool.SubnetDevices;
 
 import com.kynl.ledcube.common.CommonUtils.ServerState;
@@ -20,13 +21,17 @@ import com.kynl.ledcube.common.CommonUtils.ServerState;
 import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
 import static com.kynl.ledcube.common.CommonUtils.MDNS_SERVER_DOMAIN;
 import static com.kynl.ledcube.common.CommonUtils.MDNS_SUPPORT_ANDROID_VERSION;
+import static com.kynl.ledcube.common.CommonUtils.WEBSOCKET_URL;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_SEND_DATA;
 
 import org.json.JSONObject;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ServerManager {
@@ -46,6 +51,8 @@ public class ServerManager {
     private boolean isFindingSubnetDevices;
     private String savedIpAddress, savedMacAddress;
     private boolean synced;
+    private SocketClient socketClient;
+    private Timer reconnectTimer;
 
     private ServerManager() {
     }
@@ -75,6 +82,47 @@ public class ServerManager {
         synced = SharedPreferencesManager.getInstance().isSynced();
         apiKey = SharedPreferencesManager.getInstance().getApiKey();
         Log.e(TAG, "init: apiKey = " + apiKey);
+
+        createSocketConnection();
+    }
+
+    private void createSocketConnection() {
+        Log.i(TAG, "createNewSocketConnection: ");
+
+        try {
+            socketClient = new SocketClient(WEBSOCKET_URL);
+        } catch (URISyntaxException e) {
+            Log.e(TAG, "init: Cannot resolve websocket url: " + WEBSOCKET_URL);
+        }
+        socketClient.setOnSocketStateChangeListener(connected -> {
+            Log.e(TAG, "createNewSocketConnection: connected: " + connected);
+            if (!connected) {
+                reconnectTimer = new Timer();
+                reconnectTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d(TAG, "run: reconnect");
+                            socketClient.reconnect();
+                        }catch (Exception e) {
+                            Log.e(TAG, "run: Cannot reconnect" );
+                            e.printStackTrace();
+                        }
+                    }
+                }, 5000);
+            }
+        });
+        socketClient.setOnMessageReceivedListener(message -> {
+            ServerMessage serverMessage = new ServerMessage(message);
+            if (serverMessage.isValidResponseMessage()) {
+                handleResponseFromServer(false, "", serverMessage);
+            } else {
+                handleResponseFromServer(true, "Invalid response data", new ServerMessage());
+            }
+        });
+        Log.i(TAG, "init: Connecting to " + WEBSOCKET_URL);
+
+        socketClient.connect();
     }
 
     public boolean isSupportMDNS() {
@@ -156,47 +204,55 @@ public class ServerManager {
     }
 
     private void sendRequestToServer(ServerMessage sentData) {
-        lock.lock();
-        Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
-        if (context == null) {
-            Log.e(TAG, "sendRequestToServer: Context is null!");
-            return;
+        Log.d(TAG, "sendRequestToServer: " + sentData.toJson());
+        if (socketClient != null) {
+            if (!socketClient.isOpen()) {
+                Log.e(TAG, "sendRequestToServer: Socket is not opened!");
+                return;
+            }
+            socketClient.send(sentData.toJson());
         }
-        if (!isSupportMDNS() && ipAddress.isEmpty()) {
-            Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
-            return;
-        }
-        if (busy) {
-            Log.e(TAG, "sendRequestToServer: Server is busy. serverState: " + serverState);
-            return;
-        }
-        busy = true;
-        String serverAddress = isSupportMDNS() ? HTTP_FORMAT + MDNS_SERVER_DOMAIN : HTTP_FORMAT + ipAddress;
-        String url = Uri.parse(serverAddress)
-                .buildUpon()
-                .appendQueryParameter("key", sentData.getKeyAsString())
-                .appendQueryParameter("type", sentData.getTypeAsString())
-                .appendQueryParameter("data", sentData.getData())
-                .build()
-                .toString();
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                response -> {
-                    Log.i(TAG, "onResponse: " + response);
-                    ServerMessage message = new ServerMessage(response);
-                    if (message.isValidResponseMessage()) {
-                        handleResponseFromServer(false, "", message);
-                    } else {
-                        handleResponseFromServer(true, "Invalid response data", new ServerMessage());
-                    }
-                },
-                error -> {
-                    String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
-                    handleResponseFromServer(true, errorMessage, new ServerMessage());
-                });
-
-        requestQueue.add(stringRequest);
-        lock.unlock();
+//        lock.lock();
+//        Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
+//        if (context == null) {
+//            Log.e(TAG, "sendRequestToServer: Context is null!");
+//            return;
+//        }
+//        if (!isSupportMDNS() && ipAddress.isEmpty()) {
+//            Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
+//            return;
+//        }
+//        if (busy) {
+//            Log.e(TAG, "sendRequestToServer: Server is busy. serverState: " + serverState);
+//            return;
+//        }
+//        busy = true;
+//        String serverAddress = isSupportMDNS() ? HTTP_FORMAT + MDNS_SERVER_DOMAIN : HTTP_FORMAT + ipAddress;
+//        String url = Uri.parse(serverAddress)
+//                .buildUpon()
+//                .appendQueryParameter("key", sentData.getKeyAsString())
+//                .appendQueryParameter("type", sentData.getTypeAsString())
+//                .appendQueryParameter("data", sentData.getData())
+//                .build()
+//                .toString();
+//
+//        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+//                response -> {
+//                    Log.i(TAG, "onResponse: " + response);
+//                    ServerMessage message = new ServerMessage(response);
+//                    if (message.isValidResponseMessage()) {
+//                        handleResponseFromServer(false, "", message);
+//                    } else {
+//                        handleResponseFromServer(true, "Invalid response data", new ServerMessage());
+//                    }
+//                },
+//                error -> {
+//                    String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
+//                    handleResponseFromServer(true, errorMessage, new ServerMessage());
+//                });
+//
+//        requestQueue.add(stringRequest);
+//        lock.unlock();
     }
 
     private void handleResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
@@ -285,7 +341,7 @@ public class ServerManager {
                 }
             }
         }
-        busy = false;
+//        busy = false;
 
         if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
             saveDevice(ipAddress, macAddress);

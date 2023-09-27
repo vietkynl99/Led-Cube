@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     buildToolsVersion "31.0.0"
 
     defaultConfig {
@@ -42,6 +42,7 @@ dependencies {
     implementation 'com.github.cachapa:ExpandableLayout:2.9.2'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.github.rtugeek:colorseekbar:2.0.3'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.1'
 
     testImplementation 'junit:junit:'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

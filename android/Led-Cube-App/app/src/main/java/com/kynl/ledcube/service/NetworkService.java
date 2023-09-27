@@ -199,7 +199,7 @@ public class NetworkService extends Service {
         mHandler = new Handler();
         mRunnable = () -> {
             if (!ServerManager.getInstance().isBusy()) {
-                requestSyncLastData();
+//                requestSyncLastData();
                 mHandler.postDelayed(mRunnable, networkScanTime);
             } else {
                 mHandler.postDelayed(mRunnable, networkScanTime / 2);

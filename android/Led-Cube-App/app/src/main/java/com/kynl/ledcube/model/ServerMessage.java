@@ -1,8 +1,11 @@
 package com.kynl.ledcube.model;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.kynl.ledcube.common.CommonUtils.SERVER_DEVICE_NAME;
+
+import com.google.gson.Gson;
 
 public class ServerMessage {
 
@@ -114,6 +117,18 @@ public class ServerMessage {
 
     public String getData() {
         return data;
+    }
+
+    public String toJson() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("key", key);
+            jsonObject.put("type", type.getValue());
+            jsonObject.put("data", data);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject.toString();
     }
 
     public boolean isValidResponseMessage() {

@@ -29,6 +29,7 @@ public class CommonUtils {
     public static final String SERVER_DEVICE_NAME = "ledCube";
     public static final String MDNS_SERVER_DOMAIN = "ledCube.local:51308";
     public static final String HTTP_FORMAT = "http://";
+    public static final String WEBSOCKET_URL = "ws://ledCube.local:51308/ws";
 
     // Date
     public static final String LAST_SCAN_DATE_TIME_FORMAT = "HH:mm:ss dd/MM/yyyy";
