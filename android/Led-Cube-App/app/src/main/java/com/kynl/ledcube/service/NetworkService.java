@@ -12,7 +12,6 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -37,9 +36,6 @@ import com.kynl.ledcube.common.CommonUtils.ServerState;
 
 public class NetworkService extends Service {
     private final String TAG = "NetworkService";
-    private final int networkScanTime = 5000;
-    private Handler mHandler;
-    private Runnable mRunnable;
     private final Gson gson = new Gson();
     private final int retryMax = 1;
     private NetworkServiceState networkServiceState;
@@ -77,9 +73,7 @@ public class NetworkService extends Service {
                         break;
                     }
                     case BROADCAST_REQUEST_PAUSE_NETWORK_SCAN: {
-                        if (mHandler != null && mRunnable != null) {
-                            mHandler.removeCallbacks(mRunnable);
-                        }
+                        ServerManager.getInstance().pauseSocketConnection();
                         break;
                     }
                     default:
@@ -195,17 +189,6 @@ public class NetworkService extends Service {
         /* Broadcast */
         BroadcastManager.getInstance().registerBroadcast(mBroadcastReceiver);
 
-        /* Runnable */
-        mHandler = new Handler();
-        mRunnable = () -> {
-            if (!ServerManager.getInstance().isBusy()) {
-//                requestSyncLastData();
-                mHandler.postDelayed(mRunnable, networkScanTime);
-            } else {
-                mHandler.postDelayed(mRunnable, networkScanTime / 2);
-            }
-        };
-
         /* Try to connect in first time */
         tryInFirstConnection();
     }
@@ -213,8 +196,7 @@ public class NetworkService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "onStartCommand: ");
-        // Runnable
-        mHandler.postDelayed(mRunnable, networkScanTime);
+        ServerManager.getInstance().resumeSocketConnection();
         return START_STICKY;
     }
 
@@ -222,7 +204,6 @@ public class NetworkService extends Service {
     public void onDestroy() {
         Log.e(TAG, "onDestroy: ");
         super.onDestroy();
-        mHandler.removeCallbacks(mRunnable);
         BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
     }
 

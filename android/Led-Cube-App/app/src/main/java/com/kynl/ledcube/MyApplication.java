@@ -18,7 +18,7 @@ public class MyApplication extends Application {
 
         SharedPreferencesManager.getInstance().init(getApplicationContext());
         BroadcastManager.getInstance().init(getApplicationContext());
-        ServerManager.getInstance().init(getApplicationContext());
+        ServerManager.getInstance().init();
         EffectManager.getInstance().init();
     }
 }

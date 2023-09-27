@@ -1,14 +1,8 @@
 package com.kynl.ledcube.manager;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.kynl.ledcube.model.Device;
 import com.kynl.ledcube.model.ServerMessage;
 import com.kynl.ledcube.myinterface.OnServerDataChangeListener;
@@ -18,9 +12,10 @@ import com.kynl.ledcube.nettool.SubnetDevices;
 
 import com.kynl.ledcube.common.CommonUtils.ServerState;
 
-import static com.kynl.ledcube.common.CommonUtils.HTTP_FORMAT;
-import static com.kynl.ledcube.common.CommonUtils.MDNS_SERVER_DOMAIN;
+import static com.kynl.ledcube.common.CommonUtils.AUTO_CONNECT_TIMEOUT;
 import static com.kynl.ledcube.common.CommonUtils.MDNS_SUPPORT_ANDROID_VERSION;
+import static com.kynl.ledcube.common.CommonUtils.ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+import static com.kynl.ledcube.common.CommonUtils.ServerState.SERVER_STATE_DISCONNECTED;
 import static com.kynl.ledcube.common.CommonUtils.WEBSOCKET_URL;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_CHECK_CONNECTION;
 import static com.kynl.ledcube.model.ServerMessage.EventType.EVENT_REQUEST_PAIR_DEVICE;
@@ -40,8 +35,6 @@ public class ServerManager {
     private String ipAddress, macAddress;
     private int apiKey = 0;
     private static ServerManager instance;
-    private Context context;
-    private RequestQueue requestQueue;
     private ServerState serverState;
     private boolean busy;
     private OnServerResponseListener onServerResponseListener;
@@ -52,7 +45,9 @@ public class ServerManager {
     private String savedIpAddress, savedMacAddress;
     private boolean synced;
     private SocketClient socketClient;
+    private boolean isConnectingSocket;
     private Timer reconnectTimer;
+    private boolean autoReconnect;
 
     private ServerManager() {
     }
@@ -64,13 +59,9 @@ public class ServerManager {
         return instance;
     }
 
-    public void init(Context context) {
+    public void init() {
         Log.i(TAG, "init: ");
-        this.context = context;
-        if (requestQueue == null) {
-            requestQueue = Volley.newRequestQueue(context);
-        }
-        serverState = ServerState.SERVER_STATE_DISCONNECTED;
+        serverState = SERVER_STATE_DISCONNECTED;
         busy = false;
         onServerResponseListener = null;
         ipAddress = "";
@@ -93,10 +84,19 @@ public class ServerManager {
             socketClient = new SocketClient(WEBSOCKET_URL);
         } catch (URISyntaxException e) {
             Log.e(TAG, "init: Cannot resolve websocket url: " + WEBSOCKET_URL);
+            return;
         }
         socketClient.setOnSocketStateChangeListener(connected -> {
             Log.e(TAG, "createNewSocketConnection: connected: " + connected);
-            if (!connected) {
+            isConnectingSocket = false;
+            if (connected) {
+                setServerState(SERVER_STATE_CONNECTED_BUT_NOT_PAIRED);
+                sendCheckConnectionRequest();
+            } else {
+                setServerState(SERVER_STATE_DISCONNECTED);
+            }
+
+            if (!connected && autoReconnect) {
                 reconnectTimer = new Timer();
                 reconnectTimer.schedule(new TimerTask() {
                     @Override
@@ -104,12 +104,12 @@ public class ServerManager {
                         try {
                             Log.d(TAG, "run: reconnect");
                             socketClient.reconnect();
-                        }catch (Exception e) {
-                            Log.e(TAG, "run: Cannot reconnect" );
+                        } catch (Exception e) {
+                            Log.w(TAG, "run: Cannot reconnect");
                             e.printStackTrace();
                         }
                     }
-                }, 5000);
+                }, AUTO_CONNECT_TIMEOUT);
             }
         });
         socketClient.setOnMessageReceivedListener(message -> {
@@ -120,17 +120,34 @@ public class ServerManager {
                 handleResponseFromServer(true, "Invalid response data", new ServerMessage());
             }
         });
-        Log.i(TAG, "init: Connecting to " + WEBSOCKET_URL);
 
+        Log.i(TAG, "init: Connecting to " + WEBSOCKET_URL);
+        isConnectingSocket = true;
+        autoReconnect = true;
         socketClient.connect();
+    }
+
+    public void pauseSocketConnection() {
+        autoReconnect = false;
+        if (socketClient != null) {
+            Log.d(TAG, "pauseSocketConnection: close connection");
+            socketClient.close();
+            socketClient = null;
+        }
+    }
+
+    public void resumeSocketConnection() {
+        autoReconnect = true;
+        if (socketClient == null) {
+            createSocketConnection();
+        } else if (!socketClient.isOpen() && !isConnectingSocket) {
+            Log.d(TAG, "resumeSocketConnection: reconnect");
+            socketClient.reconnect();
+        }
     }
 
     public boolean isSupportMDNS() {
         return Build.VERSION.SDK_INT >= MDNS_SUPPORT_ANDROID_VERSION;
-    }
-
-    public boolean isSynced() {
-        return synced;
     }
 
     public void setSynced(boolean synced) {
@@ -212,47 +229,6 @@ public class ServerManager {
             }
             socketClient.send(sentData.toJson());
         }
-//        lock.lock();
-//        Log.d(TAG, "sendRequestToServer: key[" + sentData.getKey() + "] type[" + sentData.getType() + "] data[" + sentData.getData() + "]");
-//        if (context == null) {
-//            Log.e(TAG, "sendRequestToServer: Context is null!");
-//            return;
-//        }
-//        if (!isSupportMDNS() && ipAddress.isEmpty()) {
-//            Log.e(TAG, "sendRequestToServer: Error! IP Address is empty");
-//            return;
-//        }
-//        if (busy) {
-//            Log.e(TAG, "sendRequestToServer: Server is busy. serverState: " + serverState);
-//            return;
-//        }
-//        busy = true;
-//        String serverAddress = isSupportMDNS() ? HTTP_FORMAT + MDNS_SERVER_DOMAIN : HTTP_FORMAT + ipAddress;
-//        String url = Uri.parse(serverAddress)
-//                .buildUpon()
-//                .appendQueryParameter("key", sentData.getKeyAsString())
-//                .appendQueryParameter("type", sentData.getTypeAsString())
-//                .appendQueryParameter("data", sentData.getData())
-//                .build()
-//                .toString();
-//
-//        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-//                response -> {
-//                    Log.i(TAG, "onResponse: " + response);
-//                    ServerMessage message = new ServerMessage(response);
-//                    if (message.isValidResponseMessage()) {
-//                        handleResponseFromServer(false, "", message);
-//                    } else {
-//                        handleResponseFromServer(true, "Invalid response data", new ServerMessage());
-//                    }
-//                },
-//                error -> {
-//                    String errorMessage = error.getMessage() != null ? error.getMessage() : "Can not connect to server " + ipAddress;
-//                    handleResponseFromServer(true, errorMessage, new ServerMessage());
-//                });
-//
-//        requestQueue.add(stringRequest);
-//        lock.unlock();
     }
 
     private void handleResponseFromServer(boolean isError, String errorMessage, ServerMessage receivedData) {
@@ -261,7 +237,7 @@ public class ServerManager {
         if (isError) {
             message = errorMessage;
             Log.e(TAG, "handleResponseFromServer: get error: " + errorMessage);
-            serverState = ServerState.SERVER_STATE_DISCONNECTED;
+            serverState = SERVER_STATE_DISCONNECTED;
         } else {
             Log.i(TAG, "handleResponseFromServer: type[" + receivedData.getType() + "] data[" + receivedData.getData() + "]");
             switch (receivedData.getType()) {
@@ -271,9 +247,9 @@ public class ServerManager {
                         JSONObject jsonObject = new JSONObject(receivedData.getData());
                         String pair = jsonObject.getString("pair");
                         serverState = pair.equals("1") ? ServerState.SERVER_STATE_CONNECTED_AND_PAIRED :
-                                ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                                SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     } catch (Exception ignored) {
-                        serverState = ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                        serverState = SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     }
 
                     if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
@@ -295,7 +271,7 @@ public class ServerManager {
                         message = "Paired successfully";
                         Log.i(TAG, "handleResponseFromServer: Paired -> apiKey = " + apiKey);
                     } catch (Exception e) {
-                        serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                        serverState = SERVER_STATE_DISCONNECTED;
                         message = "Error while pairing";
                         Log.e(TAG, "handleResponseFromServer: Invalid string: " + receivedData.getData());
                     }
@@ -323,25 +299,24 @@ public class ServerManager {
                 }
                 // State is disconnected
                 case EVENT_RESPONSE_INVALID_KEY: {
-                    serverState = ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                    serverState = SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     message = "Device is not paired";
                     Log.i(TAG, "handleResponseFromServer: " + message);
                     break;
                 }
                 case EVENT_RESPONSE_PAIR_DEVICE_IGNORED: {
-                    serverState = ServerState.SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
+                    serverState = SERVER_STATE_CONNECTED_BUT_NOT_PAIRED;
                     message = "Request is ignored by server";
                     Log.i(TAG, "handleResponseFromServer: " + message);
                     break;
                 }
                 default: {
-                    serverState = ServerState.SERVER_STATE_DISCONNECTED;
+                    serverState = SERVER_STATE_DISCONNECTED;
                     Log.e(TAG, "handleResponseFromServer: Unhandled event type: " + receivedData.getType());
                     break;
                 }
             }
         }
-//        busy = false;
 
         if (serverState == ServerState.SERVER_STATE_CONNECTED_AND_PAIRED) {
             saveDevice(ipAddress, macAddress);
@@ -350,6 +325,13 @@ public class ServerManager {
         notifyServerResponse(serverState, message);
 
         lock.unlock();
+    }
+
+    private void setServerState(ServerState serverState) {
+        if (this.serverState != serverState) {
+            this.serverState = serverState;
+            notifyServerResponse(serverState, "");
+        }
     }
 
     private void notifyServerResponse(ServerState serverState, String message) {
@@ -369,6 +351,11 @@ public class ServerManager {
     }
 
     public void findSubnetDevices() {
+        if (isSupportMDNS()) {
+            Log.e(TAG, "findSubnetDevices: Not support in mDNS mode!!!");
+            return;
+        }
+
         lock.lock();
         if (onSubnetDeviceFoundListener == null) {
             Log.e(TAG, "findSubnetDevices: Error! Listener is null");
