@@ -23,5 +23,6 @@
         android:layout_height="50dp"
         android:layout_gravity="center"
         android:padding="10dp"
-        tools:srcCompat="@drawable/snake_48" />
+        tools:tint="@color/color_primary"
+        tools:srcCompat="@drawable/effect_snake_50" />
 </FrameLayout>
