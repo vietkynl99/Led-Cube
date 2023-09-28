@@ -47,8 +47,8 @@ public class SocketClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
-        Log.e(TAG, "get error");
-        ex.printStackTrace();
+        Log.e(TAG, "get error: " + ex.getMessage());
+//        ex.printStackTrace();
     }
 
     public void setOnMessageReceivedListener(OnMessageReceivedListener onMessageReceivedListener) {
