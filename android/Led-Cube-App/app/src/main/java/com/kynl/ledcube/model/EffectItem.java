@@ -11,8 +11,8 @@ public class EffectItem {
         MUSIC,
         WAVE,
         FLASH,
-        SNAKE,
         GRAVITY,
+        SNAKE,
         EFFECT_MAX
     }
 
