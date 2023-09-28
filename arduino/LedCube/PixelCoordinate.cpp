@@ -1,15 +1,56 @@
 #include "PixelCoordinate.h"
 
 // arrayPosition: 0 -> NUM_LEDS - 1
-// x,y,z: 1->MATRIX_SIZE_1D
+// x,y,z: 0->MATRIX_SIZE_1D+1
 
 int PixelCoordinate::getArrayPosition(int x, int y, int z)
 {
-    if (x < 1 || y < 1 || z < 1 || x > MATRIX_SIZE_1D || y > MATRIX_SIZE_1D || z > MATRIX_SIZE_1D)
+    int matrixIndex = -1;
+    int position = -1;
+    if (x < 0 || y < 0 || z < 0 || x > MATRIX_SIZE_1D + 1 || y > MATRIX_SIZE_1D + 1 || z > MATRIX_SIZE_1D + 1)
     {
         return -1;
     }
-    return -1;
+
+    if (z == 0)
+    {
+        matrixIndex = 0;
+        position = (MATRIX_SIZE_1D - x) * MATRIX_SIZE_1D + MATRIX_SIZE_1D - y;
+    }
+    else if (x == 0)
+    {
+        matrixIndex = 1;
+        position = (z - 1) * MATRIX_SIZE_1D + MATRIX_SIZE_1D - y;
+    }
+    else if (y == 0)
+    {
+        matrixIndex = 2;
+        position = (z - 1) * MATRIX_SIZE_1D + x - 1;
+    }
+    else if (x == MATRIX_SIZE_1D + 1)
+    {
+        matrixIndex = 3;
+        position = (z - 1) * MATRIX_SIZE_1D + y - 1;
+    }
+    else if (z == MATRIX_SIZE_1D + 1)
+    {
+        matrixIndex = 4;
+        position = (MATRIX_SIZE_1D - x) * MATRIX_SIZE_1D + y - 1;
+    }
+    else if (y == MATRIX_SIZE_1D + 1)
+    {
+        matrixIndex = 5;
+        position = (MATRIX_SIZE_1D - z) * MATRIX_SIZE_1D + x - 1;
+    }
+
+    if (matrixIndex >= 0)
+    {
+        return matrixIndex * MATRIX_SIZE_2D + position;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 bool PixelCoordinate::getDescartesPositions(int arrayPosition, int *x, int *y, int *z)
