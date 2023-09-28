@@ -21,8 +21,7 @@
         android:id="@+id/effect_item_icon"
         android:layout_width="50dp"
         android:layout_height="50dp"
-
         android:layout_gravity="center"
         android:padding="10dp"
-        app:srcCompat="@drawable/music_52" />
+        tools:srcCompat="@drawable/snake_48" />
 </FrameLayout>

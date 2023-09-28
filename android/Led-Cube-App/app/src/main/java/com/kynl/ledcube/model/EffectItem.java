@@ -11,6 +11,7 @@ public class EffectItem {
         MUSIC,
         WAVE,
         FLASH,
+        SNAKE,
         GRAVITY,
         EFFECT_MAX
     }
@@ -34,34 +35,23 @@ public class EffectItem {
     public int getIconId() {
         switch (type) {
             case RGB:
-                return R.drawable.rgb_64;
+                return R.drawable.effect_rgb_64;
             case MUSIC:
-                return R.drawable.music_52;
+                return R.drawable.effect_music_52;
             case WAVE:
-                return R.drawable.wave_50;
+                return R.drawable.effect_wave_50;
             case FLASH:
-                return R.drawable.lightning_60;
+                return R.drawable.effect_lightning_60;
             case GRAVITY:
-                return R.drawable.gravity_64;
+                return R.drawable.effect_gravity_64;
+            case SNAKE:
+                return R.drawable.effect_snake_50;
             default:
                 return -1;
         }
     }
 
-    public int getHighlightIconId() {
-        switch (type) {
-            case RGB:
-                return R.drawable.rgb_hightlight_64;
-            case MUSIC:
-                return R.drawable.music_hightlight_52;
-            case WAVE:
-                return R.drawable.wave_hightlight_50;
-            case FLASH:
-                return R.drawable.lightning_hightlight_60;
-            case GRAVITY:
-                return R.drawable.gravity_highlight_64;
-            default:
-                return -1;
-        }
+    public boolean useOriginIconColor() {
+        return type == EffectType.RGB;
     }
 }

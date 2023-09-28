@@ -81,6 +81,9 @@ public class EffectManager {
         flashOptionItemList.add(new OptionItem(OptionItem.OptionType.SENSITIVITY));
         effectItemList.add(new EffectItem(EffectItem.EffectType.FLASH, flashOptionItemList));
 
+        // Snake
+        List<OptionItem> snakeOptionItemList = new ArrayList<>();
+        effectItemList.add(new EffectItem(EffectItem.EffectType.SNAKE, snakeOptionItemList));
 
         setCurrentEffectType(EffectItem.EffectType.RGB);
     }

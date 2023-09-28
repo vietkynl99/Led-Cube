@@ -1,6 +1,7 @@
 package com.kynl.ledcube.adapter;
 
 
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.kynl.ledcube.R;
@@ -37,7 +41,7 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
         EffectItem element = effectItemList.get(position);
-        holder.bind(position == selectedPosition, position == selectedPosition ? element.getHighlightIconId() : element.getIconId());
+        holder.bind(position == selectedPosition, element);
         holder.icon.setOnClickListener(v -> {
             if (onEffectItemClickListener != null) {
                 onEffectItemClickListener.onItemClick(effectItemList.get(position).getType());
@@ -97,9 +101,16 @@ public class EffectListAdapter extends RecyclerView.Adapter<EffectListAdapter.Cu
             highlight_view = itemView.findViewById(R.id.highlight_view);
         }
 
-        public void bind(boolean highlight, int iconId) {
+        public void bind(boolean highlight, EffectItem effectItem) {
             highlight_view.setVisibility(highlight ? View.VISIBLE : View.INVISIBLE);
-            icon.setImageResource(iconId);
+            icon.setImageResource(effectItem.getIconId());
+            if (!(highlight && effectItem.useOriginIconColor())) {
+                Drawable drawable = icon.getDrawable().mutate();
+                Drawable wrappedDrawable = DrawableCompat.wrap(drawable);
+                int color = ContextCompat.getColor(itemView.getContext(), highlight ? R.color.color_primary : R.color.icon_color);
+                DrawableCompat.setTint(wrappedDrawable, color);
+                icon.setImageDrawable(wrappedDrawable);
+            }
         }
     }
 }
