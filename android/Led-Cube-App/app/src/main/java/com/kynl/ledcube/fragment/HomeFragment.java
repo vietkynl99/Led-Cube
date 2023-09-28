@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,8 +36,12 @@ import com.kynl.ledcube.common.CommonUtils.ServerState;
 import com.kynl.ledcube.manager.SharedPreferencesManager;
 import com.kynl.ledcube.model.EffectItem;
 import com.kynl.ledcube.model.OptionItem;
+import com.kynl.ledcube.model.ServerMessage;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 public class HomeFragment extends Fragment {
     private final String TAG = "HomeFragment";
@@ -45,9 +50,12 @@ public class HomeFragment extends Fragment {
     private EffectListAdapter effectListAdapter;
     private ImageView iconStatus, batteryIcon;
     private TextView textStatus, textBatteryLevel, textTemperature, textHumidity, textPairing;
+    private ViewGroup gamePanel;
+    private RecyclerView optionListRecyclerView;
     private int batteryLevel, temperature, humidity;
     private ServerState serverState;
     private boolean isDebouncing = false;
+    private ServerMessage.CommandType preCommandType;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -114,6 +122,7 @@ public class HomeFragment extends Fragment {
         temperature = 0;
         humidity = 0;
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
+        preCommandType = ServerMessage.CommandType.COMMAND_MAX;
     }
 
     @Override
@@ -130,7 +139,10 @@ public class HomeFragment extends Fragment {
         textTemperature = view.findViewById(R.id.textTemperature);
         textHumidity = view.findViewById(R.id.textHumidity);
         RecyclerView effectListRecyclerView = view.findViewById(R.id.effectListRecyclerView);
-        RecyclerView optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
+        optionListRecyclerView = view.findViewById(R.id.optionListRecyclerView);
+        gamePanel = view.findViewById(R.id.game_panel);
+        JoystickView joystickView = view.findViewById(R.id.joystick);
+        Button startButton = view.findViewById(R.id.start_button);
 
         /* Option Recycler view */
         optionListAdapter = new OptionListAdapter(EffectManager.getInstance().getEffectItemList());
@@ -154,7 +166,9 @@ public class HomeFragment extends Fragment {
         effectListAdapter = new EffectListAdapter(EffectManager.getInstance().getEffectItemList());
         effectListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         effectListRecyclerView.setAdapter(effectListAdapter);
+        effectListRecyclerView.scrollToPosition(EffectManager.getInstance().getCurrentEffectPosition());
         effectListAdapter.select(EffectManager.getInstance().getCurrentEffectType());
+        setGameModeEnable(EffectManager.getInstance().isGameMode());
 
         effectListAdapter.setOnEffectItemClickListener(type -> {
             EffectItem.EffectType preType = EffectManager.getInstance().getCurrentEffectType();
@@ -163,6 +177,26 @@ public class HomeFragment extends Fragment {
             } else {
                 selectEffectType(EffectItem.EffectType.OFF);
             }
+            setGameModeEnable(EffectManager.getInstance().isGameMode());
+        });
+
+        /* Game Controller */
+        joystickView.setOnMoveListener((angle, strength) -> {
+            if (strength > 70) {
+                if (angle < 30 || angle > 330) {
+                    sendGameCommandData(ServerMessage.CommandType.COMMAND_GAME_RIGHT);
+                } else if (angle > 60 && angle < 120) {
+                    sendGameCommandData(ServerMessage.CommandType.COMMAND_GAME_UP);
+                } else if (angle > 150 && angle < 210) {
+                    sendGameCommandData(ServerMessage.CommandType.COMMAND_GAME_LEFT);
+                } else if (angle > 240 && angle < 300) {
+                    sendGameCommandData(ServerMessage.CommandType.COMMAND_GAME_DOWN);
+                }
+            }
+        });
+
+        startButton.setOnClickListener(v -> {
+            sendGameCommandData(ServerMessage.CommandType.COMMAND_GAME_START);
         });
 
         /* Pair */
@@ -212,6 +246,29 @@ public class HomeFragment extends Fragment {
         super.onDestroy();
         Log.e(TAG, "onDestroy: ");
         BroadcastManager.getInstance().unRegisterBroadcast(mBroadcastReceiver);
+    }
+
+    private void setGameModeEnable(boolean enable) {
+        if (optionListRecyclerView != null && gamePanel != null) {
+            optionListRecyclerView.setVisibility(enable ? View.GONE : View.VISIBLE);
+            gamePanel.setVisibility(enable ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void sendGameCommandData(ServerMessage.CommandType type) {
+        if (type != preCommandType || type == ServerMessage.CommandType.COMMAND_GAME_START) {
+            Log.d(TAG, "sendGameCommandData: " + type);
+            preCommandType = type;
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("type", EffectManager.getInstance().getCurrentEffectType().ordinal());
+                jsonObject.put("cmd", type.ordinal());
+            } catch (JSONException e) {
+                Log.e(TAG, "sendGameCommandData: get error");
+                e.printStackTrace();
+            }
+            BroadcastManager.getInstance().sendRequestSendData(jsonObject.toString());
+        }
     }
 
     private void selectEffectType(EffectItem.EffectType type) {

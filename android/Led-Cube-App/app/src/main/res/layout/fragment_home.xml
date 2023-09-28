@@ -200,10 +200,38 @@
             android:paddingEnd="20dp"
             android:paddingBottom="70dp">
 
+            <LinearLayout
+                android:id="@+id/game_panel"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
+
+                <io.github.controlwear.virtual.joystick.android.JoystickView
+                    android:id="@+id/joystick"
+                    android:layout_width="170dp"
+                    android:layout_height="170dp"
+                    android:layout_gravity="center_vertical"
+                    app:JV_backgroundColor="#94606065"
+                    app:JV_buttonColor="@color/color_primary"
+                    app:JV_fixedCenter="true" />
+
+                <Button
+                    android:id="@+id/start_button"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/circle_background" />
+
+            </LinearLayout>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/optionListRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="gone"
                 tools:itemCount="6"
                 tools:listitem="@layout/option_view_item" />
         </FrameLayout>

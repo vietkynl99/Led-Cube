@@ -1,7 +1,5 @@
 package com.kynl.ledcube.manager;
 
-
-import android.graphics.Color;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -103,11 +101,24 @@ public class EffectManager {
         return currentEffectType;
     }
 
+    public int getCurrentEffectPosition() {
+        for (int i = 0; i < effectItemList.size(); i++) {
+            if (effectItemList.get(i).getType() == currentEffectType) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void setCurrentEffectType(EffectItem.EffectType currentEffectType) {
         if (this.currentEffectType != currentEffectType) {
             this.currentEffectType = currentEffectType;
             saveEffectType();
         }
+    }
+
+    public boolean isGameMode() {
+        return currentEffectType == EffectItem.EffectType.SNAKE;
     }
 
     public void setOptionValue(EffectItem.EffectType effectType, OptionItem.OptionType optionType, int value) {

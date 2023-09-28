@@ -5,8 +5,6 @@ import org.json.JSONObject;
 
 import static com.kynl.ledcube.common.CommonUtils.SERVER_DEVICE_NAME;
 
-import com.google.gson.Gson;
-
 public class ServerMessage {
 
     // Server Event
@@ -43,6 +41,15 @@ public class ServerMessage {
             }
             return EVENT_NONE;
         }
+    }
+
+    public enum CommandType {
+        COMMAND_GAME_RIGHT,
+        COMMAND_GAME_UP,
+        COMMAND_GAME_LEFT,
+        COMMAND_GAME_DOWN,
+        COMMAND_GAME_START,
+        COMMAND_MAX
     }
 
     private String name;
@@ -99,20 +106,8 @@ public class ServerMessage {
         return name;
     }
 
-    public int getKey() {
-        return key;
-    }
-
-    public String getKeyAsString() {
-        return String.valueOf(key);
-    }
-
     public EventType getType() {
         return type;
-    }
-
-    public String getTypeAsString() {
-        return String.valueOf(type.getValue());
     }
 
     public String getData() {
