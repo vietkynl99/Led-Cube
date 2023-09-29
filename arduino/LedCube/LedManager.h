@@ -6,6 +6,7 @@
 #include "VLog.h"
 #include "PixelCoordinate.h"
 #include "HardwareController.h"
+#include "SnakeGameManager.h"
 
 #define LED_TYPE            NEO_GRB + NEO_KHZ800
 #define LED_DATA_PIN        D5
@@ -45,6 +46,7 @@ private:
         WAVE,
         FLASH,
         GRAVITY,
+        SNAKE,
         EFFECT_MAX
     };
 
@@ -67,6 +69,10 @@ private:
     int mSubType;
     uint16_t mGHue;
     uint16_t mDHue;
+    bool mfirstTime;
+    int mCmdDirX;
+    int mCmdDirY;
+    int mCmdDirZ;
 
     arduinoFFT *FFT;
 
@@ -86,12 +92,14 @@ public:
     void setSensitivity(int sensitivity, bool force = false);
     void setHue(uint16_t hue, bool force = false);
     void setDeviation(int deviation, bool force = false);
+    void command(int commandType);
     void process();
     void rgbEffectHandler();
 #ifdef ENABLE_MPU6050_SENSOR
     void gravityEffectHandler();
 #endif
     void musicEffectHandler();
+    void snakeEffectHandler();
     void changeToNextType();
     void fillColor(uint16_t hue, uint8_t sat = 255, uint8_t val = 255);
     void fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat = 255, uint8_t val = 255);

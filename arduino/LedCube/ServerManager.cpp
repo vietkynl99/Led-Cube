@@ -133,6 +133,10 @@ void ServerManager::dataProcessing(String data)
     {
         LedManager::getInstance()->setSensitivity(jsonDoc["sensitivity"]);
     }
+    if (jsonDoc["cmd"].is<int>())
+    {
+        LedManager::getInstance()->command(jsonDoc["cmd"]);
+    }
 }
 
 void ServerManager::onSocketEvent(uint8_t id, WStype_t type, uint8_t *payload, size_t length)

@@ -46,6 +46,16 @@ enum EventType
     EVENT_RESPONSE_UPDATE_DATA
 };
 
+enum CommandType
+{
+    COMMAND_GAME_RIGHT,
+    COMMAND_GAME_UP,
+    COMMAND_GAME_LEFT,
+    COMMAND_GAME_DOWN,
+    COMMAND_GAME_START,
+    COMMAND_MAX
+};
+
 class ServerManager
 {
 public:
@@ -60,7 +70,7 @@ public:
     static void sendResponse(uint8_t id, int type);
     static void pairDevice(uint8_t id, long oldKey);
     static void dataProcessing(String data);
-    static void onSocketEvent(uint8_t id, WStype_t type, uint8_t * payload, size_t length);
+    static void onSocketEvent(uint8_t id, WStype_t type, uint8_t *payload, size_t length);
     static void handleRequest(uint8_t id, long key, int type, String data);
     static void process();
 
