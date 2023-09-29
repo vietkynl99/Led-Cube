@@ -54,7 +54,6 @@ public:
     static int batteryLevel;
 
     static void init();
-    static void checkWifiStatus();
     static String generateJson(String key, String value);
     static void sendResponse(uint8_t id, int type, String data);
     static void sendResponse(uint8_t id, int type, String dataKey, String dataValue);

@@ -66,7 +66,7 @@ void HardwareController::initHardwarePin()
 
 void HardwareController::initEEPROM()
 {
-    EEPROM.begin(EEPROM_SIZE);
+    EEPROM.begin(EEPROM_SIZE_MAX);
 }
 
 void HardwareController::initSensors()

@@ -26,25 +26,6 @@ void ServerManager::init()
     LOG_SERVER("Server started at port %d", WEB_SERVER_PORT);
 }
 
-void ServerManager::checkWifiStatus()
-{
-    static int pre_status = -1;
-    int status = WiFi.status();
-    if (status != pre_status)
-    {
-        LOG_WIFI("WiFi status changed to %d", status);
-        if (status == WL_CONNECTED)
-        {
-            HardwareController::getInstance()->beep(1);
-        }
-        else if (pre_status < 0 || pre_status == WL_CONNECTED)
-        {
-            HardwareController::getInstance()->beep(2);
-        }
-        pre_status = status;
-    }
-}
-
 String ServerManager::generateJson(String key, String value)
 {
     StaticJsonDocument<JSON_BYTE_MAX> jsonDoc;
@@ -264,7 +245,6 @@ void ServerManager::handleRequest(uint8_t id, long key, int type, String data)
 
 void ServerManager::process()
 {
-    checkWifiStatus();
     MDNS.update();
     webSocket->loop();
 }

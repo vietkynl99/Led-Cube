@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "WifiMaster.h"
 
 WifiMaster *WifiMaster::instance = nullptr;
@@ -23,88 +22,53 @@ void WifiMaster::printConnectedWifiInfo()
 
 void WifiMaster::init()
 {
-    WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-    delay(500);
+    wifiManager = new ESP_WiFiManager_Lite();
 
-    LOG_SYSTEM("Starting");
+    // Set customized AP SSID and PWD
+    wifiManager->setConfigPortal(AP_SSID, AP_PASSWORD);
 
-    // wm.resetSettings(); // wipe settings
+    // Optional to change default AP IP(192.168.4.1) and channel(10)
+    // wifiManager->setConfigPortalIP(IPAddress(192, 168, 120, 1));
+    wifiManager->setConfigPortalChannel(0);
 
-#if WM_NONBLOCKING_MODE
-    wm.setConfigPortalBlocking(false);
-#endif
-
-    // custom menu via array or vector
-    // menu tokens, "wifi","wifinoscan","info","param","close","sep","erase","restart","exit" (sep is seperator) (if param is in menu, params will not show up in wifi page!)
-    std::vector<const char *> menu = {"wifi", "param", "sep", "restart", "exit"};
-    wm.setMenu(menu);
-
-    // set dark theme
-    // wm.setClass("invert");
-
-    // set static ip
-    //  wm.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0)); // set static ip,gw,sn
-    //  wm.setShowStaticFields(true); // force show static ip fields
-    //  wm.setShowDnsFields(true);    // force show dns field always
-
-    // wm.setConnectTimeout(20); // how long to try to connect for before continuing
-    wm.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT); // auto close configportal after n seconds
-    // wm.setCaptivePortalEnable(false); // disable captive portal redirection
-    // wm.setAPClientCheck(true); // avoid timeout if client connected to softap
-
-    // wifi scan settings
-    // wm.setRemoveDuplicateAPs(false); // do not remove duplicate ap names (true)
-    // wm.setMinimumSignalQuality(20);  // set min RSSI (percentage) to show in scans, null = 8%
-    // wm.setShowInfoErase(false);      // do not show erase button on info page
-    // wm.setScanDispPerc(true);       // show RSSI as percentage not graph icons
-
-    // wm.setBreakAfterConfig(true);   // always exit configportal even if wifi save fails
-
-    // res = wm.autoConnect(); // auto generated AP name from chipid
-    // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-    bool res = wm.autoConnect(AP_SSID, AP_PASSWORD); // password protected ap
-
-    if (!res)
-    {
-        LOG_WIFI("Failed to connect or hit timeout");
-        // ESP.restart();
-    }
-    else
-    {
-        // if you get here you have connected to the WiFi
-        LOG_WIFI("Wifi connected!!!");
-        printConnectedWifiInfo();
-    }
+    // Set customized DHCP HostName
+    wifiManager->begin(DHCP_HOSTNAME);
+    // Or use default Hostname "ESP32-WIFI-XXXXXX"
+    // wifiManager->begin();
 }
 
 void WifiMaster::resetWifiSettings()
 {
     LOG_WIFI("Reset WIFI settings");
-    wm.resetSettings();
-    ESP.restart();
+    wifiManager->resetAndEnterConfigPortal();
+    // ESP.restart();
+}
 
-    // start portal w delay
-    LOG_WIFI("Starting config portal");
-    wm.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
-
-    if (!wm.startConfigPortal("OnDemandAP", "password"))
+void WifiMaster::checkWifiStatus()
+{
+    static int pre_status = -1;
+    int status = WiFi.status();
+    if (status != pre_status)
     {
-        LOG_WIFI("Failed to connect or hit timeout");
-        delay(3000);
-        // ESP.restart();
-    }
-    else
-    {
-        // if you get here you have connected to the WiFi
-        LOG_WIFI("Wifi connected!!!");
-        printConnectedWifiInfo();
+        LOG_WIFI("WiFi status changed to %d", status);
+        if (status == WL_CONNECTED)
+        {
+            HardwareController::getInstance()->beep(1);
+        }
+        else if (pre_status < 0 || pre_status == WL_CONNECTED)
+        {
+            if (wifiManager->isConfigMode())
+            {
+                LOG_WIFI("Switch to config mode");
+            }
+            HardwareController::getInstance()->beep(2);
+        }
+        pre_status = status;
     }
 }
 
 void WifiMaster::process()
 {
-#if WM_NONBLOCKING_MODE
-    // Avoid delays() in loop when non-blocking and other long running code
-    wm.process();
-#endif
+    wifiManager->run();
+    checkWifiStatus();
 }
