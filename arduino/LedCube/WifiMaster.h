@@ -10,11 +10,12 @@
 
 // Wifimanager can run in a blocking mode or a non blocking mode
 // Be sure to know how to process loops with no delay() if using non blocking
-#define WM_NONBLOCKING_MODE 1
+#define WM_NONBLOCKING_MODE     1
+#define CONFIG_PORTAL_TIMEOUT   300
 
 /* AP mode */
-#define AP_SSID "Led Cube"
-#define AP_PASSWORD "12345678"
+#define AP_SSID                 "Led Cube"
+#define AP_PASSWORD             "12345678"
 
 class WifiMaster
 {

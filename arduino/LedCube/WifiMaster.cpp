@@ -48,7 +48,7 @@ void WifiMaster::init()
     //  wm.setShowDnsFields(true);    // force show dns field always
 
     // wm.setConnectTimeout(20); // how long to try to connect for before continuing
-    wm.setConfigPortalTimeout(30); // auto close configportal after n seconds
+    wm.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT); // auto close configportal after n seconds
     // wm.setCaptivePortalEnable(false); // disable captive portal redirection
     // wm.setAPClientCheck(true); // avoid timeout if client connected to softap
 
@@ -85,7 +85,7 @@ void WifiMaster::resetWifiSettings()
 
     // start portal w delay
     LOG_WIFI("Starting config portal");
-    wm.setConfigPortalTimeout(240);
+    wm.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
 
     if (!wm.startConfigPortal("OnDemandAP", "password"))
     {
