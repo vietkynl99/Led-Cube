@@ -70,9 +70,6 @@ private:
     uint16_t mGHue;
     uint16_t mDHue;
     bool mfirstTime;
-    int mCmdDirX;
-    int mCmdDirY;
-    int mCmdDirZ;
 
     arduinoFFT *FFT;
 
@@ -82,7 +79,7 @@ private:
 public:
     static LedManager *getInstance();
     void init();
-    void readPreviousEEPROMData(int& data, int address, int minValue, int maxValue, int defaultValue);
+    void readPreviousEEPROMData(int &data, int address, int minValue, int maxValue, int defaultValue);
     void readPreviousEEPROMData(uint16_t &data, int address);
     void restoreSettings();
     void setType(int type, bool force = false);
@@ -104,8 +101,8 @@ public:
     void fillColor(uint16_t hue, uint8_t sat = 255, uint8_t val = 255);
     void fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat = 255, uint8_t val = 255);
     void turnOff();
-    void setLed(int position, bool enable, uint32_t color);
-    void setLed(int x, int y, int z, bool enable, uint32_t color);
+    void setLedPosition(int position, bool enable, uint16_t hue, uint8_t sat = 255, uint8_t val = 255);
+    void setLedCoordinates(int x, int y, int z, bool enable, uint16_t hue, uint8_t sat = 255, uint8_t val = 255);
 };
 
 #endif

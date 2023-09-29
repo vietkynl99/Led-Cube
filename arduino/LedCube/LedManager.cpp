@@ -22,9 +22,6 @@ LedManager::LedManager()
     mGHue = HUE_GREEN;
     mDHue = 0;
     mfirstTime = true;
-    mCmdDirX = 0;
-    mCmdDirY = 0;
-    mCmdDirZ = 0;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
@@ -236,29 +233,9 @@ void LedManager::command(int commandType)
             {
                 mfirstTime = true;
             }
-            else if (commandType == COMMAND_GAME_RIGHT)
+            else
             {
-                mCmdDirX = 0;
-                mCmdDirY = 1;
-                mCmdDirZ = 0;
-            }
-            else if (commandType == COMMAND_GAME_UP)
-            {
-                mCmdDirX = 0;
-                mCmdDirY = 0;
-                mCmdDirZ = 1;
-            }
-            else if (commandType == COMMAND_GAME_LEFT)
-            {
-                mCmdDirX = 0;
-                mCmdDirY = -1;
-                mCmdDirZ = 0;
-            }
-            else if (commandType == COMMAND_GAME_DOWN)
-            {
-                mCmdDirX = 0;
-                mCmdDirY = 0;
-                mCmdDirZ = -1;
+                SnakeGameManager::getInstance()->command(commandType);
             }
         }
     }
@@ -315,7 +292,7 @@ void LedManager::rgbEffectHandler()
             if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
             {
                 int distance = a * x + b * y + c * z;
-                setLed(i, 1, strip->ColorHSV(distance * 500 + hue, mSaturation));
+                setLedPosition(i, 1, distance * 500 + hue, mSaturation);
             }
         }
         strip->show();
@@ -358,7 +335,7 @@ void LedManager::gravityEffectHandler()
             {
                 int distance = aX * x + aY * y + aZ * z;
                 bool enable = aX * x + aY * y + aZ * z + offset > 0;
-                setLed(i, enable, strip->ColorHSV(distance * 500 + hue, mSaturation));
+                setLedPosition(i, enable, distance * 500 + hue, mSaturation);
             }
         }
         strip->show();
@@ -456,7 +433,7 @@ void LedManager::musicEffectHandler()
                     default:
                         break;
                     }
-                    setLed(i, level <= fftLevel[pos], strip->ColorHSV(mGHue + mDHue * level + mDHue * (x + y) / 3, mSaturation));
+                    setLedPosition(i, level <= fftLevel[pos], mGHue + mDHue * level + mDHue * (x + y) / 3, mSaturation);
                 }
             }
         }
@@ -468,139 +445,70 @@ void LedManager::musicEffectHandler()
 void LedManager::snakeEffectHandler()
 {
     static unsigned long long timeRender = 0, timeUpdate = 0, timeTarget = 0;
-    static int x = 0, y = 0, z = 0;
+    static bool render = false;
     static int targetX = 0, targetY = 0, targetZ = 0;
     static bool targetState = false;
-    static unsigned long long timeDelay = 500UL;
+    static bool targetHue = HUE_GREEN;
+    static unsigned long long timeDelay = 300UL;
 
     if (mfirstTime)
     {
+        int x, y, z;
         mfirstTime = false;
-        x = 0;
-        y = 4;
-        z = 4;
-        int panelPosition = (y - 1) * MATRIX_SIZE_1D + z - 1;
-        SnakeGameManager::getInstance()->init();
-        SnakeGameManager::getInstance()->setLengthMax(MATRIX_SIZE_2D);
-        targetX = 0;
-        while (1)
+        render = true;
+        setHue(HUE_BLUE);
+        turnOff();
+        SnakeGameManager::getInstance()->startGame();
+        SnakeGameManager::getInstance()->getCurrentPosition(x, y, z);
+        LOG_GAME("start: %d %d %d", x, y, z);
+        setLedCoordinates(x, y, z, 1, mGHue);
+    }
+
+    if (millis() > timeUpdate)
+    {
+        timeUpdate = millis() + timeDelay;
+        render = true;
+        int setX = -1, setY = -1, setZ = -1, clearX = -1, clearY = -1, clearZ = -1;
+        int retCode = SnakeGameManager::getInstance()->nextMove(setX, setY, setZ, clearX, clearY, clearZ);
+        LOG_GAME("retCode: %d", retCode);
+        if (retCode == NEXT_MOVE_CODE_NONE)
         {
-            targetY = random(1, MATRIX_SIZE_1D);
-            targetZ = random(1, MATRIX_SIZE_1D);
-            if (pow(y - targetY, 2) + pow(z - targetZ, 2) > 2)
-            {
-                break;
-            }
         }
-        mCmdDirZ = 0;
-        mCmdDirY = 0;
-        mCmdDirZ = 0;
-        mGHue = HUE_BLUE;
-        setLed(x, y, z, 1, mGHue);
-    }
-
-    if ((unsigned long long)(millis() - timeUpdate) > timeDelay)
-    {
-        timeUpdate = millis();
-        if (mCmdDirX || mCmdDirY || mCmdDirZ)
+        else if (retCode == NEXT_MOVE_CODE_WIN_GAME)
         {
-            if (mCmdDirX)
-            {
-                x += mCmdDirX;
-                if (x > MATRIX_SIZE_1D)
-                {
-                    x = 1;
-                }
-                if (x < 1)
-                {
-                    x = MATRIX_SIZE_1D;
-                }
-            }
-            if (mCmdDirY)
-            {
-                y += mCmdDirY;
-                if (y > MATRIX_SIZE_1D)
-                {
-                    y = 1;
-                }
-                if (y < 1)
-                {
-                    y = MATRIX_SIZE_1D;
-                }
-            }
-            if (mCmdDirZ)
-            {
-                z += mCmdDirZ;
-                if (z > MATRIX_SIZE_1D)
-                {
-                    z = 1;
-                }
-                if (z < 1)
-                {
-                    z = MATRIX_SIZE_1D;
-                }
-            }
-            int panelPosition = (y - 1) * MATRIX_SIZE_1D + z - 1;
-            if (x == targetX && y == targetY && z == targetZ)
-            {
-                if (SnakeGameManager::getInstance()->isExists(panelPosition))
-                {
-                    // game over
-                    LOG_GAME("Game over!");
-                }
-                else
-                {
-                    SnakeGameManager::getInstance()->add(panelPosition);
-                    if (SnakeGameManager::getInstance()->isFull())
-                    {
-                        // win game
-                        LOG_GAME("Win game!");
-                    }
-                    else
-                    {
-                        // eat
-                        int targetPanelPosition = SnakeGameManager::getInstance()->generateRandomUnvailableValue(0, MATRIX_SIZE_2D);
-                        if (targetPanelPosition < 0)
-                        {
-                            // win game
-                            LOG_GAME("Win game!");
-                        }
-                        else
-                        {
-                            // generate new target position
-                            targetY = targetPanelPosition / MATRIX_SIZE_1D + 1;
-                            targetZ = targetPanelPosition % MATRIX_SIZE_1D + 1;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                SnakeGameManager::getInstance()->add(panelPosition);
-                int firstPanelPosition = SnakeGameManager::getInstance()->pop();
-                if (firstPanelPosition >= 0)
-                {
-                    int firstX = x;
-                    int firstY = firstPanelPosition / MATRIX_SIZE_1D + 1;
-                    int fristZ = firstPanelPosition % MATRIX_SIZE_1D + 1;
-                    setLed(firstX, firstY, fristZ, 0, mGHue);
-                }
-            }
-            setLed(x, y, z, 1, mGHue);
+            // reset
+            mfirstTime = true;
         }
-    }
+        else if (retCode == NEXT_MOVE_CODE_PLUS)
+        {
+            setLedCoordinates(setX, setY, setZ, 1, mGHue);
+        }
+        else if (retCode == NEXT_MOVE_CODE_NORMAL)
+        {
+            setLedCoordinates(setX, setY, setZ, 1, mGHue);
+            setLedCoordinates(clearX, clearY, clearZ, 0, mGHue);
+        }
+        else
+        {
+            // reset
+            mfirstTime = true;
+        }
 
-    if ((unsigned long long)(millis() - timeTarget) > 300UL)
-    {
-        timeTarget = millis();
-        targetState ^= 1;
-        setLed(targetX, targetY, targetZ, targetState, HUE_GREEN);
-    }
-
-    if ((unsigned long long)(millis() - timeRender) > 10UL)
-    {
-        timeRender = millis();
-        strip->show();
+        // render
+        if (millis() > timeTarget)
+        {
+            timeTarget = millis() + 300UL;
+            render = true;
+            targetState ^= 1;
+            SnakeGameManager::getInstance()->getTargetPosition(targetX, targetY, targetZ);
+            setLedCoordinates(targetX, targetY, targetZ, targetState, targetHue);
+        }
+        if (render && millis() > timeRender)
+        {
+            timeRender = millis() + 10UL;
+            render = false;
+            strip->show();
+        }
     }
 }
 
@@ -633,19 +541,19 @@ void LedManager::turnOff()
     fillColor(0, 0, 0);
 }
 
-void LedManager::setLed(int position, bool enable, uint32_t color)
+void LedManager::setLedPosition(int position, bool enable, uint16_t hue, uint8_t sat, uint8_t val)
 {
     if (position >= 0 && position < NUM_LEDS)
     {
-        strip->setPixelColor(position, enable ? strip->gamma32(color) : 0);
+        strip->setPixelColor(position, enable ? strip->gamma32(strip->ColorHSV(hue, sat, val)) : 0);
     }
 }
 
-void LedManager::setLed(int x, int y, int z, bool enable, uint32_t color)
+void LedManager::setLedCoordinates(int x, int y, int z, bool enable, uint16_t hue, uint8_t sat, uint8_t val)
 {
     int position = PixelCoordinate::getArrayPosition(x, y, z);
     if (position >= 0)
     {
-        setLed(position, enable, color);
+        setLedPosition(position, enable, hue, sat, val);
     }
 }
