@@ -56,6 +56,7 @@ public class HomeFragment extends Fragment {
     private ServerState serverState;
     private boolean isDebouncing = false;
     private ServerMessage.CommandType preCommandType;
+    private long preCommandTime;
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -123,6 +124,7 @@ public class HomeFragment extends Fragment {
         humidity = 0;
         serverState = ServerState.SERVER_STATE_DISCONNECTED;
         preCommandType = ServerMessage.CommandType.COMMAND_MAX;
+        preCommandTime = System.currentTimeMillis();
     }
 
     @Override
@@ -256,9 +258,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void sendGameCommandData(ServerMessage.CommandType type) {
-        if (type != preCommandType || type == ServerMessage.CommandType.COMMAND_GAME_START) {
+        if (type != preCommandType || type == ServerMessage.CommandType.COMMAND_GAME_START || System.currentTimeMillis() - preCommandTime > 500) {
             Log.d(TAG, "sendGameCommandData: " + type);
             preCommandType = type;
+            preCommandTime = System.currentTimeMillis();
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put("type", EffectManager.getInstance().getCurrentEffectType().ordinal());
