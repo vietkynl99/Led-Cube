@@ -24,6 +24,8 @@ import com.rtugeek.android.colorseekbar.ColorSeekBar;
 import net.cachapa.expandablelayout.ExpandableLayout;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.CustomViewHolder> {
     private final String TAG = "OptionListAdapter";
@@ -31,6 +33,8 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
     private final List<EffectItem> effectItemList;
     private List<OptionItem> optionItemList;
     private OnOptionValueChangeListener onOptionValueChangeListener;
+    private Timer hueSeekBarTimer;
+    private boolean isHueSeekBarTimerRunning = false;
 
     public OptionListAdapter(List<EffectItem> effectItemList) {
         Log.d(TAG, "OptionListAdapter: ");
@@ -83,16 +87,34 @@ public class OptionListAdapter extends RecyclerView.Adapter<OptionListAdapter.Cu
         });
 
         holder.option_hue_seek_bar.setOnColorChangeListener((progress, color) -> {
-            float[] hsv = new float[3];
-            Color.colorToHSV(color, hsv);
-            int hue = (int) (0xFFFF*hsv[0]/360);
-            int pos = holder.getAdapterPosition();
-            optionItemList.get(pos).setValue(hue);
-            if (onOptionValueChangeListener != null) {
-                onOptionValueChangeListener.onValueChanged(effectItem.getType(),
-                        optionItemList.get(pos).getType(),
-                        optionItemList.get(pos).getValue());
+            // make debounce 500ms
+            if (hueSeekBarTimer == null) {
+                hueSeekBarTimer = new Timer();
+                isHueSeekBarTimerRunning = false;
             }
+            if (!isHueSeekBarTimerRunning) {
+                isHueSeekBarTimerRunning = true;
+            } else {
+                hueSeekBarTimer.cancel();
+                hueSeekBarTimer = new Timer();
+                isHueSeekBarTimerRunning = false;
+            }
+            hueSeekBarTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    float[] hsv = new float[3];
+                    Color.colorToHSV(color, hsv);
+                    int hue = (int) (0xFFFF * hsv[0] / 360);
+                    int pos = holder.getAdapterPosition();
+                    optionItemList.get(pos).setValue(hue);
+                    if (onOptionValueChangeListener != null) {
+                        onOptionValueChangeListener.onValueChanged(effectItem.getType(),
+                                optionItemList.get(pos).getType(),
+                                optionItemList.get(pos).getValue());
+                    }
+                    isHueSeekBarTimerRunning = false;
+                }
+            }, 500);
         });
     }
 
