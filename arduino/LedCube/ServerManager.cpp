@@ -157,7 +157,7 @@ void ServerManager::onSocketEvent(uint8_t id, WStype_t type, uint8_t *payload, s
     }
     case WStype_TEXT:
     {
-        LOG_SERVER("[%u] get Text: %s", id, payload);
+        // LOG_SERVER("[%u] get Text: %s", id, payload);
         String message = String((char *)payload);
         if (message.isEmpty())
         {

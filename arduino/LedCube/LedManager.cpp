@@ -470,28 +470,28 @@ void LedManager::snakeEffectHandler()
         render = true;
         int setX = -1, setY = -1, setZ = -1, clearX = -1, clearY = -1, clearZ = -1;
         int retCode = SnakeGameManager::getInstance()->nextMove(setX, setY, setZ, clearX, clearY, clearZ);
-        LOG_GAME("retCode: %d", retCode);
-        if (retCode == NEXT_MOVE_CODE_NONE)
+        if (retCode != NEXT_MOVE_CODE_NONE)
         {
-        }
-        else if (retCode == NEXT_MOVE_CODE_WIN_GAME)
-        {
-            // reset
-            mfirstTime = true;
-        }
-        else if (retCode == NEXT_MOVE_CODE_PLUS)
-        {
-            setLedCoordinates(setX, setY, setZ, 1, mGHue);
-        }
-        else if (retCode == NEXT_MOVE_CODE_NORMAL)
-        {
-            setLedCoordinates(setX, setY, setZ, 1, mGHue);
-            setLedCoordinates(clearX, clearY, clearZ, 0, mGHue);
-        }
-        else
-        {
-            // reset
-            mfirstTime = true;
+            mGHue += 300;
+            if (retCode == NEXT_MOVE_CODE_WIN_GAME)
+            {
+                // reset
+                mfirstTime = true;
+            }
+            else if (retCode == NEXT_MOVE_CODE_PLUS)
+            {
+                setLedCoordinates(setX, setY, setZ, 1, mGHue);
+            }
+            else if (retCode == NEXT_MOVE_CODE_NORMAL)
+            {
+                setLedCoordinates(setX, setY, setZ, 1, mGHue);
+                setLedCoordinates(clearX, clearY, clearZ, 0, mGHue);
+            }
+            else
+            {
+                // reset
+                mfirstTime = true;
+            }
         }
 
         // render
@@ -501,7 +501,7 @@ void LedManager::snakeEffectHandler()
             render = true;
             targetState ^= 1;
             SnakeGameManager::getInstance()->getTargetPosition(targetX, targetY, targetZ);
-            setLedCoordinates(targetX, targetY, targetZ, targetState, targetHue);
+            setLedCoordinates(targetX, targetY, targetZ, targetState, targetHue, 0);
         }
         if (render && millis() > timeRender)
         {
