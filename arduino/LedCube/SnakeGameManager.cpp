@@ -23,9 +23,7 @@ void SnakeGameManager::resetGame()
     mFristIndex = 0;
     mLastIndex = 0;
     mLengthMax = DATA_SIZE_MAX;
-    mDirX = 0;
-    mDirY = 0;
-    mDirZ = 0;
+    mDir = DIR_MODE_NONE;
     mX = START_DEFAULT_X;
     mY = START_DEFAULT_Y;
     mZ = START_DEFAULT_Z;
@@ -127,7 +125,7 @@ void SnakeGameManager::startGame()
 {
     resetGame();
     setLengthMax(MATRIX_SIZE_2D);
-    setDir(0, 0, 0);
+    setDir(DIR_MODE_NONE);
 
     // start position
     int panelPosition = getPanelPosition(mX, mY, mZ);
@@ -146,55 +144,56 @@ void SnakeGameManager::startGame()
     }
 }
 
-void SnakeGameManager::setDir(int dirX, int dirY, int dirZ)
+void SnakeGameManager::setDir(int dir)
 {
-    mDirX = dirX;
-    mDirY = dirY;
-    mDirZ = dirZ;
+    if ((mDir == DIR_MODE_RIGHT && dir == DIR_MODE_LEFT) ||
+        (mDir == DIR_MODE_LEFT && dir == DIR_MODE_RIGHT) ||
+        (mDir == DIR_MODE_UP && dir == DIR_MODE_DOWN) ||
+        (mDir == DIR_MODE_DOWN && dir == DIR_MODE_UP))
+    {
+        return;
+    }
+    mDir = dir;
 }
 
 int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int &clearY, int &clearZ)
 {
-    if (!mDirX && !mDirY && !mDirZ)
+    switch (mDir)
     {
+    case DIR_MODE_RIGHT:
+        mY++;
+        break;
+    case DIR_MODE_LEFT:
+        mY--;
+        break;
+    case DIR_MODE_UP:
+        mZ++;
+        break;
+    case DIR_MODE_DOWN:
+        mZ--;
+        break;
+    default:
         return NEXT_MOVE_CODE_NONE;
     }
-    if (mDirX)
+
+    if (mY > MATRIX_SIZE_1D)
     {
-        mX += mDirX;
-        if (mX > MATRIX_SIZE_1D)
-        {
-            mX = 1;
-        }
-        if (mX < 1)
-        {
-            mX = MATRIX_SIZE_1D;
-        }
+        mY = 1;
     }
-    if (mDirY)
+    if (mY < 1)
     {
-        mY += mDirY;
-        if (mY > MATRIX_SIZE_1D)
-        {
-            mY = 1;
-        }
-        if (mY < 1)
-        {
-            mY = MATRIX_SIZE_1D;
-        }
+        mY = MATRIX_SIZE_1D;
     }
-    if (mDirZ)
+
+    if (mZ > MATRIX_SIZE_1D)
     {
-        mZ += mDirZ;
-        if (mZ > MATRIX_SIZE_1D)
-        {
-            mZ = 1;
-        }
-        if (mZ < 1)
-        {
-            mZ = MATRIX_SIZE_1D;
-        }
+        mZ = 1;
     }
+    if (mZ < 1)
+    {
+        mZ = MATRIX_SIZE_1D;
+    }
+
     int panelPosition = getPanelPosition(mX, mY, mZ);
     if (isExists(panelPosition))
     {
@@ -251,19 +250,19 @@ void SnakeGameManager::command(int command)
 {
     if (command == COMMAND_GAME_RIGHT)
     {
-        setDir(0, 1, 0);
+        setDir(DIR_MODE_RIGHT);
     }
     else if (command == COMMAND_GAME_UP)
     {
-        setDir(0, 0, 1);
+        setDir(DIR_MODE_UP);
     }
     else if (command == COMMAND_GAME_LEFT)
     {
-        setDir(0, -1, 0);
+        setDir(DIR_MODE_LEFT);
     }
     else if (command == COMMAND_GAME_DOWN)
     {
-        setDir(0, 0, -1);
+        setDir(DIR_MODE_DOWN);
     }
 }
 

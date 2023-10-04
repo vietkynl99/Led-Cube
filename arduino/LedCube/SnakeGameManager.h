@@ -21,6 +21,14 @@ enum NextModeCode {
     NEXT_MOVE_CODE_MAX
 };
 
+enum DirMode {
+    DIR_MODE_NONE,
+    DIR_MODE_RIGHT,
+    DIR_MODE_LEFT,
+    DIR_MODE_UP,
+    DIR_MODE_DOWN
+};
+
 class SnakeGameManager
 {
 private:
@@ -30,9 +38,7 @@ private:
     int mLengthMax;
     int mFristIndex;
     int mLastIndex;
-    int mDirX;
-    int mDirY;
-    int mDirZ;
+    int mDir;
     int mX;
     int mY;
     int mZ;
@@ -48,7 +54,7 @@ public:
     void setGameLevel(int level);
     void startGame();
     void resetGame();
-    void setDir(int dirX, int dirY, int dirZ);
+    void setDir(int dir);
     int nextMove(int &setX, int &setY, int &setZ, int &clearX, int &clearY, int &clearZ);
     void command(int command);
     void getCurrentPosition(int &x, int &y, int &z);
