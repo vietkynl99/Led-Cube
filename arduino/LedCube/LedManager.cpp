@@ -23,7 +23,8 @@ LedManager::LedManager()
     mGHue = HUE_GREEN;
     mDHue = 0;
     mfirstTime = true;
-    mPriorityMode = false;
+    mPriorityMode = PRIORITY_TYPE_NONE;
+    mPriorityModeFirstTime = false;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
@@ -245,7 +246,7 @@ void LedManager::command(int commandType)
 
 void LedManager::loop()
 {
-    if (mPriorityMode)
+    if (mPriorityMode != PRIORITY_TYPE_NONE)
     {
         priorityModeHandler();
     }
@@ -284,22 +285,43 @@ void LedManager::loop()
     renderHandler();
 }
 
-void LedManager::showCharacter(char character)
+void LedManager::showCharacter(char character, uint16_t hue, int offset)
 {
     if (character < CHARACTERS_MIN || character > CHARACTERS_MAX)
     {
         return;
     }
     int width = Characters::getWidth(character);
-    for (int y = 0; y < width; y++)
+    for (int y = 1; y <= width; y++)
     {
-        int code = Characters::getCode(character, y + 1);
-        for (int z = 0; z < CHARACTERS_HEIGHT; z++)
+        int code = Characters::getCode(character, y);
+        for (int z = 1; z <= CHARACTERS_HEIGHT; z++)
         {
-            bool enable = bitRead(code, CHARACTERS_HEIGHT - z - 1);
-            setLedCoordinates(0, y + 1, z + 1, enable, HUE_GREEN);
+            bool enable = bitRead(code, CHARACTERS_HEIGHT - z);
+            setLedCoordinates(0, y + offset, z, enable, hue);
         }
     }
+}
+
+void LedManager::showCharacterCenter(char character, uint16_t hue)
+{
+    if (character < CHARACTERS_MIN || character > CHARACTERS_MAX)
+    {
+        return;
+    }
+    int offset = (MATRIX_SIZE_1D - Characters::getWidth(character)) / 2;
+    showCharacter(character, hue, offset);
+}
+
+void LedManager::setPriorityMode(int mode)
+{
+    mPriorityMode = mode;
+    mPriorityModeFirstTime = true;
+}
+
+void LedManager::showWrongWarning()
+{
+    setPriorityMode(PRIORITY_TYPE_WRONG_WARNING);
 }
 
 void LedManager::renderHandler()
@@ -318,18 +340,34 @@ void LedManager::renderHandler()
 
 void LedManager::priorityModeHandler()
 {
+    static int count = 0;
     static unsigned long long time = 0;
-    static char ch = CHARACTERS_MIN;
-    if (millis() > time)
+    switch (mPriorityMode)
     {
-        time = millis() + 1000;
-        ch++;
-        if (ch > CHARACTERS_MAX)
+    case PRIORITY_TYPE_WRONG_WARNING:
+        if (mPriorityModeFirstTime)
         {
-            ch = CHARACTERS_MIN;
+            mPriorityModeFirstTime = false;
+            count = 0;
+            turnOff();
         }
-        turnOff();
-        showCharacter(ch);
+        if (millis() > time)
+        {
+            time = millis() + 500;
+            count++;
+            if (count > 4)
+            {
+                setPriorityMode(PRIORITY_TYPE_NONE);
+            }
+            turnOff();
+            if (count % 2 == 0)
+            {
+                showCharacterCenter('X', HUE_RED);
+            }
+        }
+        break;
+    default:
+        break;
     }
 }
 
@@ -542,8 +580,9 @@ void LedManager::snakeEffectHandler()
             }
             else
             {
-                // reset
+                // game over
                 mfirstTime = true;
+                showWrongWarning();
             }
         }
     }

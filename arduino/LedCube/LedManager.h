@@ -62,6 +62,12 @@ private:
         SUB_EFFECT_MAX
     };
 
+    enum PriorityType
+    {
+        PRIORITY_TYPE_NONE,
+        PRIORITY_TYPE_WRONG_WARNING
+    };
+
     static LedManager *instance;
     Adafruit_NeoPixel *strip;
     bool mRender;
@@ -74,7 +80,8 @@ private:
     uint16_t mGHue;
     uint16_t mDHue;
     bool mfirstTime;
-    bool mPriorityMode;
+    int mPriorityMode;
+    bool mPriorityModeFirstTime;
 
     arduinoFFT *FFT;
 
@@ -96,7 +103,10 @@ public:
     void setDeviation(int deviation, bool force = false);
     void command(int commandType);
     void loop();
-    void showCharacter(char character);
+    void showCharacter(char character, uint16_t hue,int offset = 0);
+    void showCharacterCenter(char character, uint16_t hue);
+    void setPriorityMode(int mode);
+    void showWrongWarning();
     void renderHandler();
     void priorityModeHandler();
     void rgbEffectHandler();
