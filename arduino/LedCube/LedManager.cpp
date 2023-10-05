@@ -243,7 +243,7 @@ void LedManager::command(int commandType)
     }
 }
 
-void LedManager::process()
+void LedManager::loop()
 {
     if (mPriorityMode)
     {

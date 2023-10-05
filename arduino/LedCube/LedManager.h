@@ -95,7 +95,7 @@ public:
     void setHue(uint16_t hue, bool force = false);
     void setDeviation(int deviation, bool force = false);
     void command(int commandType);
-    void process();
+    void loop();
     void showCharacter(char character);
     void renderHandler();
     void priorityModeHandler();

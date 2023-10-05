@@ -247,7 +247,7 @@ void ServerManager::handleRequest(uint8_t id, long key, int type, String data)
     }
 }
 
-void ServerManager::process()
+void ServerManager::loop()
 {
     MDNS.update();
     webSocket->loop();

@@ -67,7 +67,7 @@ void WifiMaster::checkWifiStatus()
     }
 }
 
-void WifiMaster::process()
+void WifiMaster::loop()
 {
     wifiManager->run();
     checkWifiStatus();

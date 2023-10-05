@@ -72,7 +72,7 @@ public:
     static void dataProcessing(String data);
     static void onSocketEvent(uint8_t id, WStype_t type, uint8_t *payload, size_t length);
     static void handleRequest(uint8_t id, long key, int type, String data);
-    static void process();
+    static void loop();
 
     static void saveApiKeyToEEPROM();
     static void loadApiKeyFromEEPROM();

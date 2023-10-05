@@ -28,7 +28,7 @@ public:
     void init();
     void resetWifiSettings();
     void checkWifiStatus();
-    void process();
+    void loop();
 };
 
 #endif

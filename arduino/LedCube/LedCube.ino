@@ -58,9 +58,9 @@ void loop()
 	debugHandler();
 #endif
 
-	hardwareController->process();
-	ledManager->process();
-	wifiMaster->process();
+	hardwareController->loop();
+	ledManager->loop();
+	wifiMaster->loop();
 	// serviceManager->updateRealTime();
-	ServerManager::process();
+	ServerManager::loop();
 }

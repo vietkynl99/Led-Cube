@@ -30,7 +30,7 @@ void HardwareController::init()
     initSensors();
 }
 
-void HardwareController::process()
+void HardwareController::loop()
 {
     buttonHandler();
     beepHandler();

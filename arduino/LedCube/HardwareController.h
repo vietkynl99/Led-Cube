@@ -108,7 +108,7 @@ private:
 public:
     static HardwareController *getInstance();
     void init();
-    void process();
+    void loop();
     void turnOnFakePairMode();
     bool isPairingMode();
     void beep(int count, bool blocking = false);
