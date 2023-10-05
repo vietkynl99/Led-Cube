@@ -7,6 +7,7 @@
 #include "PixelCoordinate.h"
 #include "HardwareController.h"
 #include "SnakeGameManager.h"
+#include "Characters.h"
 
 #define LED_TYPE            NEO_GRB + NEO_KHZ800
 #define LED_DATA_PIN        D5
@@ -19,6 +20,8 @@
 #define HUE_RED             0
 #define HUE_GREEN           21845
 #define HUE_BLUE            43690
+
+#define RENDER_DELAY_TIME   10UL   // fps = 1/(RENDER_DELAY_TIME+10)
 
 #define FFT_SAMPLE_FREQ     1000
 #define FFT_SAMPLES         64
@@ -61,6 +64,7 @@ private:
 
     static LedManager *instance;
     Adafruit_NeoPixel *strip;
+    bool mRender;
     int mType;
     int mBrightness;
     int mSaturation;
@@ -70,6 +74,7 @@ private:
     uint16_t mGHue;
     uint16_t mDHue;
     bool mfirstTime;
+    bool mPriorityMode;
 
     arduinoFFT *FFT;
 
@@ -91,6 +96,9 @@ public:
     void setDeviation(int deviation, bool force = false);
     void command(int commandType);
     void process();
+    void showCharacter(char character);
+    void renderHandler();
+    void priorityModeHandler();
     void rgbEffectHandler();
 #ifdef ENABLE_MPU6050_SENSOR
     void gravityEffectHandler();

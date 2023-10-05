@@ -14,6 +14,7 @@ LedManager *LedManager::getInstance()
 
 LedManager::LedManager()
 {
+    mRender = true;
     mType = DEFAULT_TYPE;
     mBrightness = DEFAULT_BRIGHTNESS;
     mSensitivity = DEFAULT_SENSITIVITY;
@@ -22,6 +23,7 @@ LedManager::LedManager()
     mGHue = HUE_GREEN;
     mDHue = 0;
     mfirstTime = true;
+    mPriorityMode = false;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
@@ -243,34 +245,91 @@ void LedManager::command(int commandType)
 
 void LedManager::process()
 {
-    switch (mType)
+    if (mPriorityMode)
     {
-    case RGB:
-    {
-        rgbEffectHandler();
-        break;
+        priorityModeHandler();
     }
+    else
+    {
+        switch (mType)
+        {
+        case RGB:
+        {
+            rgbEffectHandler();
+            break;
+        }
 #ifdef ENABLE_MPU6050_SENSOR
-    case GRAVITY:
-    {
-        gravityEffectHandler();
-        break;
-    }
+        case GRAVITY:
+        {
+            gravityEffectHandler();
+            break;
+        }
 #endif
-    case MUSIC:
-    {
-        musicEffectHandler();
-        break;
+        case MUSIC:
+        {
+            musicEffectHandler();
+            break;
+        }
+        case SNAKE:
+        {
+            snakeEffectHandler();
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
     }
-    case SNAKE:
+    renderHandler();
+}
+
+void LedManager::showCharacter(char character)
+{
+    if (character < CHARACTERS_MIN || character > CHARACTERS_MAX)
     {
-        snakeEffectHandler();
-        break;
+        return;
     }
-    default:
+    int width = Characters::getWidth(character);
+    for (int y = 0; y < width; y++)
     {
-        break;
+        int code = Characters::getCode(character, y + 1);
+        for (int z = 0; z < CHARACTERS_HEIGHT; z++)
+        {
+            bool enable = bitRead(code, CHARACTERS_HEIGHT - z - 1);
+            setLedCoordinates(0, y + 1, z + 1, enable, HUE_GREEN);
+        }
     }
+}
+
+void LedManager::renderHandler()
+{
+    static unsigned long long time = 0;
+    if (mRender)
+    {
+        if (millis() > time)
+        {
+            time = millis() + RENDER_DELAY_TIME;
+            mRender = false;
+            strip->show();
+        }
+    }
+}
+
+void LedManager::priorityModeHandler()
+{
+    static unsigned long long time = 0;
+    static char ch = CHARACTERS_MIN;
+    if (millis() > time)
+    {
+        time = millis() + 1000;
+        ch++;
+        if (ch > CHARACTERS_MAX)
+        {
+            ch = CHARACTERS_MIN;
+        }
+        turnOff();
+        showCharacter(ch);
     }
 }
 
@@ -295,7 +354,6 @@ void LedManager::rgbEffectHandler()
                 setLedPosition(i, 1, distance * 500 + hue, mSaturation);
             }
         }
-        strip->show();
     }
 }
 
@@ -338,7 +396,6 @@ void LedManager::gravityEffectHandler()
                 setLedPosition(i, enable, distance * 500 + hue, mSaturation);
             }
         }
-        strip->show();
     }
 }
 #endif
@@ -437,15 +494,13 @@ void LedManager::musicEffectHandler()
                 }
             }
         }
-        strip->show();
         time = millis();
     }
 }
 
 void LedManager::snakeEffectHandler()
 {
-    static unsigned long long timeRender = 0, timeUpdate = 0, timeTarget = 0;
-    static bool render = false;
+    static unsigned long long timeUpdate = 0, timeTarget = 0;
     static int targetX = 0, targetY = 0, targetZ = 0;
     static bool targetState = false;
     static bool targetHue = HUE_GREEN;
@@ -455,7 +510,6 @@ void LedManager::snakeEffectHandler()
     {
         int x, y, z;
         mfirstTime = false;
-        render = true;
         setHue(HUE_BLUE);
         turnOff();
         SnakeGameManager::getInstance()->startGame();
@@ -467,7 +521,6 @@ void LedManager::snakeEffectHandler()
     if (millis() > timeUpdate)
     {
         timeUpdate = millis() + timeDelay;
-        render = true;
         int setX = -1, setY = -1, setZ = -1, clearX = -1, clearY = -1, clearZ = -1;
         int retCode = SnakeGameManager::getInstance()->nextMove(setX, setY, setZ, clearX, clearY, clearZ);
         if (retCode != NEXT_MOVE_CODE_NONE)
@@ -493,22 +546,14 @@ void LedManager::snakeEffectHandler()
                 mfirstTime = true;
             }
         }
+    }
 
-        // render
-        if (millis() > timeTarget)
-        {
-            timeTarget = millis() + 300UL;
-            render = true;
-            targetState ^= 1;
-            SnakeGameManager::getInstance()->getTargetPosition(targetX, targetY, targetZ);
-            setLedCoordinates(targetX, targetY, targetZ, targetState, targetHue, 0);
-        }
-        if (render && millis() > timeRender)
-        {
-            timeRender = millis() + 10UL;
-            render = false;
-            strip->show();
-        }
+    if (millis() > timeTarget)
+    {
+        timeTarget = millis() + 300UL;
+        targetState ^= 1;
+        SnakeGameManager::getInstance()->getTargetPosition(targetX, targetY, targetZ);
+        setLedCoordinates(targetX, targetY, targetZ, targetState, targetHue, 0);
     }
 }
 
@@ -523,7 +568,7 @@ void LedManager::fillColor(uint16_t hue, uint8_t sat, uint8_t val)
     {
         strip->setPixelColor(i, strip->gamma32(strip->ColorHSV(hue, sat, val)));
     }
-    strip->show();
+    mRender = true;
 }
 
 void LedManager::fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat, uint8_t val)
@@ -533,7 +578,7 @@ void LedManager::fillRainbowColor(uint16_t startHue, uint16_t dHue, uint8_t sat,
         strip->setPixelColor(i, strip->gamma32(strip->ColorHSV(startHue, sat, val)));
         startHue += dHue;
     }
-    strip->show();
+    mRender = true;
 }
 
 void LedManager::turnOff()
@@ -546,6 +591,7 @@ void LedManager::setLedPosition(int position, bool enable, uint16_t hue, uint8_t
     if (position >= 0 && position < NUM_LEDS)
     {
         strip->setPixelColor(position, enable ? strip->gamma32(strip->ColorHSV(hue, sat, val)) : 0);
+        mRender = true;
     }
 }
 
