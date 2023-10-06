@@ -25,6 +25,7 @@ LedManager::LedManager()
     mfirstTime = true;
     mPriorityMode = PRIORITY_TYPE_NONE;
     mPriorityModeFirstTime = false;
+    mPriorityTextHue = HUE_RED;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
 }
 
@@ -292,13 +293,33 @@ void LedManager::showCharacter(char character, uint16_t hue, int offset)
         return;
     }
     int width = Characters::getWidth(character);
-    for (int y = 1; y <= width; y++)
+    for (int i = 1; i <= width; i++)
     {
-        int code = Characters::getCode(character, y);
+        int code = Characters::getCode(character, i);
         for (int z = 1; z <= CHARACTERS_HEIGHT; z++)
         {
-            bool enable = bitRead(code, CHARACTERS_HEIGHT - z);
-            setLedCoordinates(0, y + offset, z, enable, hue);
+            int index = i + offset - 1; // 0->max-1
+            if (index >= 0)
+            {
+                int pos = index % MATRIX_SIZE_1D; // 0->7
+                bool enable = bitRead(code, CHARACTERS_HEIGHT - z);
+                if (index < MATRIX_SIZE_1D)
+                {
+                    setLedCoordinates(0, pos + 1, z, enable, hue);
+                }
+                else if (index < 2 * MATRIX_SIZE_1D)
+                {
+                    setLedCoordinates(pos + 1, MATRIX_SIZE_1D + 1, z, enable, hue);
+                }
+                else if (index < 3 * MATRIX_SIZE_1D)
+                {
+                    setLedCoordinates(MATRIX_SIZE_1D + 1, MATRIX_SIZE_1D - pos, z, enable, hue);
+                }
+                else if (index < 4 * MATRIX_SIZE_1D)
+                {
+                    setLedCoordinates(MATRIX_SIZE_1D - pos, 0, z, enable, hue);
+                }
+            }
         }
     }
 }
@@ -319,9 +340,16 @@ void LedManager::setPriorityMode(int mode)
     mPriorityModeFirstTime = true;
 }
 
-void LedManager::showWrongWarning()
+void LedManager::showPriorityWrongWarning()
 {
     setPriorityMode(PRIORITY_TYPE_WRONG_WARNING);
+}
+
+void LedManager::showPriorityScrollText(const char *text, uint16_t hue)
+{
+    setPriorityMode(PRIORITY_TYPE_SCROLL_TEXT);
+    strncpy(mPriorityText, text, sizeof(mPriorityText));
+    mPriorityTextHue = hue;
 }
 
 void LedManager::renderHandler()
@@ -340,34 +368,69 @@ void LedManager::renderHandler()
 
 void LedManager::priorityModeHandler()
 {
-    static int count = 0;
     static unsigned long long time = 0;
+    static int count = 0;
+
+    if (mPriorityModeFirstTime)
+    {
+        mPriorityModeFirstTime = false;
+        count = 0;
+        turnOff();
+    }
+
     switch (mPriorityMode)
     {
     case PRIORITY_TYPE_WRONG_WARNING:
-        if (mPriorityModeFirstTime)
-        {
-            mPriorityModeFirstTime = false;
-            count = 0;
-            turnOff();
-        }
+    {
         if (millis() > time)
         {
             time = millis() + 500;
             count++;
-            if (count > 4)
-            {
-                setPriorityMode(PRIORITY_TYPE_NONE);
-            }
             turnOff();
             if (count % 2 == 0)
             {
                 showCharacterCenter('X', HUE_RED);
             }
+            // exit priority mode
+            if (count > 4)
+            {
+                setPriorityMode(PRIORITY_TYPE_NONE);
+            }
         }
         break;
+    }
+    case PRIORITY_TYPE_SCROLL_TEXT:
+    {
+        if (millis() > time)
+        {
+            time = millis() + PRIORITY_SCROLL_TEXT_DELAY;
+            count++;
+            int offset = 2 - count;
+            int widthSum = 0;
+            turnOff();
+            for (int i = 0; i < strlen(mPriorityText); i++)
+            {
+                char ch = mPriorityText[i];
+                showCharacter(ch, mPriorityTextHue, offset);
+                int width = Characters::getWidth(ch);
+                widthSum += width + 1;
+                offset += width + 1;
+            }
+            // exit priority mode
+            if (count > widthSum)
+            {
+                setPriorityMode(PRIORITY_TYPE_NONE);
+            }
+        }
+        break;
+    }
     default:
         break;
+    }
+
+    if (mPriorityMode == PRIORITY_TYPE_NONE)
+    {
+        turnOff();
     }
 }
 
@@ -582,7 +645,7 @@ void LedManager::snakeEffectHandler()
             {
                 // game over
                 mfirstTime = true;
-                showWrongWarning();
+                showPriorityScrollText("Game Over");
             }
         }
     }
