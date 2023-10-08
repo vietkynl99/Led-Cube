@@ -405,7 +405,7 @@ void LedManager::priorityModeHandler()
         {
             time = millis() + PRIORITY_SCROLL_TEXT_DELAY;
             count++;
-            int offset = 2 - count;
+            int offset = 3 - count;
             int widthSum = 0;
             turnOff();
             for (int i = 0; i < strlen(mPriorityText); i++)
