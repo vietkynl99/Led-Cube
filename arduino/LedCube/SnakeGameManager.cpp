@@ -39,6 +39,7 @@ int SnakeGameManager::getLength()
     return mLength;
 }
 
+// Data is stored in: mFristIndex+1 -> mLastIndex
 bool SnakeGameManager::add(int value)
 {
     if (isFull())
@@ -69,9 +70,14 @@ bool SnakeGameManager::isFull()
 
 bool SnakeGameManager::isExists(int value)
 {
-    if (mFristIndex <= mLastIndex)
+    if (mLength <= 0)
     {
-        for (int i = mFristIndex; i <= mLastIndex; i++)
+        return false;
+    }
+    int realIndex = (mFristIndex + 1) % DATA_SIZE_MAX;
+    if (realIndex <= mLastIndex)
+    {
+        for (int i = realIndex; i <= mLastIndex; i++)
         {
             if (mDataArray[i] == value)
             {
@@ -81,14 +87,14 @@ bool SnakeGameManager::isExists(int value)
     }
     else
     {
-        for (int i = 0; i <= mFristIndex; i++)
+        for (int i = 0; i <= realIndex; i++)
         {
             if (mDataArray[i] == value)
             {
                 return true;
             }
         }
-        for (int i = mLastIndex; i <= mLengthMax; i++)
+        for (int i = mLastIndex; i <= DATA_SIZE_MAX; i++)
         {
             if (mDataArray[i] == value)
             {
@@ -204,7 +210,7 @@ void SnakeGameManager::handleDirByMpu()
         {
             newDir = DIR_MODE_NONE;
         }
-        if (newDir != DIR_MODE_NONE && newDir != preDir)
+        if (preDir == DIR_MODE_NONE && newDir != preDir)
         {
             setDir(newDir);
         }
