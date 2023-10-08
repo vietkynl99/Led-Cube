@@ -631,6 +631,7 @@ void LedManager::snakeEffectHandler()
             {
                 // reset
                 mfirstTime = true;
+                showPriorityScrollText("You Win");
             }
             else if (retCode == NEXT_MOVE_CODE_PLUS)
             {
