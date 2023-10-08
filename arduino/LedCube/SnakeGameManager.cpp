@@ -118,7 +118,13 @@ int SnakeGameManager::generateRandomUnvailableValue(int min, int max)
 
 int SnakeGameManager::getPanelPosition(int x, int y, int z)
 {
-    return (y - 1) * MATRIX_SIZE_1D + z - 1;
+    return (x - 1) * MATRIX_SIZE_1D + y - 1;
+}
+
+void SnakeGameManager::getRawPosition(int panelPosition, int &x, int &y, int &z)
+{
+    x = panelPosition / MATRIX_SIZE_1D + 1;
+    y = panelPosition % MATRIX_SIZE_1D + 1;
 }
 
 void SnakeGameManager::startGame()
@@ -132,14 +138,19 @@ void SnakeGameManager::startGame()
     SnakeGameManager::getInstance()->add(panelPosition);
 
     // Generate frist target position
-    mTargetX = 0;
+    mTargetX = mX;
+    mTargetY = mY;
+    mTargetZ = mZ;
     while (1)
     {
-        mTargetY = random(1, MATRIX_SIZE_1D);
-        mTargetZ = random(1, MATRIX_SIZE_1D);
-        if (pow(mX - mTargetX, 2) + pow(mY - mTargetY, 2) + pow(mZ - mTargetZ, 2) > 3)
+        int targetPanelPosition = generateRandomUnvailableValue(0, MATRIX_SIZE_2D);
+        if (targetPanelPosition >= 0)
         {
-            break;
+            getRawPosition(targetPanelPosition, mTargetX, mTargetY, mTargetZ);
+            if (pow(mX - mTargetX, 2) + pow(mY - mTargetY, 2) + pow(mZ - mTargetZ, 2) > 3)
+            {
+                break;
+            }
         }
     }
 }
@@ -212,13 +223,22 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
         mY--;
         break;
     case DIR_MODE_UP:
-        mZ++;
+        mX++;
         break;
     case DIR_MODE_DOWN:
-        mZ--;
+        mX--;
         break;
     default:
         return NEXT_MOVE_CODE_NONE;
+    }
+
+    if (mX > MATRIX_SIZE_1D)
+    {
+        mX = 1;
+    }
+    if (mX < 1)
+    {
+        mX = MATRIX_SIZE_1D;
     }
 
     if (mY > MATRIX_SIZE_1D)
@@ -228,15 +248,6 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
     if (mY < 1)
     {
         mY = MATRIX_SIZE_1D;
-    }
-
-    if (mZ > MATRIX_SIZE_1D)
-    {
-        mZ = 1;
-    }
-    if (mZ < 1)
-    {
-        mZ = MATRIX_SIZE_1D;
     }
 
     int panelPosition = getPanelPosition(mX, mY, mZ);
@@ -265,8 +276,7 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
             else
             {
                 // generate new target position
-                mTargetY = targetPanelPosition / MATRIX_SIZE_1D + 1;
-                mTargetZ = targetPanelPosition % MATRIX_SIZE_1D + 1;
+                getRawPosition(targetPanelPosition, mTargetX, mTargetY, mTargetZ);
                 setX = mX;
                 setY = mY;
                 setZ = mZ;
@@ -281,8 +291,9 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
         if (firstPanelPosition >= 0)
         {
             clearX = mX;
-            clearY = firstPanelPosition / MATRIX_SIZE_1D + 1;
-            clearZ = firstPanelPosition % MATRIX_SIZE_1D + 1;
+            clearY = mY;
+            clearZ = mZ;
+            getRawPosition(firstPanelPosition, clearX, clearY, clearZ);
         }
         setX = mX;
         setY = mY;

@@ -8,9 +8,9 @@
 
 #define DATA_SIZE_MAX       384 // NUM_LEDS
 
-#define START_DEFAULT_X     0
+#define START_DEFAULT_X     4
 #define START_DEFAULT_Y     4
-#define START_DEFAULT_Z     4
+#define START_DEFAULT_Z     9
 
 enum NextModeCode {
     NEXT_MOVE_CODE_NONE,
@@ -72,6 +72,7 @@ private:
     bool isExists(int value);
     int generateRandomUnvailableValue(int min, int max);
     int getPanelPosition(int x, int y, int z);
+    void getRawPosition(int panelPosition, int& x, int& y, int& z);
 };
 
 #endif
