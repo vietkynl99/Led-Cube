@@ -470,20 +470,20 @@ void LedManager::gravityEffectHandler()
     if ((unsigned long long)(millis() - time) > 10UL)
     {
         time = millis();
-        float angleX = HardwareController::getInstance()->getAngleX() * PI / 180;
-        float angleY = HardwareController::getInstance()->getAngleY() * PI / 180;
-        float angleZ = HardwareController::getInstance()->getAngleZ() * PI / 180;
+        float angleX = HardwareController::getInstance()->getAngleRadX();
+        float angleY = HardwareController::getInstance()->getAngleRadY();
+        float angleZ = HardwareController::getInstance()->getAngleRadZ();
 
         // ma tran quay
         // float r0 = cos(angleY) * cos(angleZ);
         // float r1 = cos(angleZ) * sin(angleX) * sin(angleY) - cos(angleX) * sin(angleZ);
-        float a = cos(angleX) * cos(angleZ) * sin(angleY) + sin(angleX) * sin(angleZ);
+        float aX = cos(angleX) * cos(angleZ) * sin(angleY) + sin(angleX) * sin(angleZ);
         // float r3 = cos(angleY) * sin(angleZ);
         // float r4 = cos(angleX) * cos(angleZ) + sin(angleX) * sin(angleY) * sin(angleZ);
-        float b = -cos(angleZ) * sin(angleX) + cos(angleX) * sin(angleY) * sin(angleZ);
+        float aY = -cos(angleZ) * sin(angleX) + cos(angleX) * sin(angleY) * sin(angleZ);
         // float r6 = -sin(angleY);
         // float r7 = cos(angleY) * sin(angleX);
-        float c = cos(angleX) * cos(angleY);
+        float aZ = cos(angleX) * cos(angleY);
 
         float offset = -aX * pointX - aY * pointY - aZ * pointZ;
 
@@ -615,7 +615,6 @@ void LedManager::snakeEffectHandler()
         turnOff();
         SnakeGameManager::getInstance()->startGame();
         SnakeGameManager::getInstance()->getCurrentPosition(x, y, z);
-        LOG_GAME("start: %d %d %d", x, y, z);
         setLedCoordinates(x, y, z, 1, mGHue);
     }
 

@@ -60,6 +60,10 @@ Press and then long press for about 3s: Reset wifi settings
 #define ADC_MODE_MIC        1
 #define ADC_MODE_BATTERY    2
 
+#define MPU6050_OFFSET_X_DEFAULT 1
+#define MPU6050_OFFSET_Y_DEFAULT 12
+#define MPU6050_OFFSET_Z_DEFAULT 0
+
 class HardwareController
 {
 private:
@@ -114,9 +118,12 @@ public:
     void beep(int count, bool blocking = false);
     String getSensorsData();
 #ifdef ENABLE_MPU6050_SENSOR
-    float getAngleX();
-    float getAngleY();
-    float getAngleZ();
+    float getAngleDegX();
+    float getAngleDegY();
+    float getAngleDegZ();
+    float getAngleRadX();
+    float getAngleRadY();
+    float getAngleRadZ();
 #endif
     int getAdc();
     int getAdcMode();

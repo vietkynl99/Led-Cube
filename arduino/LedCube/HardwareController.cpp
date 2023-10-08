@@ -83,9 +83,9 @@ void HardwareController::initSensors()
     mpuSensor->begin();
     // mpuSensor->calcGyroOffsets(true);
 
-    angleXOffset = 0;
-    angleYOffset = 0;
-    angleZOffset = 0;
+    angleXOffset = MPU6050_OFFSET_X_DEFAULT;
+    angleYOffset = MPU6050_OFFSET_Y_DEFAULT;
+    angleZOffset = MPU6050_OFFSET_Z_DEFAULT;
 #endif
 }
 
@@ -342,19 +342,34 @@ String HardwareController::getSensorsData()
 }
 
 #ifdef ENABLE_MPU6050_SENSOR
-float HardwareController::getAngleX()
+float HardwareController::getAngleDegX()
 {
     return mpuSensor->getAngleX() + angleXOffset;
 }
 
-float HardwareController::getAngleY()
+float HardwareController::getAngleDegY()
 {
     return mpuSensor->getAngleY() + angleYOffset;
 }
 
-float HardwareController::getAngleZ()
+float HardwareController::getAngleDegZ()
 {
     return mpuSensor->getAngleZ() + angleZOffset;
+}
+
+float HardwareController::getAngleRadX()
+{
+    return getAngleDegX() * PI / 180;
+}
+
+float HardwareController::getAngleRadY()
+{
+    return getAngleDegY() * PI / 180;
+}
+
+float HardwareController::getAngleRadZ()
+{
+    return getAngleDegZ() * PI / 180;
 }
 #endif
 
