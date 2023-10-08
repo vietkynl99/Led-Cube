@@ -55,6 +55,9 @@ public:
     void startGame();
     void resetGame();
     void setDir(int dir);
+#ifdef ENABLE_MPU6050_SENSOR
+    void handleDirByMpu();
+#endif
     int nextMove(int &setX, int &setY, int &setZ, int &clearX, int &clearY, int &clearZ);
     void command(int command);
     void getCurrentPosition(int &x, int &y, int &z);

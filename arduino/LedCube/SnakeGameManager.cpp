@@ -156,6 +156,51 @@ void SnakeGameManager::setDir(int dir)
     mDir = dir;
 }
 
+#ifdef ENABLE_MPU6050_SENSOR
+void SnakeGameManager::handleDirByMpu()
+{
+    static unsigned long long time = 0;
+    static int preDir = DIR_MODE_NONE, newDir = DIR_MODE_NONE;
+
+    if (millis() > time)
+    {
+        time = millis() + 10UL;
+        int angleX = HardwareController::getInstance()->getAngleDegX();
+        int angleY = HardwareController::getInstance()->getAngleDegY();
+        bool isAngleRight = angleX < -45 && angleY > -30 && angleY < 30;
+        bool isAngleLeft = angleX > 45 && angleY > -30 && angleY < 30;
+        bool isAngleUp = angleX > -30 && angleX < 30 && angleY > 45;
+        bool isAngleDown = angleX > -30 && angleX < 30 && angleY < -45;
+        // LOG_GAME("x:%d, y:%d -> right:%d, left:%d, up:%d, down:%d", angleX, angleY, isAngleRight, isAngleLeft, isAngleUp, isAngleDown);
+        preDir = newDir;
+        if (isAngleRight)
+        {
+            newDir = DIR_MODE_RIGHT;
+        }
+        else if (isAngleLeft)
+        {
+            newDir = DIR_MODE_LEFT;
+        }
+        else if (isAngleUp)
+        {
+            newDir = DIR_MODE_UP;
+        }
+        else if (isAngleDown)
+        {
+            newDir = DIR_MODE_DOWN;
+        }
+        else
+        {
+            newDir = DIR_MODE_NONE;
+        }
+        if (preDir == DIR_MODE_NONE && newDir != preDir)
+        {
+            setDir(newDir);
+        }
+    }
+}
+#endif
+
 int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int &clearY, int &clearZ)
 {
     switch (mDir)

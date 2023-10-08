@@ -618,6 +618,10 @@ void LedManager::snakeEffectHandler()
         setLedCoordinates(x, y, z, 1, mGHue);
     }
 
+#ifdef ENABLE_MPU6050_SENSOR
+    SnakeGameManager::getInstance()->handleDirByMpu();
+#endif
+
     if (millis() > timeUpdate)
     {
         timeUpdate = millis() + timeDelay;
