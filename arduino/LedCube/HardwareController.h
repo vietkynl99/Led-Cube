@@ -17,8 +17,8 @@ Press and then long press for about 3s: Reset wifi settings
 */
 
 #define ENABLE_BATTERY_MEASUREMENT
-#define ENABLE_DHT11_SENSOR
-// #define ENABLE_MPU6050_SENSOR
+// #define ENABLE_DHT11_SENSOR
+#define ENABLE_MPU6050_SENSOR
 
 #define ADC_PIN         A0
 #define ADC_CTRL_PIN    D3
@@ -63,6 +63,10 @@ Press and then long press for about 3s: Reset wifi settings
 #define MPU6050_OFFSET_X_DEFAULT 1
 #define MPU6050_OFFSET_Y_DEFAULT 12
 #define MPU6050_OFFSET_Z_DEFAULT 0
+
+#define MPU6050_OFFSET_GYRO_X 5
+#define MPU6050_OFFSET_GYRO_Y 3
+#define MPU6050_OFFSET_GYRO_Z 0
 
 class HardwareController
 {
@@ -124,6 +128,9 @@ public:
     float getAngleRadX();
     float getAngleRadY();
     float getAngleRadZ();
+    float getGyroX();
+    float getGyroY();
+    float getGyroZ();
 #endif
     int getAdc();
     int getAdcMode();

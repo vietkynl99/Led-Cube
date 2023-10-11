@@ -12,6 +12,8 @@
 #define START_DEFAULT_Y     4
 #define START_DEFAULT_Z     9
 
+#define GYRO_THRESHOLD      300
+
 enum NextModeCode {
     NEXT_MOVE_CODE_NONE,
     NEXT_MOVE_CODE_GAME_OVER,

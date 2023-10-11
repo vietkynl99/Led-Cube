@@ -182,13 +182,13 @@ void SnakeGameManager::handleDirByMpu()
     if (millis() > time)
     {
         time = millis() + 10UL;
-        int angleX = HardwareController::getInstance()->getAngleDegX();
-        int angleY = HardwareController::getInstance()->getAngleDegY();
-        bool isAngleRight = angleX < -30 && angleY > -30 && angleY < 30;
-        bool isAngleLeft = angleX > 30 && angleY > -30 && angleY < 30;
-        bool isAngleUp = angleX > -30 && angleX < 30 && angleY > 30;
-        bool isAngleDown = angleX > -30 && angleX < 30 && angleY < -30;
-        // LOG_GAME("x:%d, y:%d -> right:%d, left:%d, up:%d, down:%d", angleX, angleY, isAngleRight, isAngleLeft, isAngleUp, isAngleDown);
+        int gyroX = HardwareController::getInstance()->getGyroX();
+        int gyroY = HardwareController::getInstance()->getGyroY();
+        bool isAngleRight = gyroX > GYRO_THRESHOLD;
+        bool isAngleLeft = gyroX < -GYRO_THRESHOLD;
+        bool isAngleUp = gyroY < -GYRO_THRESHOLD;
+        bool isAngleDown = gyroY > GYRO_THRESHOLD;
+        // LOG_GAME("gyroX:%d, gyroY:%d -> right:%d, left:%d, up:%d, down:%d", gyroX, gyroY, isAngleRight, isAngleLeft, isAngleUp, isAngleDown);
         preDir = newDir;
         if (isAngleRight)
         {

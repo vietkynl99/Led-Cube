@@ -371,6 +371,21 @@ float HardwareController::getAngleRadZ()
 {
     return getAngleDegZ() * PI / 180;
 }
+
+float HardwareController::getGyroX()
+{
+    return mpuSensor->getGyroX() + MPU6050_OFFSET_GYRO_X;
+}
+
+float HardwareController::getGyroY()
+{
+    return mpuSensor->getGyroY() + MPU6050_OFFSET_GYRO_Y;
+}
+
+float HardwareController::getGyroZ()
+{
+    return mpuSensor->getGyroZ() + MPU6050_OFFSET_GYRO_Z;
+}
 #endif
 
 int HardwareController::getAdc()
