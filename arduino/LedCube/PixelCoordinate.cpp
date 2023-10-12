@@ -53,7 +53,7 @@ int PixelCoordinate::getArrayPosition(int x, int y, int z)
     }
 }
 
-bool PixelCoordinate::getDescartesPositions(int arrayPosition, int *x, int *y, int *z)
+bool PixelCoordinate::getDescartesPositions(int arrayPosition, int &x, int &y, int &z)
 {
     if (arrayPosition < 0 || arrayPosition >= NUM_LEDS)
     {
@@ -72,44 +72,44 @@ bool PixelCoordinate::getDescartesPositions(int arrayPosition, int *x, int *y, i
     {
     case 0:
     {
-        *x = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
-        *y = MATRIX_SIZE_1D - position % MATRIX_SIZE_1D;
-        *z = 0;
+        x = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
+        y = MATRIX_SIZE_1D - position % MATRIX_SIZE_1D;
+        z = 0;
         break;
     }
     case 1:
     {
-        *x = 0;
-        *y = MATRIX_SIZE_1D - position % MATRIX_SIZE_1D;
-        *z = position / MATRIX_SIZE_1D + 1;
+        x = 0;
+        y = MATRIX_SIZE_1D - position % MATRIX_SIZE_1D;
+        z = position / MATRIX_SIZE_1D + 1;
         break;
     }
     case 2:
     {
-        *x = position % MATRIX_SIZE_1D + 1;
-        *y = 0;
-        *z = position / MATRIX_SIZE_1D + 1;
+        x = position % MATRIX_SIZE_1D + 1;
+        y = 0;
+        z = position / MATRIX_SIZE_1D + 1;
         break;
     }
     case 3:
     {
-        *x = MATRIX_SIZE_1D + 1;
-        *y = position % MATRIX_SIZE_1D + 1;
-        *z = position / MATRIX_SIZE_1D + 1;
+        x = MATRIX_SIZE_1D + 1;
+        y = position % MATRIX_SIZE_1D + 1;
+        z = position / MATRIX_SIZE_1D + 1;
         break;
     }
     case 4:
     {
-        *x = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
-        *y = position % MATRIX_SIZE_1D + 1;
-        *z = MATRIX_SIZE_1D + 1;
+        x = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
+        y = position % MATRIX_SIZE_1D + 1;
+        z = MATRIX_SIZE_1D + 1;
         break;
     }
     case 5:
     {
-        *x = position % MATRIX_SIZE_1D + 1;
-        *y = MATRIX_SIZE_1D + 1;
-        *z = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
+        x = position % MATRIX_SIZE_1D + 1;
+        y = MATRIX_SIZE_1D + 1;
+        z = MATRIX_SIZE_1D - position / MATRIX_SIZE_1D;
         break;
     }
     default:
@@ -120,10 +120,14 @@ bool PixelCoordinate::getDescartesPositions(int arrayPosition, int *x, int *y, i
 
 int PixelCoordinate::getMatrixPosition(int arrayPosition)
 {
-    return -1;
+    if (arrayPosition < 0 || arrayPosition >= NUM_LEDS)
+    {
+        return -1;
+    }
+    return arrayPosition / MATRIX_SIZE_2D;
 }
 
 int PixelCoordinate::getMatrixPosition(int x, int y, int z)
 {
-    return -1;
+    return getMatrixPosition(getArrayPosition(x, y, z));
 }

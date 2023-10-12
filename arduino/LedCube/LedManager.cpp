@@ -53,7 +53,7 @@ void LedManager::init()
     int x, y, z ;
     for (int position = 0; position < NUM_LEDS; position++)
     {
-        if (PixelCoordinate::getDescartesPositions(position, &x, &y, &z))
+        if (PixelCoordinate::getDescartesPositions(position, x, y, z))
         {
             int retPosition = PixelCoordinate::getArrayPosition(x, y, z);
             if (position != retPosition)
@@ -449,7 +449,7 @@ void LedManager::rgbEffectHandler()
         hue += dHue;
         for (int i = 0; i < NUM_LEDS; i++)
         {
-            if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+            if (PixelCoordinate::getDescartesPositions(i, x, y, z))
             {
                 int distance = a * x + b * y + c * z;
                 setLedPosition(i, 1, distance * 500 + hue, mSaturation);
@@ -490,7 +490,7 @@ void LedManager::gravityEffectHandler()
         hue += 50;
         for (int i = 0; i < NUM_LEDS; i++)
         {
-            if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+            if (PixelCoordinate::getDescartesPositions(i, x, y, z))
             {
                 int distance = aX * x + aY * y + aZ * z;
                 bool enable = aX * x + aY * y + aZ * z + offset > 0;
@@ -565,7 +565,7 @@ void LedManager::musicEffectHandler()
                 (mSubType == MUSIC_TYPE_4_SIDES && (side != 0 && side != 4)) ||
                 (mSubType == MUSIC_TYPE_1_SIDE && side == 1))
             {
-                if (PixelCoordinate::getDescartesPositions(i, &x, &y, &z))
+                if (PixelCoordinate::getDescartesPositions(i, x, y, z))
                 {
                     int level = z;
                     int pos = 0; // 0-7
