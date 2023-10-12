@@ -31,6 +31,7 @@ void SnakeGameManager::resetGame()
     mX = START_DEFAULT_X;
     mY = START_DEFAULT_Y;
     mZ = START_DEFAULT_Z;
+    setDir(DIR_MODE_NONE, true);
 }
 
 void SnakeGameManager::setLengthMax(int max)
@@ -157,7 +158,6 @@ void SnakeGameManager::startGame()
 {
     resetGame();
     setLengthMax(NUM_LEDS);
-    setDir(DIR_MODE_NONE);
 
     // start position
     int panelPosition = getPanelPosition(mX, mY, mZ);
@@ -181,9 +181,9 @@ void SnakeGameManager::setDir(int dir, bool force)
     {
         return;
     }
-    if (((mX == 0 || mX == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_AXIS1_DEC || dir == DIR_MODE_AXIS1_INC)) ||
-        ((mY == 0 || mY == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_AXIS2_DEC || dir == DIR_MODE_AXIS2_INC)) ||
-        ((mZ == 0 || mZ == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_AXIS3_DEC || dir == DIR_MODE_AXIS3_INC)))
+    if (((mX == 0 || mX == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_X_DEC || dir == DIR_MODE_X_INC)) ||
+        ((mY == 0 || mY == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_Y_DEC || dir == DIR_MODE_Y_INC)) ||
+        ((mZ == 0 || mZ == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_Z_DEC || dir == DIR_MODE_Z_INC)))
     {
         return;
     }
@@ -191,9 +191,9 @@ void SnakeGameManager::setDir(int dir, bool force)
     {
         int minDir = min(dir, mDir);
         int maxDir = max(dir, mDir);
-        if ((minDir == DIR_MODE_AXIS1_DEC && maxDir == DIR_MODE_AXIS1_INC) ||
-            (minDir == DIR_MODE_AXIS2_DEC && maxDir == DIR_MODE_AXIS2_INC) ||
-            (minDir == DIR_MODE_AXIS3_DEC && maxDir == DIR_MODE_AXIS3_INC))
+        if ((minDir == DIR_MODE_X_DEC && maxDir == DIR_MODE_X_INC) ||
+            (minDir == DIR_MODE_Y_DEC && maxDir == DIR_MODE_Y_INC) ||
+            (minDir == DIR_MODE_Z_DEC && maxDir == DIR_MODE_Z_INC))
         {
             return;
         }
@@ -202,22 +202,22 @@ void SnakeGameManager::setDir(int dir, bool force)
 
     switch (mDir)
     {
-    case DIR_MODE_AXIS1_INC:
+    case DIR_MODE_X_INC:
         setDirAxis(1, 0, 0);
         break;
-    case DIR_MODE_AXIS1_DEC:
+    case DIR_MODE_X_DEC:
         setDirAxis(-1, 0, 0);
         break;
-    case DIR_MODE_AXIS2_INC:
+    case DIR_MODE_Y_INC:
         setDirAxis(0, 1, 0);
         break;
-    case DIR_MODE_AXIS2_DEC:
+    case DIR_MODE_Y_DEC:
         setDirAxis(0, -1, 0);
         break;
-    case DIR_MODE_AXIS3_INC:
+    case DIR_MODE_Z_INC:
         setDirAxis(0, 0, 1);
         break;
-    case DIR_MODE_AXIS3_DEC:
+    case DIR_MODE_Z_DEC:
         setDirAxis(0, 0, -1);
         break;
     default:
@@ -235,27 +235,27 @@ void SnakeGameManager::detectCurrentDir()
     }
     if (mDirX == -1)
     {
-        setDir(DIR_MODE_AXIS1_DEC, true);
+        setDir(DIR_MODE_X_DEC, true);
     }
     else if (mDirX == 1)
     {
-        setDir(DIR_MODE_AXIS1_INC, true);
+        setDir(DIR_MODE_X_INC, true);
     }
     else if (mDirY == -1)
     {
-        setDir(DIR_MODE_AXIS2_DEC, true);
+        setDir(DIR_MODE_Y_DEC, true);
     }
     else if (mDirY == 1)
     {
-        setDir(DIR_MODE_AXIS2_INC, true);
+        setDir(DIR_MODE_Y_INC, true);
     }
     else if (mDirZ == -1)
     {
-        setDir(DIR_MODE_AXIS3_DEC, true);
+        setDir(DIR_MODE_Z_DEC, true);
     }
     else if (mDirZ == 1)
     {
-        setDir(DIR_MODE_AXIS3_INC, true);
+        setDir(DIR_MODE_Z_INC, true);
     }
     else
     {
@@ -268,48 +268,41 @@ void SnakeGameManager::handleDirByMpu()
 {
     static unsigned long long time = 0;
     static int preDir = DIR_MODE_NONE, newDir = DIR_MODE_NONE;
+    static bool gyroDir[6];
 
     if (millis() > time)
     {
-        time = millis() + 10UL;
+        time = millis() + 20UL;
         int gyroX = HardwareController::getInstance()->getGyroX();
         int gyroY = HardwareController::getInstance()->getGyroY();
         int gyroZ = HardwareController::getInstance()->getGyroZ();
+        gyroDir[0] = gyroX > GYRO_THRESHOLD;
+        gyroDir[1] = gyroX < -GYRO_THRESHOLD;
+        gyroDir[2] = gyroY > GYRO_THRESHOLD;
+        gyroDir[3] = gyroY < -GYRO_THRESHOLD;
+        gyroDir[4] = gyroZ > GYRO_THRESHOLD;
+        gyroDir[5] = gyroZ < -GYRO_THRESHOLD;
         // LOG_GAME("gyroX: %d\tgyroY: %d\tgyroZ: %d", gyroX, gyroY, gyroZ);
         preDir = newDir;
-        if (gyroX > GYRO_THRESHOLD)
+        if (gyroDir[0] + gyroDir[1] + gyroDir[2] + gyroDir[3] + gyroDir[4] + gyroDir[5] != 1)
         {
-            LOG_GAME("gyroX +");
-            newDir = DIR_MODE_AXIS1_INC;
-        }
-        else if (gyroX < -GYRO_THRESHOLD)
-        {
-            LOG_GAME("gyroX -");
-            newDir = DIR_MODE_AXIS1_DEC;
-        }
-        else if (gyroY > GYRO_THRESHOLD)
-        {
-            LOG_GAME("gyroY +");
-            newDir = DIR_MODE_AXIS2_INC;
-        }
-        else if (gyroY < -GYRO_THRESHOLD)
-        {
-            LOG_GAME("gyroY -");
-            newDir = DIR_MODE_AXIS2_DEC;
-        }
-        else if (gyroZ > GYRO_THRESHOLD)
-        {
-            LOG_GAME("gyroZ +");
-            newDir = DIR_MODE_AXIS3_INC;
-        }
-        else if (gyroZ < -GYRO_THRESHOLD)
-        {
-            LOG_GAME("gyroZ -");
-            newDir = DIR_MODE_AXIS3_DEC;
+            newDir = DIR_MODE_NONE;
         }
         else
         {
-            newDir = DIR_MODE_NONE;
+            for (int i = 0; i < 6; i++)
+            {
+                if (gyroDir[i])
+                {
+                    int matrixPosition = PixelCoordinate::getMatrixPosition(mX, mY, mZ);
+                    if (matrixPosition >= 0)
+                    {
+                        newDir = matrixDir[matrixPosition][i];
+                        LOG_GAME("matrix: %d, i: %d, gypro: %d %d %d %d %d %d -> newDir: %d", matrixPosition, i, gyroDir[0], gyroDir[1], gyroDir[2], gyroDir[3], gyroDir[4], gyroDir[5], newDir);
+                    }
+                    break;
+                }
+            }
         }
 
         if (preDir == DIR_MODE_NONE && newDir != preDir)

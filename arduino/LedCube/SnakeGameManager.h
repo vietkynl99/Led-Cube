@@ -12,9 +12,10 @@
 #define START_DEFAULT_Y     4
 #define START_DEFAULT_Z     9
 
-#define GYRO_THRESHOLD      300
+#define GYRO_THRESHOLD      250
 
-enum NextModeCode {
+enum NextModeCode
+{
     NEXT_MOVE_CODE_NONE,
     NEXT_MOVE_CODE_GAME_OVER,
     NEXT_MOVE_CODE_WIN_GAME,
@@ -23,18 +24,20 @@ enum NextModeCode {
     NEXT_MOVE_CODE_MAX
 };
 
-enum DirMode {
+enum DirMode
+{
     DIR_MODE_NONE,
-    DIR_MODE_AXIS1_DEC,
-    DIR_MODE_AXIS2_DEC,
-    DIR_MODE_AXIS3_DEC,
-    DIR_MODE_AXIS1_INC,
-    DIR_MODE_AXIS2_INC,
-    DIR_MODE_AXIS3_INC,
+    DIR_MODE_X_DEC,
+    DIR_MODE_Y_DEC,
+    DIR_MODE_Z_DEC,
+    DIR_MODE_X_INC,
+    DIR_MODE_Y_INC,
+    DIR_MODE_Z_INC,
     DIR_MODE_MAX
 };
 
-enum GameMode {
+enum GameMode
+{
     GAME_MODE_1_SIDE,
     GAME_MODE_FULL_SIDES
 };
@@ -59,6 +62,13 @@ private:
     int mTargetY;
     int mTargetZ;
     int mGameMode;
+
+    int matrixDir[6][6] = {{DIR_MODE_Y_DEC, DIR_MODE_Y_INC, DIR_MODE_X_INC, DIR_MODE_X_DEC, DIR_MODE_NONE, DIR_MODE_NONE}, // z = 0
+                           {DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_Z_DEC, DIR_MODE_Z_INC, DIR_MODE_Y_DEC, DIR_MODE_Y_INC}, // x = 0
+                           {DIR_MODE_Z_INC, DIR_MODE_Z_DEC, DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_X_INC, DIR_MODE_X_DEC}, // y = 0
+                           {DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_Z_INC, DIR_MODE_Z_DEC, DIR_MODE_Y_INC, DIR_MODE_Y_DEC}, // x = 9
+                           {DIR_MODE_Y_INC, DIR_MODE_Y_DEC, DIR_MODE_X_DEC, DIR_MODE_X_INC, DIR_MODE_NONE, DIR_MODE_NONE}, // z = 9
+                           {DIR_MODE_Z_DEC, DIR_MODE_Z_INC, DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_X_DEC, DIR_MODE_X_INC}}; // y = 9
 
 private:
     SnakeGameManager();
@@ -87,10 +97,10 @@ private:
     int generateRandomPosition();
     int getPanelPosition(int x, int y, int z);
     void generateFirstTargetPosition();
-    void getRawPosition(int panelPosition, int& x, int& y, int& z);
+    void getRawPosition(int panelPosition, int &x, int &y, int &z);
     void setDirAxis(int dirX, int dirY, int dirZ);
     void detectCurrentDir();
-    bool caculateNextDir(int& axis1, int& axis2, int& axist3, int& dir1, int& dir2, int& dir3);
+    bool caculateNextDir(int &axis1, int &axis2, int &axist3, int &dir1, int &dir2, int &dir3);
 };
 
 #endif

@@ -34,6 +34,11 @@ void debugHandler()
 		{
 			hardwareController->turnOnFakePairMode();
 		}
+		// Start in Snake Game
+		else if (!strcmp(FC, "START"))
+		{
+			LedManager::getInstance()->command(COMMAND_GAME_START);
+		}
 		// Set dir in Snake Game
 		else if (!strcmp(FC, "DIR"))
 		{
