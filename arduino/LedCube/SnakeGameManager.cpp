@@ -14,6 +14,7 @@ SnakeGameManager *SnakeGameManager::getInstance()
 
 SnakeGameManager::SnakeGameManager()
 {
+    mGameMode = GAME_MODE_FULL_SIDES;
     resetGame();
 }
 
@@ -24,6 +25,9 @@ void SnakeGameManager::resetGame()
     mLastIndex = 0;
     mLengthMax = DATA_SIZE_MAX;
     mDir = DIR_MODE_NONE;
+    mDirX = 0;
+    mDirY = 0;
+    mDirZ = 0;
     mX = START_DEFAULT_X;
     mY = START_DEFAULT_Y;
     mZ = START_DEFAULT_Z;
@@ -105,7 +109,24 @@ bool SnakeGameManager::isExists(int value)
     return false;
 }
 
-int SnakeGameManager::generateRandomUnvailableValue(int min, int max)
+void SnakeGameManager::generateFirstTargetPosition()
+{
+    while (1)
+    {
+        int targetPosition = generateRandomPosition();
+        if (targetPosition >= 0)
+        {
+            getRawPosition(targetPosition, mTargetX, mTargetY, mTargetZ);
+            if (PixelCoordinate::getMatrixPosition(mX, mY, mZ) == PixelCoordinate::getMatrixPosition(mTargetX, mTargetY, mTargetZ) &&
+                pow(mX - mTargetX, 2) + pow(mY - mTargetY, 2) + pow(mZ - mTargetZ, 2) > 3)
+            {
+                break;
+            }
+        }
+    }
+}
+
+int SnakeGameManager::generateRandomPosition()
 {
     if (isFull())
     {
@@ -113,7 +134,7 @@ int SnakeGameManager::generateRandomUnvailableValue(int min, int max)
     }
     for (int i = 0; i < mLengthMax * 100; i++)
     {
-        int value = random(min, max);
+        int value = random(0, mLengthMax);
         if (!isExists(value))
         {
             return value;
@@ -124,53 +145,122 @@ int SnakeGameManager::generateRandomUnvailableValue(int min, int max)
 
 int SnakeGameManager::getPanelPosition(int x, int y, int z)
 {
-    return (x - 1) * MATRIX_SIZE_1D + y - 1;
+    return PixelCoordinate::getArrayPosition(x, y, z);
 }
 
 void SnakeGameManager::getRawPosition(int panelPosition, int &x, int &y, int &z)
 {
-    x = panelPosition / MATRIX_SIZE_1D + 1;
-    y = panelPosition % MATRIX_SIZE_1D + 1;
+    PixelCoordinate::getDescartesPositions(panelPosition, x, y, z);
 }
 
 void SnakeGameManager::startGame()
 {
     resetGame();
-    setLengthMax(MATRIX_SIZE_2D);
+    setLengthMax(NUM_LEDS);
     setDir(DIR_MODE_NONE);
 
     // start position
     int panelPosition = getPanelPosition(mX, mY, mZ);
     SnakeGameManager::getInstance()->add(panelPosition);
 
-    // Generate frist target position
-    mTargetX = mX;
-    mTargetY = mY;
-    mTargetZ = mZ;
-    while (1)
-    {
-        int targetPanelPosition = generateRandomUnvailableValue(0, MATRIX_SIZE_2D);
-        if (targetPanelPosition >= 0)
-        {
-            getRawPosition(targetPanelPosition, mTargetX, mTargetY, mTargetZ);
-            if (pow(mX - mTargetX, 2) + pow(mY - mTargetY, 2) + pow(mZ - mTargetZ, 2) > 3)
-            {
-                break;
-            }
-        }
-    }
+    generateFirstTargetPosition();
 }
 
-void SnakeGameManager::setDir(int dir)
+void SnakeGameManager::setDirAxis(int dirX, int dirY, int dirZ)
 {
-    if ((mDir == DIR_MODE_RIGHT && dir == DIR_MODE_LEFT) ||
-        (mDir == DIR_MODE_LEFT && dir == DIR_MODE_RIGHT) ||
-        (mDir == DIR_MODE_UP && dir == DIR_MODE_DOWN) ||
-        (mDir == DIR_MODE_DOWN && dir == DIR_MODE_UP))
+    mDirX = dirX;
+    mDirY = dirY;
+    mDirZ = dirZ;
+}
+
+void SnakeGameManager::setDir(int dir, bool force)
+{
+    if ((dir == mDir) ||
+        (dir < DIR_MODE_NONE) ||
+        (dir >= DIR_MODE_MAX))
     {
         return;
     }
+    if (((mX == 0 || mX == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_AXIS1_DEC || dir == DIR_MODE_AXIS1_INC)) ||
+        ((mY == 0 || mY == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_AXIS2_DEC || dir == DIR_MODE_AXIS2_INC)) ||
+        ((mZ == 0 || mZ == MATRIX_SIZE_1D + 1) && (dir == DIR_MODE_AXIS3_DEC || dir == DIR_MODE_AXIS3_INC)))
+    {
+        return;
+    }
+    if (!force)
+    {
+        int minDir = min(dir, mDir);
+        int maxDir = max(dir, mDir);
+        if ((minDir == DIR_MODE_AXIS1_DEC && maxDir == DIR_MODE_AXIS1_INC) ||
+            (minDir == DIR_MODE_AXIS2_DEC && maxDir == DIR_MODE_AXIS2_INC) ||
+            (minDir == DIR_MODE_AXIS3_DEC && maxDir == DIR_MODE_AXIS3_INC))
+        {
+            return;
+        }
+    }
     mDir = dir;
+
+    switch (mDir)
+    {
+    case DIR_MODE_AXIS1_INC:
+        setDirAxis(1, 0, 0);
+        break;
+    case DIR_MODE_AXIS1_DEC:
+        setDirAxis(-1, 0, 0);
+        break;
+    case DIR_MODE_AXIS2_INC:
+        setDirAxis(0, 1, 0);
+        break;
+    case DIR_MODE_AXIS2_DEC:
+        setDirAxis(0, -1, 0);
+        break;
+    case DIR_MODE_AXIS3_INC:
+        setDirAxis(0, 0, 1);
+        break;
+    case DIR_MODE_AXIS3_DEC:
+        setDirAxis(0, 0, -1);
+        break;
+    default:
+        setDirAxis(0, 0, 0);
+        break;
+    }
+}
+
+void SnakeGameManager::detectCurrentDir()
+{
+    if (abs(mDirX + mDirY + mDirZ) != 1)
+    {
+        setDir(DIR_MODE_NONE, true);
+        return;
+    }
+    if (mDirX == -1)
+    {
+        setDir(DIR_MODE_AXIS1_DEC, true);
+    }
+    else if (mDirX == 1)
+    {
+        setDir(DIR_MODE_AXIS1_INC, true);
+    }
+    else if (mDirY == -1)
+    {
+        setDir(DIR_MODE_AXIS2_DEC, true);
+    }
+    else if (mDirY == 1)
+    {
+        setDir(DIR_MODE_AXIS2_INC, true);
+    }
+    else if (mDirZ == -1)
+    {
+        setDir(DIR_MODE_AXIS3_DEC, true);
+    }
+    else if (mDirZ == 1)
+    {
+        setDir(DIR_MODE_AXIS3_INC, true);
+    }
+    else
+    {
+        setDir(DIR_MODE_NONE, true);
+    }
 }
 
 #ifdef ENABLE_MPU6050_SENSOR
@@ -184,32 +274,44 @@ void SnakeGameManager::handleDirByMpu()
         time = millis() + 10UL;
         int gyroX = HardwareController::getInstance()->getGyroX();
         int gyroY = HardwareController::getInstance()->getGyroY();
-        bool isAngleRight = gyroX > GYRO_THRESHOLD;
-        bool isAngleLeft = gyroX < -GYRO_THRESHOLD;
-        bool isAngleUp = gyroY < -GYRO_THRESHOLD;
-        bool isAngleDown = gyroY > GYRO_THRESHOLD;
-        // LOG_GAME("gyroX:%d, gyroY:%d -> right:%d, left:%d, up:%d, down:%d", gyroX, gyroY, isAngleRight, isAngleLeft, isAngleUp, isAngleDown);
+        int gyroZ = HardwareController::getInstance()->getGyroZ();
+        // LOG_GAME("gyroX: %d\tgyroY: %d\tgyroZ: %d", gyroX, gyroY, gyroZ);
         preDir = newDir;
-        if (isAngleRight)
+        if (gyroX > GYRO_THRESHOLD)
         {
-            newDir = DIR_MODE_RIGHT;
+            LOG_GAME("gyroX +");
+            newDir = DIR_MODE_AXIS1_INC;
         }
-        else if (isAngleLeft)
+        else if (gyroX < -GYRO_THRESHOLD)
         {
-            newDir = DIR_MODE_LEFT;
+            LOG_GAME("gyroX -");
+            newDir = DIR_MODE_AXIS1_DEC;
         }
-        else if (isAngleUp)
+        else if (gyroY > GYRO_THRESHOLD)
         {
-            newDir = DIR_MODE_UP;
+            LOG_GAME("gyroY +");
+            newDir = DIR_MODE_AXIS2_INC;
         }
-        else if (isAngleDown)
+        else if (gyroY < -GYRO_THRESHOLD)
         {
-            newDir = DIR_MODE_DOWN;
+            LOG_GAME("gyroY -");
+            newDir = DIR_MODE_AXIS2_DEC;
+        }
+        else if (gyroZ > GYRO_THRESHOLD)
+        {
+            LOG_GAME("gyroZ +");
+            newDir = DIR_MODE_AXIS3_INC;
+        }
+        else if (gyroZ < -GYRO_THRESHOLD)
+        {
+            LOG_GAME("gyroZ -");
+            newDir = DIR_MODE_AXIS3_DEC;
         }
         else
         {
             newDir = DIR_MODE_NONE;
         }
+
         if (preDir == DIR_MODE_NONE && newDir != preDir)
         {
             setDir(newDir);
@@ -218,43 +320,90 @@ void SnakeGameManager::handleDirByMpu()
 }
 #endif
 
+bool SnakeGameManager::caculateNextDir(int &axis1, int &axis2, int &axist3, int &dir1, int &dir2, int &dir3)
+{
+    bool isChanged = false;
+    if (dir1)
+    {
+        if (axis1 > MATRIX_SIZE_1D)
+        {
+            axis1 = MATRIX_SIZE_1D + 1;
+            isChanged = true;
+        }
+        else if (axis1 < 1)
+        {
+            axis1 = 0;
+            isChanged = true;
+        }
+
+        if (isChanged)
+        {
+            dir1 = 0;
+            if (axis2 == 0)
+            {
+                axis2 = 1;
+                dir2 = 1;
+                dir3 = 0;
+            }
+            else if (axis2 == MATRIX_SIZE_1D + 1)
+            {
+                axis2 = MATRIX_SIZE_1D;
+                dir2 = -1;
+                dir3 = 0;
+            }
+            else if (axist3 == 0)
+            {
+                axist3 = 1;
+                dir2 = 0;
+                dir3 = 1;
+            }
+            else if (axist3 == MATRIX_SIZE_1D + 1)
+            {
+                axist3 = MATRIX_SIZE_1D;
+                dir2 = 0;
+                dir3 = -1;
+            }
+            else
+            {
+                LOG_GAME("Invalid position: %d %d %d - %d %d %d", mX, mY, mZ, mDirX, mDirY, mDirZ);
+            }
+            detectCurrentDir();
+        }
+    }
+    return isChanged;
+}
+
 int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int &clearY, int &clearZ)
 {
-    switch (mDir)
+    if (mDir == DIR_MODE_NONE)
     {
-    case DIR_MODE_RIGHT:
-        mY++;
-        break;
-    case DIR_MODE_LEFT:
-        mY--;
-        break;
-    case DIR_MODE_UP:
-        mX++;
-        break;
-    case DIR_MODE_DOWN:
-        mX--;
-        break;
-    default:
         return NEXT_MOVE_CODE_NONE;
     }
 
-    if (mX > MATRIX_SIZE_1D)
+    if (mDirX + mDirY + mDirZ == 0)
     {
-        mX = 1;
-    }
-    if (mX < 1)
-    {
-        mX = MATRIX_SIZE_1D;
+        return NEXT_MOVE_CODE_NONE;
     }
 
-    if (mY > MATRIX_SIZE_1D)
+    mX += mDirX;
+    mY += mDirY;
+    mZ += mDirZ;
+
+    int isChanged = false;
+    if (!isChanged)
     {
-        mY = 1;
+        isChanged = caculateNextDir(mX, mY, mZ, mDirX, mDirY, mDirZ);
     }
-    if (mY < 1)
+    if (!isChanged)
     {
-        mY = MATRIX_SIZE_1D;
+        isChanged = caculateNextDir(mY, mZ, mX, mDirY, mDirZ, mDirX);
     }
+    if (!isChanged)
+    {
+        isChanged = caculateNextDir(mZ, mX, mY, mDirZ, mDirX, mDirY);
+    }
+
+    // LOG_GAME("Current position: %d %d %d - %d %d %d", mX, mY, mZ, mDirX, mDirY, mDirZ);
 
     int panelPosition = getPanelPosition(mX, mY, mZ);
     if (isExists(panelPosition))
@@ -273,8 +422,8 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
         else
         {
             // eat
-            int targetPanelPosition = generateRandomUnvailableValue(0, MATRIX_SIZE_2D);
-            if (targetPanelPosition < 0)
+            int targetPosition = generateRandomPosition();
+            if (targetPosition < 0)
             {
                 LOG_GAME("Win game!");
                 return NEXT_MOVE_CODE_WIN_GAME;
@@ -282,7 +431,7 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
             else
             {
                 // generate new target position
-                getRawPosition(targetPanelPosition, mTargetX, mTargetY, mTargetZ);
+                getRawPosition(targetPosition, mTargetX, mTargetY, mTargetZ);
                 setX = mX;
                 setY = mY;
                 setZ = mZ;
@@ -310,22 +459,22 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
 
 void SnakeGameManager::command(int command)
 {
-    if (command == COMMAND_GAME_RIGHT)
-    {
-        setDir(DIR_MODE_RIGHT);
-    }
-    else if (command == COMMAND_GAME_UP)
-    {
-        setDir(DIR_MODE_UP);
-    }
-    else if (command == COMMAND_GAME_LEFT)
-    {
-        setDir(DIR_MODE_LEFT);
-    }
-    else if (command == COMMAND_GAME_DOWN)
-    {
-        setDir(DIR_MODE_DOWN);
-    }
+    // if (command == COMMAND_GAME_RIGHT)
+    // {
+    //     setDir(DIR_MODE_RIGHT);
+    // }
+    // else if (command == COMMAND_GAME_UP)
+    // {
+    //     setDir(DIR_MODE_UP);
+    // }
+    // else if (command == COMMAND_GAME_LEFT)
+    // {
+    //     setDir(DIR_MODE_LEFT);
+    // }
+    // else if (command == COMMAND_GAME_DOWN)
+    // {
+    //     setDir(DIR_MODE_DOWN);
+    // }
 }
 
 void SnakeGameManager::getCurrentPosition(int &x, int &y, int &z)

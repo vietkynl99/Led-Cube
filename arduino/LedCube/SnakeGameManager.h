@@ -25,10 +25,18 @@ enum NextModeCode {
 
 enum DirMode {
     DIR_MODE_NONE,
-    DIR_MODE_RIGHT,
-    DIR_MODE_LEFT,
-    DIR_MODE_UP,
-    DIR_MODE_DOWN
+    DIR_MODE_AXIS1_DEC,
+    DIR_MODE_AXIS2_DEC,
+    DIR_MODE_AXIS3_DEC,
+    DIR_MODE_AXIS1_INC,
+    DIR_MODE_AXIS2_INC,
+    DIR_MODE_AXIS3_INC,
+    DIR_MODE_MAX
+};
+
+enum GameMode {
+    GAME_MODE_1_SIDE,
+    GAME_MODE_FULL_SIDES
 };
 
 class SnakeGameManager
@@ -41,12 +49,16 @@ private:
     int mFristIndex;
     int mLastIndex;
     int mDir;
+    int mDirX;
+    int mDirY;
+    int mDirZ;
     int mX;
     int mY;
     int mZ;
     int mTargetX;
     int mTargetY;
     int mTargetZ;
+    int mGameMode;
 
 private:
     SnakeGameManager();
@@ -56,7 +68,7 @@ public:
     void setGameLevel(int level);
     void startGame();
     void resetGame();
-    void setDir(int dir);
+    void setDir(int dir, bool force = false);
 #ifdef ENABLE_MPU6050_SENSOR
     void handleDirByMpu();
 #endif
@@ -72,9 +84,13 @@ private:
     int pop();
     bool isFull();
     bool isExists(int value);
-    int generateRandomUnvailableValue(int min, int max);
+    int generateRandomPosition();
     int getPanelPosition(int x, int y, int z);
+    void generateFirstTargetPosition();
     void getRawPosition(int panelPosition, int& x, int& y, int& z);
+    void setDirAxis(int dirX, int dirY, int dirZ);
+    void detectCurrentDir();
+    bool caculateNextDir(int& axis1, int& axis2, int& axist3, int& dir1, int& dir2, int& dir3);
 };
 
 #endif

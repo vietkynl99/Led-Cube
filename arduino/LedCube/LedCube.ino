@@ -34,6 +34,11 @@ void debugHandler()
 		{
 			hardwareController->turnOnFakePairMode();
 		}
+		// Set dir in Snake Game
+		else if (!strcmp(FC, "DIR"))
+		{
+			SnakeGameManager::getInstance()->setDir(code, true);
+		}
 	}
 }
 #endif
