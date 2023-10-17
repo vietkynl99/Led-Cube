@@ -95,9 +95,7 @@ private:
     bool isFull();
     bool isExists(int value);
     int generateRandomPosition();
-    int getPanelPosition(int x, int y, int z);
     void generateFirstTargetPosition();
-    void getRawPosition(int panelPosition, int &x, int &y, int &z);
     void setDirAxis(int dirX, int dirY, int dirZ);
     void detectCurrentDir();
     bool caculateNextDir(int &axis1, int &axis2, int &axist3, int &dir1, int &dir2, int &dir3);

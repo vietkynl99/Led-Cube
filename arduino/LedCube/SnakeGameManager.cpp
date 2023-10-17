@@ -117,7 +117,7 @@ void SnakeGameManager::generateFirstTargetPosition()
         int targetPosition = generateRandomPosition();
         if (targetPosition >= 0)
         {
-            getRawPosition(targetPosition, mTargetX, mTargetY, mTargetZ);
+            PixelCoordinate::getDescartesPositions(targetPosition, mTargetX, mTargetY, mTargetZ);
             if (PixelCoordinate::getMatrixPosition(mX, mY, mZ) == PixelCoordinate::getMatrixPosition(mTargetX, mTargetY, mTargetZ) &&
                 pow(mX - mTargetX, 2) + pow(mY - mTargetY, 2) + pow(mZ - mTargetZ, 2) > 3)
             {
@@ -144,24 +144,14 @@ int SnakeGameManager::generateRandomPosition()
     return -1;
 }
 
-int SnakeGameManager::getPanelPosition(int x, int y, int z)
-{
-    return PixelCoordinate::getArrayPosition(x, y, z);
-}
-
-void SnakeGameManager::getRawPosition(int panelPosition, int &x, int &y, int &z)
-{
-    PixelCoordinate::getDescartesPositions(panelPosition, x, y, z);
-}
-
 void SnakeGameManager::startGame()
 {
     resetGame();
     setLengthMax(NUM_LEDS);
 
     // start position
-    int panelPosition = getPanelPosition(mX, mY, mZ);
-    SnakeGameManager::getInstance()->add(panelPosition);
+    int position = PixelCoordinate::getArrayPosition(mX, mY, mZ);
+    SnakeGameManager::getInstance()->add(position);
 
     generateFirstTargetPosition();
 }
@@ -398,15 +388,15 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
 
     // LOG_GAME("Current position: %d %d %d - %d %d %d", mX, mY, mZ, mDirX, mDirY, mDirZ);
 
-    int panelPosition = getPanelPosition(mX, mY, mZ);
-    if (isExists(panelPosition))
+    int position = PixelCoordinate::getArrayPosition(mX, mY, mZ);
+    if (isExists(position))
     {
         LOG_GAME("Game over!");
         return NEXT_MOVE_CODE_GAME_OVER;
     }
     if (mX == mTargetX && mY == mTargetY && mZ == mTargetZ)
     {
-        add(panelPosition);
+        add(position);
         if (isFull())
         {
             LOG_GAME("Win game!");
@@ -424,7 +414,7 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
             else
             {
                 // generate new target position
-                getRawPosition(targetPosition, mTargetX, mTargetY, mTargetZ);
+                PixelCoordinate::getDescartesPositions(targetPosition, mTargetX, mTargetY, mTargetZ);
                 setX = mX;
                 setY = mY;
                 setZ = mZ;
@@ -434,14 +424,14 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
     }
     else
     {
-        add(panelPosition);
-        int firstPanelPosition = pop();
-        if (firstPanelPosition >= 0)
+        add(position);
+        int firstPosition = pop();
+        if (firstPosition >= 0)
         {
             clearX = mX;
             clearY = mY;
             clearZ = mZ;
-            getRawPosition(firstPanelPosition, clearX, clearY, clearZ);
+            PixelCoordinate::getDescartesPositions(firstPosition, clearX, clearY, clearZ);
         }
         setX = mX;
         setY = mY;
