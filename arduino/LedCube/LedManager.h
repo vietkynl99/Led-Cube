@@ -58,10 +58,19 @@ private:
 
     enum SubEffectType
     {
-        NONE,
-        MUSIC_TYPE_1_SIDE,
-        MUSIC_TYPE_4_SIDES,
-        MUSIC_TYPE_FULL_SIDES,
+        SUB_TYPE_NONE,
+        // Music type
+        MUSIC_SUB_TYPE_MIN,
+        MUSIC_SUB_TYPE_1_SIDE,
+        MUSIC_SUB_TYPE_4_SIDES,
+        MUSIC_SUB_TYPE_FULL_SIDES,
+        MUSIC_SUB_TYPE_MAX,
+        // Snake type
+        SNAKE_SUB_TYPE_MIN,
+        SNAKE_SUB_TYPE_1_SIDE,
+        SNAKE_SUB_TYPE_FULL_SIDES,
+        SNAKE_SUB_TYPE_MAX,
+        // End
         SUB_EFFECT_MAX
     };
 
@@ -106,13 +115,14 @@ public:
     void command(int commandType);
     void loop();
     void changeToNextType();
+    void changeToNextSubType();
 
 private:
     void readPreviousEEPROMData(int &data, int address, int minValue, int maxValue, int defaultValue);
     void readPreviousEEPROMData(uint16_t &data, int address);
     void restoreSettings();
     
-    void showCharacter(char character, uint16_t hue,int offset = 0);
+    void showCharacter(char character, uint16_t hue, int offset = 0);
     void showCharacterCenter(char character, uint16_t hue);
     void setPriorityMode(int mode);
     void showPriorityWrongWarning();

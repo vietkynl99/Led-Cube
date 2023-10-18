@@ -19,7 +19,7 @@ LedManager::LedManager()
     mBrightness = DEFAULT_BRIGHTNESS;
     mSensitivity = DEFAULT_SENSITIVITY;
     mSaturation = DEFAULT_SATURATION;
-    mSubType = NONE;
+    mSubType = SUB_TYPE_NONE;
     mGHue = HUE_GREEN;
     mDHue = 0;
     mfirstTime = true;
@@ -109,7 +109,7 @@ void LedManager::setType(int type, bool force)
     if (mType != type || force)
     {
         mType = type;
-        LOG_LED("Change type: %d, subType: %d, brightness: %d, sensitivity: %d", mType, mSubType, mBrightness, mSensitivity);
+        LOG_LED("Change type -> type: %d, subType: %d, brightness: %d, sensitivity: %d", mType, mSubType, mBrightness, mSensitivity);
 
         if (mType != MUSIC)
         {
@@ -118,13 +118,22 @@ void LedManager::setType(int type, bool force)
                 HardwareController::getInstance()->changeAdcMode(ADC_MODE_NONE);
             }
         }
+        // Set default subtype
         if (mType == MUSIC)
         {
-            if (mSubType < MUSIC_TYPE_1_SIDE || mSubType > MUSIC_TYPE_FULL_SIDES)
+            if (mSubType < MUSIC_SUB_TYPE_1_SIDE || mSubType > MUSIC_SUB_TYPE_FULL_SIDES)
             {
-                setSubType(MUSIC_TYPE_1_SIDE);
+                setSubType(MUSIC_SUB_TYPE_1_SIDE);
             }
         }
+        else if (mType == SNAKE)
+        {
+            if (mSubType < SNAKE_SUB_TYPE_1_SIDE || mSubType > SNAKE_SUB_TYPE_FULL_SIDES)
+            {
+                setSubType(SNAKE_SUB_TYPE_1_SIDE);
+            }
+        }
+        // Reset
         turnOff();
         mfirstTime = true;
     }
@@ -142,7 +151,10 @@ void LedManager::setSubType(int subType, bool force)
     if (mSubType != subType || force)
     {
         mSubType = subType;
+        LOG_LED("Change subType -> type: %d, subType: %d, brightness: %d, sensitivity: %d", mType, mSubType, mBrightness, mSensitivity);
+        // Reset
         turnOff();
+        mfirstTime = true;
     }
 }
 
@@ -561,9 +573,9 @@ void LedManager::musicEffectHandler()
         for (int i = 0; i < NUM_LEDS; i++)
         {
             int side = i / MATRIX_SIZE_2D;
-            if (mSubType == MUSIC_TYPE_FULL_SIDES ||
-                (mSubType == MUSIC_TYPE_4_SIDES && (side != 0 && side != 4)) ||
-                (mSubType == MUSIC_TYPE_1_SIDE && side == 1))
+            if (mSubType == MUSIC_SUB_TYPE_FULL_SIDES ||
+                (mSubType == MUSIC_SUB_TYPE_4_SIDES && (side != 0 && side != 4)) ||
+                (mSubType == MUSIC_SUB_TYPE_1_SIDE && side == 1))
             {
                 if (PixelCoordinate::getDescartesPositions(i, x, y, z))
                 {
@@ -613,6 +625,7 @@ void LedManager::snakeEffectHandler()
         mfirstTime = false;
         setHue(HUE_BLUE);
         turnOff();
+        SnakeGameManager::getInstance()->setGameMode(mSubType == SNAKE_SUB_TYPE_1_SIDE ? GAME_MODE_1_SIDE : GAME_MODE_FULL_SIDES);
         SnakeGameManager::getInstance()->startGame();
         SnakeGameManager::getInstance()->getCurrentPosition(x, y, z);
         setLedCoordinates(x, y, z, 1, mGHue);
@@ -666,6 +679,29 @@ void LedManager::snakeEffectHandler()
 void LedManager::changeToNextType()
 {
     setType((mType + 1) % EFFECT_MAX);
+}
+
+void LedManager::changeToNextSubType()
+{
+    int minSubType = -1;
+    int maxSubType = -1;
+    switch (mType)
+    {
+    case MUSIC:
+        minSubType = MUSIC_SUB_TYPE_MIN;
+        maxSubType = MUSIC_SUB_TYPE_MAX;
+        break;
+    case SNAKE:
+        minSubType = SNAKE_SUB_TYPE_MIN;
+        maxSubType = SNAKE_SUB_TYPE_MAX;
+        break;
+    default:
+        break;
+    }
+    if (minSubType >= 0 && minSubType < maxSubType)
+    {
+        setSubType((mSubType - minSubType) % (maxSubType - minSubType - 1) + minSubType + 1);
+    }
 }
 
 void LedManager::fillColor(uint16_t hue, uint8_t sat, uint8_t val)

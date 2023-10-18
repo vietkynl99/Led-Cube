@@ -75,7 +75,7 @@ private:
 
 public:
     static SnakeGameManager *getInstance();
-    void setGameLevel(int level);
+    void setGameMode(int mode);
     void startGame();
     void resetGame();
     void setDir(int dir, bool force = false);
@@ -89,7 +89,6 @@ public:
 
 private:
     void setLengthMax(int max);
-    int getLength();
     bool add(int value);
     int pop();
     bool isFull();

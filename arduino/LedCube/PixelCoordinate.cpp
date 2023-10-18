@@ -131,3 +131,15 @@ int PixelCoordinate::getMatrixPosition(int x, int y, int z)
 {
     return getMatrixPosition(getArrayPosition(x, y, z));
 }
+
+bool PixelCoordinate::arePointsCoplanar(int arrayPosition1, int arrayPosition2)
+{
+    int matrix1 = getMatrixPosition(arrayPosition1);
+    int matrix2 = getMatrixPosition(arrayPosition2);
+    return matrix1 == matrix2 && matrix1 >= 0;
+}
+
+bool PixelCoordinate::arePointsCoplanar(int x1, int y1, int z1, int x2, int y2, int z2)
+{
+    return arePointsCoplanar(getArrayPosition(x1, y1, z1), getArrayPosition(x2, y2, z2));
+}

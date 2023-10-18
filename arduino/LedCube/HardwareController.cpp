@@ -223,6 +223,7 @@ void HardwareController::buttonHandler()
                 break;
             case BUTTON_STATE_LONG_PRESSED:
                 beep(2);
+                LedManager::getInstance()->changeToNextSubType();
                 break;
             case BUTTON_STATE_PRESSED_AND_LONG_PRESSED:
                 beep(3);

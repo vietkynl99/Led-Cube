@@ -14,8 +14,8 @@ SnakeGameManager *SnakeGameManager::getInstance()
 
 SnakeGameManager::SnakeGameManager()
 {
-    mGameMode = GAME_MODE_FULL_SIDES;
     resetGame();
+    setGameMode(GAME_MODE_1_SIDE);
 }
 
 void SnakeGameManager::resetGame()
@@ -37,11 +37,6 @@ void SnakeGameManager::resetGame()
 void SnakeGameManager::setLengthMax(int max)
 {
     mLengthMax = max;
-}
-
-int SnakeGameManager::getLength()
-{
-    return mLength;
 }
 
 // Data is stored in: mFristIndex+1 -> mLastIndex
@@ -133,21 +128,38 @@ int SnakeGameManager::generateRandomPosition()
     {
         return -1;
     }
-    for (int i = 0; i < mLengthMax * 100; i++)
+    while (1)
     {
-        int value = random(0, mLengthMax);
-        if (!isExists(value))
+        int position = random(0, DATA_SIZE_MAX);
+        if (!isExists(position))
         {
-            return value;
+            if (mGameMode == GAME_MODE_FULL_SIDES)
+            {
+                return position;
+            }
+            else
+            {
+                int currentPosition = PixelCoordinate::getArrayPosition(mX, mY, mZ);
+                if (PixelCoordinate::arePointsCoplanar(currentPosition, position))
+                {
+                    return position;
+                }
+            }
         }
     }
     return -1;
 }
 
+void SnakeGameManager::setGameMode(int mode)
+{
+    mGameMode = mode;
+}
+
 void SnakeGameManager::startGame()
 {
+    LOG_GAME("Start game");
     resetGame();
-    setLengthMax(NUM_LEDS);
+    setLengthMax(mGameMode == GAME_MODE_FULL_SIDES ? DATA_SIZE_MAX : MATRIX_SIZE_2D);
 
     // start position
     int position = PixelCoordinate::getArrayPosition(mX, mY, mZ);
@@ -308,49 +320,63 @@ bool SnakeGameManager::caculateNextDir(int &axis1, int &axis2, int &axist3, int 
     bool isChanged = false;
     if (dir1)
     {
-        if (axis1 > MATRIX_SIZE_1D)
+        if (mGameMode == GAME_MODE_FULL_SIDES)
         {
-            axis1 = MATRIX_SIZE_1D + 1;
-            isChanged = true;
-        }
-        else if (axis1 < 1)
-        {
-            axis1 = 0;
-            isChanged = true;
-        }
+            if (axis1 > MATRIX_SIZE_1D)
+            {
+                axis1 = MATRIX_SIZE_1D + 1;
+                isChanged = true;
+            }
+            else if (axis1 < 1)
+            {
+                axis1 = 0;
+                isChanged = true;
+            }
 
-        if (isChanged)
+            if (isChanged)
+            {
+                dir1 = 0;
+                if (axis2 == 0)
+                {
+                    axis2 = 1;
+                    dir2 = 1;
+                    dir3 = 0;
+                }
+                else if (axis2 == MATRIX_SIZE_1D + 1)
+                {
+                    axis2 = MATRIX_SIZE_1D;
+                    dir2 = -1;
+                    dir3 = 0;
+                }
+                else if (axist3 == 0)
+                {
+                    axist3 = 1;
+                    dir2 = 0;
+                    dir3 = 1;
+                }
+                else if (axist3 == MATRIX_SIZE_1D + 1)
+                {
+                    axist3 = MATRIX_SIZE_1D;
+                    dir2 = 0;
+                    dir3 = -1;
+                }
+                else
+                {
+                    LOG_GAME("Invalid position: %d %d %d - %d %d %d", mX, mY, mZ, mDirX, mDirY, mDirZ);
+                }
+                detectCurrentDir();
+            }
+        }
+        else
         {
-            dir1 = 0;
-            if (axis2 == 0)
+            if (axis1 > MATRIX_SIZE_1D)
             {
-                axis2 = 1;
-                dir2 = 1;
-                dir3 = 0;
+                axis1 = 1;
             }
-            else if (axis2 == MATRIX_SIZE_1D + 1)
+            else if (axis1 < 1)
             {
-                axis2 = MATRIX_SIZE_1D;
-                dir2 = -1;
-                dir3 = 0;
+                axis1 = MATRIX_SIZE_1D;
             }
-            else if (axist3 == 0)
-            {
-                axist3 = 1;
-                dir2 = 0;
-                dir3 = 1;
-            }
-            else if (axist3 == MATRIX_SIZE_1D + 1)
-            {
-                axist3 = MATRIX_SIZE_1D;
-                dir2 = 0;
-                dir3 = -1;
-            }
-            else
-            {
-                LOG_GAME("Invalid position: %d %d %d - %d %d %d", mX, mY, mZ, mDirX, mDirY, mDirZ);
-            }
-            detectCurrentDir();
         }
     }
     return isChanged;
@@ -391,7 +417,7 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
     int position = PixelCoordinate::getArrayPosition(mX, mY, mZ);
     if (isExists(position))
     {
-        LOG_GAME("Game over!");
+        LOG_GAME("Game over! Score: %d", mLength);
         return NEXT_MOVE_CODE_GAME_OVER;
     }
     if (mX == mTargetX && mY == mTargetY && mZ == mTargetZ)
@@ -418,6 +444,7 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
                 setX = mX;
                 setY = mY;
                 setZ = mZ;
+                LOG_GAME("Level up! Score: %d", mLength);
                 return NEXT_MOVE_CODE_PLUS;
             }
         }
