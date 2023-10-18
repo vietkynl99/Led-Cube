@@ -290,7 +290,7 @@ void HardwareController::measureBattery()
                 {
                     mBatteryLevel = 0;
                 }
-                LOG_SYSTEM("Battery: %d -> %.2fV (%d%%)", (int)result, voltage, mBatteryLevel);
+                LOG_SENSOR("Battery: %d -> %.2fV (%d%%)", (int)result, voltage, mBatteryLevel);
             }
         }
     }
@@ -429,10 +429,10 @@ void HardwareController::changeAdcMode(int mode)
 {
     if (!isAdcAvailable() && mode != ADC_MODE_NONE)
     {
-        LOG_SYSTEM("Error: ADC is not available. Current mode %d", mAdcMode);
+        LOG_SENSOR("Error: ADC is not available. Current mode %d", mAdcMode);
         return;
     }
     mAdcMode = mode;
-    LOG_SYSTEM("ADC mode changed to %d", mAdcMode);
+    LOG_SENSOR("ADC mode changed to %d", mAdcMode);
     digitalWrite(ADC_CTRL_PIN, mAdcMode == ADC_MODE_BATTERY);
 }

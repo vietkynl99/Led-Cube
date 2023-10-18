@@ -8,6 +8,7 @@
 #define LOG_WIFI(...) LOG("WIFI", __VA_ARGS__)
 #define LOG_SYSTEM(...) LOG("SYSTEM", __VA_ARGS__)
 #define LOG_SERVER(...) LOG("SERVER", __VA_ARGS__)
+#define LOG_SENSOR(...) LOG("SENSOR", __VA_ARGS__)
 #define LOG_LED(...) LOG("LED", __VA_ARGS__)
 #define LOG_GAME(...) LOG("GAME", __VA_ARGS__)
 #else
@@ -15,6 +16,9 @@
 #define LOG_WIFI(MSG)
 #define LOG_SYSTEM(MSG)
 #define LOG_SERVER(MSG)
+#define LOG_SENSOR(MSG)
+#define LOG_LED(MSG)
+#define LOG_GAME(MSG)
 #endif
 
 class VLog
