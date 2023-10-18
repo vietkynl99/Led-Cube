@@ -29,9 +29,9 @@ Press and then long press for about 3s: Reset wifi settings
 #define BUTTON_SCAN_TIME                20UL    // ms
 #define BUTTON_SHORT_PRESS_TIME_MIN     50UL  // ms
 #define BUTTON_SHORT_PRESS_TIME_MAX     300UL  // ms
+#define BUTTON_PRE_PRESS_TIME_MAX       1000UL  // ms
 #define BUTTON_LONG_PRESS_TIME          3000UL  // ms
-#define BUTTON_DOUBLE_LONG_PRESS_TIME   1000UL  // ms
-#define BUTTON_PAIR_MODE_TIMEOUT        15000UL // ms
+#define BUTTON_LONG_PRESS_TIMEOUT       15000UL // ms
 
 #define BUZZER_OUTPUT_TIME              60UL    // ms
 #define BUZZER_PWM_MAX                  150
@@ -68,6 +68,14 @@ Press and then long press for about 3s: Reset wifi settings
 #define MPU6050_OFFSET_GYRO_Y 3
 #define MPU6050_OFFSET_GYRO_Z 0
 
+enum ButtonState {
+    BUTTON_STATE_NONE,
+    BUTTON_STATE_SHORT_PRESSED,
+    BUTTON_STATE_LONG_PRESSED,
+    BUTTON_STATE_PRESSED_AND_LONG_PRESSED,
+    BUTTON_STATE_DOUBLE_PRESSED_AND_LONG_PRESSED
+};
+
 class HardwareController
 {
 private:
@@ -101,6 +109,7 @@ private:
     void initEEPROM();
     void initSensors();
     void fakePairModeHandler();
+    void setPairMode(bool enable);
     void checkPairMode();
     void setBeepState(bool state);
     void beepHandler();

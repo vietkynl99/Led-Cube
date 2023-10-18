@@ -13,11 +13,11 @@ HardwareController *HardwareController::getInstance()
 
 HardwareController::HardwareController()
 {
-    mPairMode = false;
     mFakePairMode = false;
     mBeepPlayingCount = 0;
     mBatteryLevel = -1;
     mAdcMode = ADC_MODE_NONE;
+    setPairMode(false);
 }
 
 void HardwareController::init()
@@ -106,7 +106,7 @@ void HardwareController::fakePairModeHandler()
     }
     if (mFakePairMode)
     {
-        if ((unsigned long long)(millis() - fakePairTime) > BUTTON_PAIR_MODE_TIMEOUT)
+        if ((unsigned long long)(millis() - fakePairTime) > BUTTON_LONG_PRESS_TIMEOUT)
         {
             LOG_SERVER("Turn off fake pair mode");
             mFakePairMode = 0;
@@ -115,19 +115,19 @@ void HardwareController::fakePairModeHandler()
     preFakePairMode = mFakePairMode;
 }
 
+void HardwareController::setPairMode(bool enable)
+{
+    mPairMode = enable;
+}
+
 void HardwareController::checkPairMode()
 {
     static bool prePairMode = false;
-    bool pairMode = isPairingMode();
-    if (prePairMode != pairMode)
+    if (prePairMode != isPairingMode())
     {
-        LOG_SERVER("Pair mode changed to: %d", pairMode);
-        if (mPairMode)
-        {
-            beep(2);
-        }
+        prePairMode = isPairingMode();
+        LOG_SERVER("Pair mode changed to: %d", isPairingMode());
     }
-    prePairMode = pairMode;
 }
 
 void HardwareController::setBeepState(bool state)
@@ -162,57 +162,79 @@ void HardwareController::beepHandler()
 
 void HardwareController::buttonHandler()
 {
-    static bool oldState = false;
-    static bool newState = false;
+    static bool oldState = false, newState = false;
     static unsigned long long time = 0;
-    static unsigned long long risingTime = 0, pressTime = 0, lastPressTime = 0;
+    static unsigned long long risingTime = 0, preRisingTime = 0, lastRisingTime = 0;
+    static bool hasLastPress = false, hasPrePress = false, hasShortPress = false, hasLongPress = false;
+    static int buttonState = BUTTON_STATE_NONE, preButtonState = BUTTON_STATE_NONE;
 
-    if ((unsigned long long)(millis() - time) > BUTTON_SCAN_TIME)
+    if (millis() > time)
     {
-        time = millis();
+        time = millis() + BUTTON_SCAN_TIME;
         oldState = newState;
         newState = !digitalRead(BUTTON_PIN);
+        preButtonState = buttonState;
+        buttonState = BUTTON_STATE_NONE;
 
         // Rising edge
         if (!oldState && newState)
         {
-            lastPressTime = risingTime;
+            lastRisingTime = preRisingTime;
+            preRisingTime = risingTime;
             risingTime = millis();
         }
-        // Falling edge
-        if (oldState && !newState)
+
+        unsigned long long pressTime = millis() - risingTime;
+        unsigned long long prePressTime = risingTime - preRisingTime;
+        unsigned long long lastPressTime = preRisingTime - lastRisingTime;
+        hasShortPress = oldState && !newState && pressTime > BUTTON_SHORT_PRESS_TIME_MIN && pressTime < BUTTON_SHORT_PRESS_TIME_MAX;
+        hasLongPress = newState && pressTime > BUTTON_LONG_PRESS_TIME && pressTime < BUTTON_LONG_PRESS_TIMEOUT;
+        hasPrePress = (hasShortPress || hasLongPress) && prePressTime > BUTTON_SHORT_PRESS_TIME_MIN && prePressTime < BUTTON_PRE_PRESS_TIME_MAX;
+        hasLastPress = hasPrePress && lastPressTime > BUTTON_SHORT_PRESS_TIME_MIN && lastPressTime < BUTTON_PRE_PRESS_TIME_MAX;
+
+        if (!hasLastPress && !hasPrePress && hasShortPress)
         {
-            mPairMode = false;
-            pressTime = millis() - risingTime;
-            if (pressTime > BUTTON_SHORT_PRESS_TIME_MIN && pressTime < BUTTON_SHORT_PRESS_TIME_MAX)
+            buttonState = BUTTON_STATE_SHORT_PRESSED;
+        }
+        else if (hasLongPress)
+        {
+            if (!hasLastPress && !hasPrePress)
             {
-                beep(1);
-                LedManager::getInstance()->changeToNextType();
+                buttonState = BUTTON_STATE_LONG_PRESSED;
+            }
+            else if (!hasLastPress && hasPrePress)
+            {
+                buttonState = BUTTON_STATE_PRESSED_AND_LONG_PRESSED;
+            }
+            else if (hasLastPress && hasPrePress)
+            {
+                buttonState = BUTTON_STATE_DOUBLE_PRESSED_AND_LONG_PRESSED;
             }
         }
-        // ON state
-        if (newState)
+        // State changed
+        if (preButtonState != buttonState)
         {
-            pressTime = millis() - risingTime;
-            // long press
-            if (pressTime > BUTTON_LONG_PRESS_TIME)
+            LOG_SYSTEM("Button state changed: %d", buttonState);
+            switch (buttonState)
             {
-                // Press then long press
-                if (risingTime - lastPressTime < BUTTON_DOUBLE_LONG_PRESS_TIME)
-                {
-                    beep(3, true);
-                    WifiMaster::getInstance()->resetWifiSettings();
-                }
-                // Only long press
-                else
-                {
-                    mPairMode = pressTime < BUTTON_PAIR_MODE_TIMEOUT;
-                }
-            }
-            // short press
-            else
-            {
-                mPairMode = false;
+            case BUTTON_STATE_SHORT_PRESSED:
+                beep(1);
+                LedManager::getInstance()->changeToNextType();
+                break;
+            case BUTTON_STATE_LONG_PRESSED:
+                beep(2);
+                break;
+            case BUTTON_STATE_PRESSED_AND_LONG_PRESSED:
+                beep(3);
+                setPairMode(true);
+                break;
+            case BUTTON_STATE_DOUBLE_PRESSED_AND_LONG_PRESSED:
+                beep(4, true);
+                WifiMaster::getInstance()->resetWifiSettings();
+                break;
+            default:
+                setPairMode(false);
+                break;
             }
         }
     }
