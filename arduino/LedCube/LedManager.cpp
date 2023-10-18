@@ -22,11 +22,11 @@ LedManager::LedManager()
     mSubType = SUB_TYPE_NONE;
     mGHue = HUE_GREEN;
     mDHue = 0;
-    mfirstTime = true;
     mPriorityMode = PRIORITY_TYPE_NONE;
     mPriorityModeFirstTime = false;
     mPriorityTextHue = HUE_RED;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
+    resetEffect();
 }
 
 void LedManager::init()
@@ -134,8 +134,7 @@ void LedManager::setType(int type, bool force)
             }
         }
         // Reset
-        turnOff();
-        mfirstTime = true;
+        resetEffect();
     }
 }
 
@@ -153,8 +152,7 @@ void LedManager::setSubType(int subType, bool force)
         mSubType = subType;
         LOG_LED("Change subType -> type: %d, subType: %d, brightness: %d, sensitivity: %d", mType, mSubType, mBrightness, mSensitivity);
         // Reset
-        turnOff();
-        mfirstTime = true;
+        resetEffect();
     }
 }
 
@@ -247,7 +245,7 @@ void LedManager::command(int commandType)
         {
             if (commandType == COMMAND_GAME_START)
             {
-                mfirstTime = true;
+                resetEffect();
             }
             else
             {
@@ -362,6 +360,12 @@ void LedManager::showPriorityScrollText(const char *text, uint16_t hue)
     setPriorityMode(PRIORITY_TYPE_SCROLL_TEXT);
     strncpy(mPriorityText, text, sizeof(mPriorityText));
     mPriorityTextHue = hue;
+}
+
+void LedManager::resetEffect()
+{
+    mfirstTime = true;
+    turnOff();
 }
 
 void LedManager::renderHandler()
@@ -646,7 +650,7 @@ void LedManager::snakeEffectHandler()
             if (retCode == NEXT_MOVE_CODE_WIN_GAME)
             {
                 // reset
-                mfirstTime = true;
+                resetEffect();
                 showPriorityScrollText("You Win");
             }
             else if (retCode == NEXT_MOVE_CODE_PLUS)
@@ -661,7 +665,7 @@ void LedManager::snakeEffectHandler()
             else
             {
                 // game over
-                mfirstTime = true;
+                resetEffect();
                 showPriorityScrollText("Game Over");
             }
         }

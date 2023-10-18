@@ -128,6 +128,7 @@ private:
     void showPriorityWrongWarning();
     void showPriorityScrollText(const char *text, uint16_t hue = HUE_RED);
 
+    void resetEffect();
     void renderHandler();
     void priorityModeHandler();
     void rgbEffectHandler();
