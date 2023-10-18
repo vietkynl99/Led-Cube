@@ -288,7 +288,7 @@ void SnakeGameManager::handleDirByMpu()
                     if (matrixPosition >= 0)
                     {
                         newDir = matrixDir[matrixPosition][i];
-                        LOG_GAME("matrix: %d, i: %d, gypro: %d %d %d %d %d %d -> newDir: %d", matrixPosition, i, gyroDir[0], gyroDir[1], gyroDir[2], gyroDir[3], gyroDir[4], gyroDir[5], newDir);
+                        // LOG_GAME("matrix: %d, i: %d, gypro: %d %d %d %d %d %d -> newDir: %d", matrixPosition, i, gyroDir[0], gyroDir[1], gyroDir[2], gyroDir[3], gyroDir[4], gyroDir[5], newDir);
                     }
                     break;
                 }
