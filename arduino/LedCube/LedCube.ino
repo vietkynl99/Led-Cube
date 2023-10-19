@@ -60,6 +60,8 @@ void setup()
 	wifiMaster->init();
 	ServerManager::init();
 	// serviceManager->init();
+
+	LOG_SYSTEM("Start main loop");
 }
 
 void loop()
