@@ -25,6 +25,7 @@ LedManager::LedManager()
     mPriorityMode = PRIORITY_TYPE_NONE;
     mPriorityModeFirstTime = false;
     mPriorityTextHue = HUE_RED;
+    mPriorityParam = 0;
     strip = new Adafruit_NeoPixel(NUM_LEDS, LED_DATA_PIN, LED_TYPE);
     resetEffect();
 }
@@ -346,8 +347,12 @@ void LedManager::showCharacterCenter(char character, uint16_t hue)
 
 void LedManager::setPriorityMode(int mode)
 {
-    mPriorityMode = mode;
-    mPriorityModeFirstTime = true;
+    if (mPriorityMode != mode)
+    {
+        mPriorityMode = mode;
+        mPriorityModeFirstTime = true;
+        LOG_LED("Priority mode changed to %d", mPriorityMode);
+    }
 }
 
 void LedManager::showPriorityWrongWarning()
@@ -360,6 +365,12 @@ void LedManager::showPriorityScrollText(const char *text, uint16_t hue)
     setPriorityMode(PRIORITY_TYPE_SCROLL_TEXT);
     strncpy(mPriorityText, text, sizeof(mPriorityText));
     mPriorityTextHue = hue;
+}
+
+void LedManager::showPriorityAttention(bool isFullMode)
+{
+    setPriorityMode(PRIORITY_TYPE_ATTENTION_SIDES);
+    mPriorityParam = isFullMode;
 }
 
 void LedManager::resetEffect()
@@ -392,6 +403,8 @@ void LedManager::priorityModeHandler()
         mPriorityModeFirstTime = false;
         count = 0;
         turnOff();
+        // Do nothing during the first 200ms
+        time = millis() + 200UL;
     }
 
     switch (mPriorityMode)
@@ -440,13 +453,49 @@ void LedManager::priorityModeHandler()
         }
         break;
     }
+    case PRIORITY_TYPE_ATTENTION_SIDES:
+    {
+        if (millis() > time)
+        {
+            time = millis() + 10UL;
+            count++;
+            for (int position = 0; position < NUM_LEDS; position++)
+            {
+                int x, y, z, brightness;
+                if (PixelCoordinate::getDescartesPositions(position, x, y, z))
+                {
+                    if (!mPriorityParam)
+                    {
+                        if (z != MATRIX_SIZE_1D + 1)
+                        {
+                            continue;
+                        }
+                        brightness = 255 - abs(25 * (x + y - 18 + 36 * (count / 50.0 - 0.5)));
+                    }
+                    else
+                    {
+                        brightness = 255 - abs(20 * (x + y + z - 14 + 28 * (count / 50.0 - 0.5)));
+                    }
+                    brightness = max(brightness, 0);
+                    brightness = min(brightness, 255);
+                    setLedPosition(position, 1, HUE_BLUE, 0, brightness);
+                }
+            }
+            // exit priority mode
+            if (count > 50)
+            {
+                setPriorityMode(PRIORITY_TYPE_NONE);
+            }
+        }
+        break;
+    }
     default:
         break;
     }
 
     if (mPriorityMode == PRIORITY_TYPE_NONE)
     {
-        turnOff();
+        resetEffect();
     }
 }
 
@@ -705,6 +754,11 @@ void LedManager::changeToNextSubType()
     if (minSubType >= 0 && minSubType < maxSubType)
     {
         setSubType((mSubType - minSubType) % (maxSubType - minSubType - 1) + minSubType + 1);
+    }
+
+    if (mType == SNAKE)
+    {
+        showPriorityAttention(mSubType == SNAKE_SUB_TYPE_FULL_SIDES);
     }
 }
 

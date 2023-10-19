@@ -78,7 +78,8 @@ private:
     {
         PRIORITY_TYPE_NONE,
         PRIORITY_TYPE_WRONG_WARNING,
-        PRIORITY_TYPE_SCROLL_TEXT
+        PRIORITY_TYPE_SCROLL_TEXT,
+        PRIORITY_TYPE_ATTENTION_SIDES
     };
 
     static LedManager *instance;
@@ -97,6 +98,7 @@ private:
     bool mPriorityModeFirstTime;
     char mPriorityText[PRIORITY_TEXT_SIZE];
     uint16_t mPriorityTextHue;
+    int mPriorityParam;
     arduinoFFT *FFT;
 
 private:
@@ -127,6 +129,7 @@ private:
     void setPriorityMode(int mode);
     void showPriorityWrongWarning();
     void showPriorityScrollText(const char *text, uint16_t hue = HUE_RED);
+    void showPriorityAttention(bool isFullMode);
 
     void resetEffect();
     void renderHandler();
