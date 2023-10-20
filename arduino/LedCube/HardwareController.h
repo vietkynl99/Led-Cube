@@ -29,7 +29,7 @@ Press and then long press for about 3s: Reset wifi settings
 #define BUTTON_SCAN_TIME                20UL    // ms
 #define BUTTON_SHORT_PRESS_TIME_MIN     50UL  // ms
 #define BUTTON_SHORT_PRESS_TIME_MAX     300UL  // ms
-#define BUTTON_PRE_PRESS_TIME_MAX       1000UL  // ms
+#define BUTTON_PRE_PRESS_TIME_MAX       700UL  // ms
 #define BUTTON_LONG_PRESS_TIME          3000UL  // ms
 #define BUTTON_LONG_PRESS_TIMEOUT       15000UL // ms
 
