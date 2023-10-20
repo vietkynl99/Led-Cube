@@ -120,6 +120,7 @@ public:
     void changeToNextSubType();
 
 private:
+    bool isEffectEnable(int effectType);
     void readPreviousEEPROMData(int &data, int address, int minValue, int maxValue, int defaultValue);
     void readPreviousEEPROMData(uint16_t &data, int address);
     void restoreSettings();

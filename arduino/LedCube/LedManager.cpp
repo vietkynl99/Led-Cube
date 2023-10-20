@@ -71,6 +71,15 @@ void LedManager::init()
 #endif
 }
 
+bool LedManager::isEffectEnable(int effectType)
+{
+    if (effectType < OFF || effectType >= EFFECT_MAX)
+    {
+        return false;
+    }
+    return effectType == OFF || effectType == RGB || effectType == MUSIC || effectType == GRAVITY || effectType == SNAKE;
+}
+
 void LedManager::readPreviousEEPROMData(int &data, int address, int minValue, int maxValue, int defaultValue)
 {
     EEPROM_GET_DATA(address, data);
@@ -731,7 +740,17 @@ void LedManager::snakeEffectHandler()
 
 void LedManager::changeToNextType()
 {
-    setType((mType + 1) % EFFECT_MAX);
+    int type = mType;
+    for (int i = 0; i < EFFECT_MAX; i++)
+    {
+        type = (type + 1) % EFFECT_MAX;
+        if (isEffectEnable(type))
+        {
+            setType(type);
+            return;
+        }
+    }
+    LOG_LED("Cannot find next effect");
 }
 
 void LedManager::changeToNextSubType()
