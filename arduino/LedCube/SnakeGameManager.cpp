@@ -469,22 +469,22 @@ int SnakeGameManager::nextMove(int &setX, int &setY, int &setZ, int &clearX, int
 
 void SnakeGameManager::command(int command)
 {
-    // if (command == COMMAND_GAME_RIGHT)
-    // {
-    //     setDir(DIR_MODE_RIGHT);
-    // }
-    // else if (command == COMMAND_GAME_UP)
-    // {
-    //     setDir(DIR_MODE_UP);
-    // }
-    // else if (command == COMMAND_GAME_LEFT)
-    // {
-    //     setDir(DIR_MODE_LEFT);
-    // }
-    // else if (command == COMMAND_GAME_DOWN)
-    // {
-    //     setDir(DIR_MODE_DOWN);
-    // }
+    if (command == COMMAND_GAME_RIGHT)
+    {
+        setDir(DIR_MODE_Y_INC);
+    }
+    else if (command == COMMAND_GAME_UP)
+    {
+        setDir(DIR_MODE_X_INC);
+    }
+    else if (command == COMMAND_GAME_LEFT)
+    {
+        setDir(DIR_MODE_Y_DEC);
+    }
+    else if (command == COMMAND_GAME_DOWN)
+    {
+        setDir(DIR_MODE_X_DEC);
+    }
 }
 
 void SnakeGameManager::getCurrentPosition(int &x, int &y, int &z)
