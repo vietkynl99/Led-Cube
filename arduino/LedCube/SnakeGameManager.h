@@ -14,7 +14,7 @@
 #define START_DEFAULT_Y     4
 #define START_DEFAULT_Z     9
 
-#define GYRO_THRESHOLD      250
+#define GYRO_THRESHOLD      200
 
 enum NextModeCode
 {
