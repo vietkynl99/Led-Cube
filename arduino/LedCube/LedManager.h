@@ -39,7 +39,6 @@
 #define DEFAULT_SENSITIVITY 50
 
 #define PRIORITY_TEXT_SIZE  32
-#define PRIORITY_SCROLL_TEXT_DELAY  200
 
 class LedManager
 {
@@ -98,7 +97,8 @@ private:
     bool mPriorityModeFirstTime;
     char mPriorityText[PRIORITY_TEXT_SIZE];
     uint16_t mPriorityTextHue;
-    int mPriorityParam;
+    int mPriorityParam1;
+    int mPriorityParam2;
     arduinoFFT *FFT;
 
 private:
@@ -119,18 +119,22 @@ public:
     void changeToNextType();
     void changeToNextSubType();
 
+    void showPriorityWrongWarning();
+    void showPriorityText(const char *text, bool vertical = true, uint16_t hue = HUE_RED);
+    void showPriorityNumber(int number, bool vertical = true, uint16_t hue = HUE_RED);
+    void showPriorityAttention(bool isFullMode);
+
 private:
     bool isEffectEnable(int effectType);
     void readPreviousEEPROMData(int &data, int address, int minValue, int maxValue, int defaultValue);
     void readPreviousEEPROMData(uint16_t &data, int address);
     void restoreSettings();
     
-    void showCharacter(char character, uint16_t hue, int offset = 0);
-    void showCharacterCenter(char character, uint16_t hue);
+    void showCharacterVertically(char character, uint16_t hue, int offset = 0);
+    void showCharacterOnTop(char character, uint16_t hue, int offset = 0);
+    void showCharacterVerticallyCenter(char character, uint16_t hue);
+    void showString(char *str, uint16_t hue, int offset, bool vertical);
     void setPriorityMode(int mode);
-    void showPriorityWrongWarning();
-    void showPriorityScrollText(const char *text, uint16_t hue = HUE_RED);
-    void showPriorityAttention(bool isFullMode);
 
     void resetEffect();
     void renderHandler();

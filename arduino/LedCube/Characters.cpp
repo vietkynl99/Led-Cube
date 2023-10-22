@@ -10,7 +10,23 @@ unsigned char Characters::getCode(char character, int column)
     return 0;
 }
 
-unsigned char Characters::getWidth(char character)
+int Characters::getWidth(char character)
 {
     return getCode(character, 0);
+}
+
+int Characters::getStringWidth(const char *str)
+{
+    int sum = 0;
+    for (int i = 0; i < strlen(str); i++)
+    {
+        // Add 1 space between characters
+        sum += getWidth(str[i]) + 1;
+    }
+    // Remove space in the end of string
+    if (sum > 1)
+    {
+        sum--;
+    }
+    return sum;
 }

@@ -34,6 +34,11 @@ void SnakeGameManager::resetGame()
     setDir(DIR_MODE_NONE, true);
 }
 
+int SnakeGameManager::getScore()
+{
+    return mLength;
+}
+
 void SnakeGameManager::setLengthMax(int max)
 {
     mLengthMax = max;

@@ -113,7 +113,8 @@ class Characters
 {
 public:
     static unsigned char getCode(char character, int column);
-    static unsigned char getWidth(char character);
+    static int getWidth(char character);
+    static int getStringWidth(const char *str);
 };
 
 #endif

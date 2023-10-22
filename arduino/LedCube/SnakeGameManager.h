@@ -81,6 +81,7 @@ public:
     void setGameMode(int mode);
     void startGame();
     void resetGame();
+    int getScore();
     void setDir(int dir, bool force = false);
 #ifdef ENABLE_MPU6050_SENSOR
     void handleDirByMpu();
