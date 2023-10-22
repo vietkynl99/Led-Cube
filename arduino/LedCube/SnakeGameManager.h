@@ -1,6 +1,8 @@
 #ifndef _SNAKE_GAME_MANAGER_H_
 #define _SNAKE_GAME_MANAGER_H_
 
+#include <Arduino.h>
+#include <avr/pgmspace.h>
 #include "VLog.h"
 #include "PixelCoordinate.h"
 #include "HardwareController.h"
@@ -42,6 +44,14 @@ enum GameMode
     GAME_MODE_FULL_SIDES
 };
 
+PROGMEM const unsigned char progmemMatrixDir[6][6] =
+    {{DIR_MODE_Y_DEC, DIR_MODE_Y_INC, DIR_MODE_X_INC, DIR_MODE_X_DEC, DIR_MODE_NONE, DIR_MODE_NONE},  // z = 0
+     {DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_Z_DEC, DIR_MODE_Z_INC, DIR_MODE_Y_DEC, DIR_MODE_Y_INC},  // x = 0
+     {DIR_MODE_Z_INC, DIR_MODE_Z_DEC, DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_X_INC, DIR_MODE_X_DEC},  // y = 0
+     {DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_Z_INC, DIR_MODE_Z_DEC, DIR_MODE_Y_INC, DIR_MODE_Y_DEC},  // x = 9
+     {DIR_MODE_Y_INC, DIR_MODE_Y_DEC, DIR_MODE_X_DEC, DIR_MODE_X_INC, DIR_MODE_NONE, DIR_MODE_NONE},  // z = 9
+     {DIR_MODE_Z_DEC, DIR_MODE_Z_INC, DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_X_DEC, DIR_MODE_X_INC}}; // y = 9
+
 class SnakeGameManager
 {
 private:
@@ -62,13 +72,6 @@ private:
     int mTargetY;
     int mTargetZ;
     int mGameMode;
-
-    int matrixDir[6][6] = {{DIR_MODE_Y_DEC, DIR_MODE_Y_INC, DIR_MODE_X_INC, DIR_MODE_X_DEC, DIR_MODE_NONE, DIR_MODE_NONE}, // z = 0
-                           {DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_Z_DEC, DIR_MODE_Z_INC, DIR_MODE_Y_DEC, DIR_MODE_Y_INC}, // x = 0
-                           {DIR_MODE_Z_INC, DIR_MODE_Z_DEC, DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_X_INC, DIR_MODE_X_DEC}, // y = 0
-                           {DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_Z_INC, DIR_MODE_Z_DEC, DIR_MODE_Y_INC, DIR_MODE_Y_DEC}, // x = 9
-                           {DIR_MODE_Y_INC, DIR_MODE_Y_DEC, DIR_MODE_X_DEC, DIR_MODE_X_INC, DIR_MODE_NONE, DIR_MODE_NONE}, // z = 9
-                           {DIR_MODE_Z_DEC, DIR_MODE_Z_INC, DIR_MODE_NONE, DIR_MODE_NONE, DIR_MODE_X_DEC, DIR_MODE_X_INC}}; // y = 9
 
 private:
     SnakeGameManager();
