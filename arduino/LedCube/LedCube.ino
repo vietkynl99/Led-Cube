@@ -1,4 +1,4 @@
-#include <UART_Debug.h>
+#include <SerialParser.h>
 #include "VLog.h"
 #include "HardwareController.h"
 #include "WifiMaster.h"
@@ -14,33 +14,33 @@ LedManager *ledManager;
 #if USE_SERIAL_DEBUG
 void debugHandler()
 {
-	static char FC[20];
+	static char cmd[20];
 	static long code;
 
-	if (UART_Debug(FC, &code))
+	if (SerialParser::run(cmd, code))
 	{
 		// Reset wifi settings
-		if (!strcmp(FC, "RSWIFI"))
+		if (!strcmp(cmd, "RSWIFI"))
 		{
 			wifiMaster->resetWifiSettings();
 		}
 		// Reset API KEY
-		else if (!strcmp(FC, "RSKEY"))
+		else if (!strcmp(cmd, "RSKEY"))
 		{
 			ServerManager::resetApiKey();
 		}
 		// Fake pair mode
-		else if (!strcmp(FC, "PAIR"))
+		else if (!strcmp(cmd, "PAIR"))
 		{
 			hardwareController->turnOnFakePairMode();
 		}
 		// Start in Snake Game
-		else if (!strcmp(FC, "START"))
+		else if (!strcmp(cmd, "START"))
 		{
 			LedManager::getInstance()->command(COMMAND_GAME_START);
 		}
 		// Set dir in Snake Game
-		else if (!strcmp(FC, "DIR"))
+		else if (!strcmp(cmd, "DIR"))
 		{
 			SnakeGameManager::getInstance()->setDir(code, true);
 		}
@@ -60,6 +60,10 @@ void setup()
 	wifiMaster->init();
 	ServerManager::init();
 	// serviceManager->init();
+
+#if USE_SERIAL_DEBUG
+	SerialParser::setFeedbackEnable(true);
+#endif
 
 	LOG_SYSTEM("Start main loop");
 }
