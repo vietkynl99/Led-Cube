@@ -14,33 +14,33 @@ LedManager *ledManager;
 #if USE_SERIAL_DEBUG
 void debugHandler()
 {
-	static char cmd[20];
+	static String cmd;
 	static long code;
 
-	if (SerialParser::run(cmd, code))
+	if (SerialParser::run(&cmd, &code))
 	{
 		// Reset wifi settings
-		if (!strcmp(cmd, "RSWIFI"))
+		if (cmd.equals("RSWIFI"))
 		{
 			wifiMaster->resetWifiSettings();
 		}
 		// Reset API KEY
-		else if (!strcmp(cmd, "RSKEY"))
+		else if (cmd.equals("RSKEY"))
 		{
 			ServerManager::resetApiKey();
 		}
 		// Fake pair mode
-		else if (!strcmp(cmd, "PAIR"))
+		else if (cmd.equals("PAIR"))
 		{
 			hardwareController->turnOnFakePairMode();
 		}
 		// Start in Snake Game
-		else if (!strcmp(cmd, "START"))
+		else if (cmd.equals("START"))
 		{
 			LedManager::getInstance()->command(COMMAND_GAME_START);
 		}
 		// Set dir in Snake Game
-		else if (!strcmp(cmd, "DIR"))
+		else if (cmd.equals("DIR"))
 		{
 			SnakeGameManager::getInstance()->setDir(code, true);
 		}
