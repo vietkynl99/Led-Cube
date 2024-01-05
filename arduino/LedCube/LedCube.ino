@@ -16,8 +16,9 @@ void debugHandler()
 {
 	static String cmd;
 	static long code;
+	static String valueStr;
 
-	if (SerialParser::run(&cmd, &code))
+	if (SerialParser::run(&cmd, &code, &valueStr))
 	{
 		// Reset wifi settings
 		if (cmd.equals("RSWIFI"))
@@ -43,6 +44,22 @@ void debugHandler()
 		else if (cmd.equals("DIR"))
 		{
 			SnakeGameManager::getInstance()->setDir(code, true);
+		}
+		// WF <ssid>,<password>
+		else if (cmd.equals("WF"))
+		{
+			if (valueStr.length() > 0)
+			{
+				int index = valueStr.indexOf(',');
+				if (index > 0)
+				{
+					String ssid = valueStr.substring(0, index);
+					String password = valueStr.substring(index + 1);
+					LOG_SYSTEM("Set wifi information: ssid: '%s', password: '%s'", ssid.c_str(), password.c_str());
+					AsyncWiFiManager::setWifiInformation(ssid, password);
+					ESP.restart();
+				}
+			}
 		}
 	}
 }

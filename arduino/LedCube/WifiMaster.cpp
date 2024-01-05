@@ -22,25 +22,16 @@ void WifiMaster::printConnectedWifiInfo()
 
 void WifiMaster::init()
 {
-    wifiManager = new ESP_WiFiManager_Lite();
+    AsyncWiFiManager::setAPInformation(AP_SSID, AP_PASSWORD);
+    AsyncWiFiManager::setMDnsServerName(MDNS_HOSTNAME);
 
-    // Set customized AP SSID and PWD
-    wifiManager->setConfigPortal(AP_SSID, AP_PASSWORD);
-
-    // Optional to change default AP IP(192.168.4.1) and channel(10)
-    // wifiManager->setConfigPortalIP(IPAddress(192, 168, 120, 1));
-    wifiManager->setConfigPortalChannel(0);
-
-    // Set customized DHCP HostName
-    wifiManager->begin(DHCP_HOSTNAME);
-    // Or use default Hostname "ESP32-WIFI-XXXXXX"
-    // wifiManager->begin();
+    AsyncWiFiManager::begin();
 }
 
 void WifiMaster::resetWifiSettings()
 {
     LOG_WIFI("Reset WIFI settings");
-    wifiManager->resetAndEnterConfigPortal();
+    AsyncWiFiManager::resetSettings();
     // ESP.restart();
 }
 
@@ -57,10 +48,6 @@ void WifiMaster::checkWifiStatus()
         }
         else if (pre_status < 0 || pre_status == WL_CONNECTED)
         {
-            if (wifiManager->isConfigMode())
-            {
-                LOG_WIFI("Switch to config mode");
-            }
             HardwareController::getInstance()->beep(2);
         }
         pre_status = status;
@@ -69,6 +56,6 @@ void WifiMaster::checkWifiStatus()
 
 void WifiMaster::loop()
 {
-    wifiManager->run();
+    AsyncWiFiManager::loop();
     checkWifiStatus();
 }
